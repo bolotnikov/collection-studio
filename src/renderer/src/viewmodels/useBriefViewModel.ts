@@ -1,24 +1,36 @@
-import { useState, type FormEvent } from 'react';
-import type { Bootstrap, Brief } from '../../../shared/Contracts';
+import { useEffect, useMemo, useSyncExternalStore, type FormEvent } from 'react';
+import type { Bootstrap, Brief, StudioApi } from '../../../shared/Contracts';
+import { BriefViewModel } from './BriefViewModel';
 
-export function useBriefViewModel(data: Bootstrap, onStart: (brief: Brief) => Promise<void>) {
-  const [theme, setTheme] = useState('');
-  const [wishes, setWishes] = useState('');
-  const [variants, setVariants] = useState(1);
-  const ready =
-    data.codexReady &&
-    (data.settings.provider === 'codex' ? data.codexReady : data.hasKey) &&
-    data.referenceCount > 0;
+export function useBriefViewModel(data: Bootstrap, onStart: (brief: Brief) => Promise<void>, api: StudioApi) {
+  const model = useMemo(() => new BriefViewModel(api), [api]);
+  useEffect(() => {
+    model.activate();
+    return () => model.dispose();
+  }, [model]);
+  const state = useSyncExternalStore(model.subscribe, model.snapshot);
+  const textReady = data.settings.provider === 'codex' ? data.codexReady : data.hasKey;
+  const ready = data.codexReady && textReady && data.referenceCount > 0;
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (state.suggesting) return;
     void onStart({
-      theme,
-      wishes,
-      variants,
+      theme: state.theme,
+      wishes: state.wishes,
+      variants: state.variants,
       quality: 'low',
       autoRepair: true,
-      maxImageCalls: Math.min(150, variants * 10 * (1 + data.productionPolicy.maxRepairsPerCard)),
+      maxImageCalls: Math.min(150, state.variants * 10 * (1 + data.productionPolicy.maxRepairsPerCard)),
     });
   };
-  return { theme, setTheme, wishes, setWishes, variants, setVariants, ready, submit };
+  return {
+    ...state,
+    setTheme: model.setTheme,
+    setWishes: model.setWishes,
+    setVariants: model.setVariants,
+    ready,
+    submit,
+    canSuggest: textReady && state.theme.trim().length >= 2 && !state.suggesting,
+    suggest: () => model.suggest(),
+  };
 }

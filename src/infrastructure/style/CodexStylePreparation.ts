@@ -1,3 +1,4 @@
+import baseStyle from '../../../resources/style-profile.json';
 import legacyPrompts from '../../../resources/legacy-analysis-prompts.json';
 import { RetrievalConfiguration } from '../../shared/RetrievalConfiguration';
 import { PromptCatalog } from '../../application/prompts/PromptCatalog';
@@ -33,6 +34,7 @@ export class CodexStylePreparation implements StylePreparationPort {
     private readonly policy: StylePolicy,
     private readonly prompts = new PromptCatalog(),
     retrievalConfig = new RetrievalConfiguration().values,
+    private readonly categoryDefinitions: Profile['categories'] = baseStyle.categories,
   ) {
     this.retriever = new ReferenceRetriever(retrievalConfig);
   }
@@ -49,7 +51,7 @@ export class CodexStylePreparation implements StylePreparationPort {
     return path.join(
       this.cacheRoot,
       this.digest(
-        `analysis-v4:${this.model}:${item.sha256}:${this.prompts.values['CodexStylePreparation.indexLibrary']}`,
+        `analysis-v5:${this.model}:${item.sha256}:${JSON.stringify(this.categoryDefinitions)}:${this.prompts.values['CodexStylePreparation.indexLibrary']}`,
       ) + '.json',
     );
   }
@@ -59,7 +61,21 @@ export class CodexStylePreparation implements StylePreparationPort {
     } catch (error) {
       if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
       const template = this.prompts.values['CodexStylePreparation.indexLibrary'] ?? '';
-      if (this.digest(template) !== legacyPrompts['CodexStylePreparation.indexLibrary']) throw error;
+      if (
+        this.digest(template) !== legacyPrompts['CodexStylePreparation.indexLibrary'] ||
+        JSON.stringify(this.categoryDefinitions) !== JSON.stringify(baseStyle.categories)
+      )
+        throw error;
+      const previous = path.join(
+        this.cacheRoot,
+        this.digest(`analysis-v4:${this.model}:${item.sha256}:${template}`) + '.json',
+      );
+      try {
+        return await fs.readFile(previous, 'utf8');
+      } catch (previousError) {
+        if (!(previousError instanceof Error && 'code' in previousError && previousError.code === 'ENOENT'))
+          throw previousError;
+      }
       const legacy = path.join(
         this.cacheRoot,
         this.digest(`analysis-v3:${this.model}:${item.sha256}`) + '.json',
@@ -68,23 +84,38 @@ export class CodexStylePreparation implements StylePreparationPort {
     }
   }
   private async cached(item: LibraryItem): Promise<ReferenceAnalysis | null> {
-    if (this.analyses.has(item.id)) return this.analyses.get(item.id) ?? null;
+    if (this.analyses.has(item.id)) return this.curated(item, this.analyses.get(item.id) ?? null);
     try {
       const value = StyleContracts.analysis.parse(JSON.parse(await this.readCachedAnalysis(item)));
       this.analyses.set(item.id, value);
-      return value;
+      return this.curated(item, value);
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return null;
       throw error;
     }
+  }
+  private curated(item: LibraryItem, analysis: ReferenceAnalysis | null): ReferenceAnalysis | null {
+    if (!analysis || !item.metadata) return analysis;
+    return {
+      ...analysis,
+      subject: item.metadata.description,
+      category: analysis.category === '5' ? '5' : item.metadata.category,
+    };
   }
   /** Read-only display projection; never invokes a model or mutates the source catalog. */
   async catalog(): Promise<LibraryItem[]> {
     return Promise.all(
       this.library.map(async (item) => {
         const analysis = await this.cached(item);
-        if (!analysis) return { ...item, tags: [...item.tags] };
-        const category = analysis.category === '5' ? item.category : analysis.category;
+        if (!analysis)
+          return {
+            ...item,
+            category: item.metadata?.category ?? item.category,
+            title: item.metadata?.description ?? item.title,
+            tags: [...item.tags],
+          };
+        const category =
+          item.metadata?.category ?? (analysis.category === '5' ? item.category : analysis.category);
         const tags = [
           ...new Set([
             ...item.tags,
@@ -122,53 +153,75 @@ export class CodexStylePreparation implements StylePreparationPort {
     for (const item of items) if (!(await this.cached(item))) missing.push(item);
     let indexed = items.length - missing.length;
     await onProgress?.(indexed, items.length);
-    const schema = z.object({
-      entries: z.array(z.object({ id: z.string(), analysis: StyleContracts.analysis })),
-    });
-    const analyzeBatch = async (batch: LibraryItem[]): Promise<void> => {
-      for (const item of batch) {
-        const hash = createHash('sha256')
-          .update(await fs.readFile(this.filename(item)))
-          .digest('hex');
-        if (hash !== item.sha256) throw new Error(`Reference integrity mismatch: ${item.id}`);
-      }
-      const result = await this.runner.run(
-        this.prompts.render('CodexStylePreparation.indexLibrary', {
-          images: JSON.stringify(
-            batch.map((r) => ({ id: r.id, title: r.title, source: r.source, origin: r.origin })),
-          ),
-        }),
-        schema,
-        batch.map((r) => this.filename(r)),
-      );
-      if (
-        result.value.entries.length !== batch.length ||
-        new Set(result.value.entries.map((r) => r.id)).size !== batch.length ||
-        result.value.entries.some((r) => !batch.some((item) => item.id === r.id))
-      )
-        throw new Error('Library analysis returned missing, duplicated or unknown reference IDs.');
-      await fs.mkdir(this.cacheRoot, { recursive: true });
-      for (const item of batch) {
-        const entry = result.value.entries.find((r) => r.id === item.id);
-        if (!entry) throw new Error('Library analysis entry missing.');
-        const destination = this.cachePath(item),
-          temporary = `${destination}.${randomUUID()}.tmp`;
-        await fs.writeFile(temporary, JSON.stringify(entry.analysis, null, 2));
-        await fs.rename(temporary, destination);
-        this.analyses.set(item.id, entry.analysis);
-      }
-    };
     for (let start = 0; start < missing.length; start += 16) {
       if (shouldStop()) throw new Error('Reference analysis paused. Cached results retained.');
       const batches = [missing.slice(start, start + 8), missing.slice(start + 8, start + 16)].filter(
         (batch) => batch.length > 0,
       );
-      const results = await Promise.allSettled(batches.map(analyzeBatch));
+      const results = await Promise.allSettled(batches.map((batch) => this.analyzeBatch(batch)));
       indexed = items.filter((item) => this.analyses.has(item.id)).length;
       await onProgress?.(indexed, items.length);
       for (const result of results) if (result.status === 'rejected') throw result.reason;
     }
     return { indexed: items.length, total: items.length };
+  }
+  private async analyzeBatch(batch: LibraryItem[], persist = true): Promise<ReferenceAnalysis[]> {
+    const schema = z.object({
+      entries: z.array(z.object({ id: z.string(), analysis: StyleContracts.analysis })),
+    });
+    for (const item of batch) {
+      const hash = createHash('sha256')
+        .update(await fs.readFile(this.filename(item)))
+        .digest('hex');
+      if (hash !== item.sha256) throw new Error(`Reference integrity mismatch: ${item.id}`);
+    }
+    const result = await this.runner.run(
+      this.prompts.render('CodexStylePreparation.indexLibrary', {
+        images: JSON.stringify(
+          batch.map((r) => ({
+            id: r.id,
+            title: r.title,
+            source: r.source,
+            origin: r.origin,
+            activeCategoryDefinitions: this.categoryDefinitions,
+          })),
+        ),
+      }),
+      schema,
+      batch.map((r) => this.filename(r)),
+    );
+    if (
+      result.value.entries.length !== batch.length ||
+      new Set(result.value.entries.map((r) => r.id)).size !== batch.length ||
+      result.value.entries.some((r) => !batch.some((item) => item.id === r.id))
+    )
+      throw new Error('Library analysis returned missing, duplicated or unknown reference IDs.');
+    if (!persist)
+      return batch.map((item) => {
+        const entry = result.value.entries.find((entry) => entry.id === item.id);
+        if (!entry) throw new Error('Library analysis entry missing.');
+        return entry.analysis;
+      });
+    await fs.mkdir(this.cacheRoot, { recursive: true });
+    for (const item of batch) {
+      const entry = result.value.entries.find((r) => r.id === item.id);
+      if (!entry) throw new Error('Library analysis entry missing.');
+      const destination = this.cachePath(item),
+        temporary = `${destination}.${randomUUID()}.tmp`;
+      await fs.writeFile(temporary, JSON.stringify(entry.analysis, null, 2));
+      await fs.rename(temporary, destination);
+      this.analyses.set(item.id, entry.analysis);
+    }
+    return batch.map((item) => {
+      const analysis = this.analyses.get(item.id);
+      if (!analysis) throw new Error('Reference analysis missing.');
+      return analysis;
+    });
+  }
+  async analyzeReference(item: LibraryItem): Promise<ReferenceAnalysis> {
+    const [analysis] = await this.analyzeBatch([item], false);
+    if (!analysis) throw new Error('Reference analysis missing.');
+    return structuredClone(analysis);
   }
   private brief(brief: Brief): Promise<string> {
     const key = JSON.stringify([brief.theme, brief.wishes, this.policy.rules]);
@@ -211,7 +264,7 @@ export class CodexStylePreparation implements StylePreparationPort {
         variant.concept,
         profile.rules,
         this.policy,
-        this.library.map((r) => [r.id, r.sha256, r.approved]),
+        this.library.map((r) => [r.id, r.sha256, r.approved, r.metadata]),
       ]),
     );
     let task = this.preparations.get(key);
@@ -236,16 +289,20 @@ export class CodexStylePreparation implements StylePreparationPort {
     await this.initialize();
     const direction = await this.brief(brief);
     const query = `${direction} ${variant.concept} ${card.subject} ${card.description} ${card.role} ${JSON.stringify(card.visual ?? {})} ${correction}`;
-    await Promise.all(this.library.map((item) => this.cached(item)));
+    const analyses = new Map<string, ReferenceAnalysis>();
+    for (const item of this.library) {
+      const analysis = await this.cached(item);
+      if (analysis) analyses.set(item.id, analysis);
+    }
     const effective = (await this.catalog()).filter(
-      (item) => this.analyses.get(item.id)?.eligible && this.analyses.get(item.id)?.category !== '5',
+      (item) => analyses.get(item.id)?.eligible && analyses.get(item.id)?.category !== '5',
     );
-    const ranked = this.retriever.rank(query, card.category, effective, this.analyses, 24);
+    const ranked = this.retriever.rank(query, card.category, effective, analyses, 24);
     const categoryCandidates = this.retriever.rank(
       query,
       card.category,
       effective.filter((item) => item.category === card.category),
-      this.analyses,
+      analyses,
       8,
     );
     const fixed = profile.references
@@ -253,9 +310,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       .filter(
         (r): r is LibraryItem =>
           Boolean(r) &&
-          (r
-            ? this.analyses.get(r.id)?.eligible !== false && this.analyses.get(r.id)?.category !== '5'
-            : false),
+          (r ? analyses.get(r.id)?.eligible !== false && analyses.get(r.id)?.category !== '5' : false),
       );
     const commonAnchorIds = fixed.slice(0, 2).map((item) => item.id);
     if (commonAnchorIds.length < 2) throw new Error('Two shared original style anchors are required.');
@@ -263,7 +318,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       JSON.stringify(card.visual ?? { subject: card.subject, description: card.description }),
       card.category,
       effective,
-      this.analyses,
+      analyses,
       8,
     );
     const candidates = [
@@ -271,7 +326,7 @@ export class CodexStylePreparation implements StylePreparationPort {
         [...categoryCandidates, ...fixed, ...materialCandidates, ...ranked].map((r) => [r.id, r]),
       ).values(),
     ];
-    const scored = this.retriever.rank(query, card.category, candidates, this.analyses, 24);
+    const scored = this.retriever.rank(query, card.category, candidates, analyses, 24);
     const visualPool = this.retriever.select(
       [...fixed, ...categoryCandidates, ...materialCandidates, ...scored],
       scored.map((r) => r.id),
@@ -293,19 +348,24 @@ export class CodexStylePreparation implements StylePreparationPort {
             subject: card.subject,
             description: card.description,
             category: card.category,
+            categoryDefinition: profile.categories[card.category],
             role: card.role,
           }),
           setConcept: variant.concept,
           artContract: JSON.stringify(variant.artContract ?? null),
           visualRequirements: JSON.stringify(card.visual ?? null),
           correction: correction,
-          rules: JSON.stringify([...profile.rules, ...this.policy.rules]),
+          rules: JSON.stringify({
+            rendering: profile.rules,
+            production: this.policy.rules,
+            requirements: profile.requirements ?? [],
+          }),
           candidateImages: JSON.stringify(
             visualPool.map((r) => ({
               id: r.id,
               title: r.title,
               origin: r.origin,
-              analysis: this.analyses.get(r.id),
+              analysis: analyses.get(r.id),
             })),
           ),
         }),
@@ -362,14 +422,19 @@ export class CodexStylePreparation implements StylePreparationPort {
       references: selected.map((r) => this.filename(r)),
       evidence,
       prompt: this.prompts.render('CodexStylePreparation.prepareOnce.2', {
-        cardPrompt: PromptBuilder.build(card, variant, profile),
+        cardPrompt: PromptBuilder.build(card, variant, {
+          ...profile,
+          rules: [...new Set([...profile.rules, ...this.policy.rules])],
+        }),
         producerAnalysis: direction,
-        rules: this.policy.rules.join('\n'),
+        rules: '',
         visualDirection: selection.visualDirection,
         materialGuidance: selection.materialGuidance,
         compositionGuidance: selection.compositionGuidance,
         pitfalls: selection.pitfalls.join('; '),
-        referenceRoles: JSON.stringify(evidence.references),
+        referenceRoles: this.prompts.values['generation.context.v1']
+          ? ''
+          : JSON.stringify(evidence.references),
       }),
     };
   }

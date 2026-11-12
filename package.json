@@ -19,7 +19,8 @@
     "calibrate:codex": "tsx scripts/calibrate-codex.ts",
     "prepare:icon": "tsx scripts/prepare-icon.ts",
     "prepare:library": "tsx scripts/prepare-library.ts",
-    "prepare:knowledge": "tsx scripts/prepare-knowledge.ts"
+    "prepare:knowledge": "tsx scripts/prepare-knowledge.ts && npm run prepare:clean-sets",
+    "prepare:clean-sets": "tsx scripts/prepare-clean-sets.ts"
   },
   "build": {
     "appId": "studio.collection.desktop",
@@ -60,6 +61,10 @@
       {
         "from": "resources/production-rules.json",
         "to": "production-rules.json"
+      },
+      {
+        "from": "resources/production-requirements.json",
+        "to": "production-requirements.json"
       }
     ],
     "directories": {

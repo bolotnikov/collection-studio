@@ -1,3 +1,4 @@
+import type { ArtDirectionPort } from '../application/ArtDirectionPort';
 import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import { SetContract } from '../shared/SetContract';
 import type { Plan } from '../shared/Contracts';
@@ -9,11 +10,14 @@ import { Contracts, type Brief, type Card, type Profile, type Variant } from '..
 import type { GenerationPort } from '../application/GenerationPort';
 import { CodexRunner } from './CodexRunner';
 
-export class CodexProvider implements GenerationPort {
+export class CodexProvider implements GenerationPort, ArtDirectionPort {
   constructor(
     private readonly runner: CodexRunner,
     private readonly prompts = new PromptCatalog(),
   ) {}
+  async suggestArtDirection(prompt: string) {
+    return (await this.runner.run(prompt, Contracts.artDirectionResult)).value;
+  }
   async plan(brief: Brief, profile: Profile, referencePaths: string[] = [], correction = '') {
     return (
       await this.runner.run(

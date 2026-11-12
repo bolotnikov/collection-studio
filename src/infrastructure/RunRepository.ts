@@ -29,7 +29,9 @@ export class RunRepository implements RunStore {
     );
   }
   async saveProfile(id: string, profile: Profile): Promise<void> {
-    await fs.writeFile(path.join(this.directory(id), 'style-profile.json'), JSON.stringify(profile, null, 2));
+    const file = path.join(this.directory(id), 'style-profile.json');
+    await fs.writeFile(file + '.tmp', JSON.stringify(profile, null, 2));
+    await fs.rename(file + '.tmp', file);
   }
   async getProfile(id: string): Promise<Profile> {
     return Contracts.profile.parse(

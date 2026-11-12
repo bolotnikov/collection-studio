@@ -1,3 +1,4 @@
+import { SourceDocumentText } from '../../application/style/SourceDocumentText';
 import legacyPrompts from '../../../resources/legacy-analysis-prompts.json';
 import { PromptCatalog } from '../../application/prompts/PromptCatalog';
 import fs from 'node:fs/promises';
@@ -58,12 +59,22 @@ export class CodexSourceContext implements SourceContextPort {
       .filter((d) => ['composition-rules', 'collection-structure'].includes(d.role))
       .map((d) => d.sha256)
       .join(':');
+    const sourceRules = profile.requirements
+      ? {
+          requirements: profile.requirements.map(({ id, title, rules }) => ({ id, title, rules })),
+          categories: profile.categories,
+          rendering: [...new Set(profile.rules)],
+        }
+      : corpus.documents
+          .filter((document) => ['composition-rules', 'collection-structure'].includes(document.role))
+          .map((document) => ({ title: document.title, text: SourceDocumentText.body(document.text) }));
+    const activeRulesHash = createHash('sha256').update(JSON.stringify(sourceRules)).digest('hex');
     const filename = (image: KnowledgeImage) =>
       path.join(
         this.cache,
         createHash('sha256')
           .update(
-            `sets-v2:${this.model}:${ruleHashes}:${image.sha256}:${this.prompts.values['CodexSourceContext.index'] ?? this.prompts.values['CodexSourceContext.initializeOnce']}`,
+            `sets-v3:${this.model}:${ruleHashes}:${activeRulesHash}:${image.sha256}:${this.prompts.values['CodexSourceContext.index'] ?? this.prompts.values['CodexSourceContext.initializeOnce']}`,
           )
           .digest('hex') + '.json',
       );
@@ -74,7 +85,7 @@ export class CodexSourceContext implements SourceContextPort {
         this.analyses.set(
           image.id,
           KnowledgeContracts.analysis.parse(
-            JSON.parse(await this.readAnalysis(filename(image), image, ruleHashes)),
+            JSON.parse(await this.readAnalysis(filename(image), image, ruleHashes, !profile.requirements)),
           ),
         );
       } catch (error) {
@@ -101,11 +112,7 @@ export class CodexSourceContext implements SourceContextPort {
           });
           const result = await this.runner.run(
             this.prompts.render('CodexSourceContext.index', {
-              sourceRules: JSON.stringify(
-                corpus.documents
-                  .filter((d) => ['composition-rules', 'collection-structure'].includes(d.role))
-                  .map((d) => ({ title: d.title, text: d.text })),
-              ),
+              sourceRules: JSON.stringify(sourceRules),
               images: JSON.stringify(batch),
             }),
             schema,
@@ -131,12 +138,30 @@ export class CodexSourceContext implements SourceContextPort {
       for (const result of results) if (result.status === 'rejected') throw result.reason;
     }
   }
-  private async readAnalysis(file: string, image: KnowledgeImage, ruleHashes: string): Promise<string> {
+  private async readAnalysis(
+    file: string,
+    image: KnowledgeImage,
+    ruleHashes: string,
+    allowLegacy: boolean,
+  ): Promise<string> {
     try {
       return await fs.readFile(file, 'utf8');
     } catch (error) {
       if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      if (!allowLegacy) throw error;
       const template = this.prompts.values['CodexSourceContext.index'] ?? '';
+      const previous = path.join(
+        this.cache,
+        createHash('sha256')
+          .update(`sets-v2:${this.model}:${ruleHashes}:${image.sha256}:${template}`)
+          .digest('hex') + '.json',
+      );
+      try {
+        return await fs.readFile(previous, 'utf8');
+      } catch (previousError) {
+        if (!(previousError instanceof Error && 'code' in previousError && previousError.code === 'ENOENT'))
+          throw previousError;
+      }
       if (createHash('sha256').update(template).digest('hex') !== legacyPrompts['CodexSourceContext.index'])
         throw error;
       const legacy = path.join(
@@ -158,7 +183,13 @@ export class CodexSourceContext implements SourceContextPort {
     const corpus = profile.knowledge;
     if (!corpus) throw new Error('Source knowledge is required.');
     const collections = corpus.images.filter(
-      (i) => i.role === 'collection-example' && this.analyses.get(i.id)?.ordinarySetExample,
+      (i) =>
+        i.role === 'collection-example' &&
+        this.analyses.get(i.id)?.ordinarySetExample &&
+        (!corpus.cleanSets ||
+          corpus.cleanSets.some(
+            (sheet) => sheet.sourceImageId === i.id && (stage !== 'set-review' || sheet.primaryEligible),
+          )),
     );
     if (collections.length < 2) throw new Error('Insufficient ordinary collection examples.');
     const key = JSON.stringify([
@@ -201,13 +232,25 @@ export class CodexSourceContext implements SourceContextPort {
       this.selections.set(key, task);
     }
     const choice = await task;
+    const cleanSets =
+      stage === 'set-review' && corpus.cleanSets
+        ? choice.ids.map((id, index) => {
+            const sheet = corpus.cleanSets?.find((sheet) => sheet.sourceImageId === id);
+            if (!sheet) throw new Error('Selected source set lacks a clean reference sheet.');
+            return {
+              ...sheet,
+              reason: choice.reasons[index] ?? 'Primary clean set reference',
+              attached: true,
+            };
+          })
+        : undefined;
     const selected = choice.ids.map((id, index) => {
       const image = collections.find((i) => i.id === id);
       if (!image) throw new Error('Selected source set missing.');
       return {
         image,
         reason: choice.reasons[index] ?? 'Set structure reference',
-        attached: stage !== 'card',
+        attached: stage !== 'card' && (!cleanSets || index === 0),
       };
     });
     for (const image of corpus.images.filter((i) => i.role === 'category-example'))
@@ -226,6 +269,16 @@ export class CodexSourceContext implements SourceContextPort {
       await this.verify(entry.image);
       evidenceImages.push({ ...entry.image, reason: entry.reason, attached: entry.attached, analysis });
     }
+    for (const sheet of cleanSets ?? []) {
+      const file = path.resolve(this.root, sheet.filename);
+      if (
+        !file.startsWith(path.resolve(this.root) + path.sep) ||
+        createHash('sha256')
+          .update(await fs.readFile(file))
+          .digest('hex') !== sheet.sha256
+      )
+        throw new Error('Clean-set reference integrity mismatch.');
+    }
     const evidence = KnowledgeContracts.evidence.parse({
       version: 1,
       stage,
@@ -234,12 +287,16 @@ export class CodexSourceContext implements SourceContextPort {
         ['assignment', 'collection-structure', 'composition-rules'].includes(d.role),
       ),
       images: evidenceImages,
+      cleanSets,
       guidance: choice.guidance,
       createdAt: new Date().toISOString(),
     });
     return {
       profile: { ...profile, knowledgeContext: evidence },
-      referencePaths: evidenceImages.filter((i) => i.attached).map((i) => this.file(i)),
+      referencePaths: [
+        ...(cleanSets ?? []).map((sheet) => path.join(this.root, sheet.filename)),
+        ...evidenceImages.filter((i) => i.attached).map((i) => this.file(i)),
+      ],
       evidence,
     };
   }

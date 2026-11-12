@@ -311,7 +311,7 @@ describe('production invariants and durable execution', () => {
     const run = await finished(h, started.id);
     expect(initialize).toHaveBeenCalledOnce();
     expect(prepare).toHaveBeenCalledTimes(30);
-    expect(h.provider.receivedPrompts.every((p) => p === 'EVIDENCE PROMPT')).toBe(true);
+    expect(h.provider.receivedPrompts.every((p) => p.includes('EVIDENCE PROMPT'))).toBe(true);
     expect(h.provider.receivedReferences.every((r) => r[0] === '/selected-reference.png')).toBe(true);
     expect(
       run.variants
@@ -755,4 +755,277 @@ it('manual pilot selection invalidates approval and makes a completed run resuma
   expect(completed.status).toBe('completed');
   expect(completed.variants[0]?.pilotAttemptId).toBe(alternative.id);
   expect(h.provider.calls).toBe(10);
+});
+
+it.each([false, true])(
+  'requires clean-sheet evidence for v3 and passes primary references first (missing=%s)',
+  async (missing) => {
+    class CleanProvider extends FixtureProvider {
+      dimensions: Array<number | undefined> = [];
+      override async reviewSet(variant: Variant, sheet: string, profile: Profile, references: string[] = []) {
+        const size = await sharp(sheet).metadata();
+        this.dimensions = [size.width, size.height];
+        await super.reviewSet(variant, sheet, profile, references);
+        return Contracts.detailedSetReview.parse({
+          passed: true,
+          coherence: 5,
+          findings: [],
+          outlierCardIds: [],
+          assessment: {
+            styleCompatibility: 5,
+            thematicCohesion: 5,
+            silhouetteDiversity: 5,
+            materialDiversity: 5,
+            paletteBalance: 5,
+            compositionBalance: 5,
+            categoryCoverage: true,
+            redundantSubjects: false,
+          },
+          corrections: [],
+        });
+      }
+    }
+    const corpus = KnowledgeContracts.corpus.parse({
+      version: 1,
+      documents: [],
+      images: ['a', 'b'].map((id) => ({
+        id,
+        title: id,
+        source: 'fixture',
+        filename: `images/sets/${id}.png`,
+        sha256: '1'.repeat(64),
+        role: 'collection-example',
+        category: null,
+      })),
+      cleanSets: ['a', 'b'].map((id) => ({
+        sourceImageId: id,
+        sourceSha256: '1'.repeat(64),
+        filename: `images/clean-sets/${id}.png`,
+        sha256: '2'.repeat(64),
+        layout: {
+          columns: 5,
+          rows: 2,
+          cardWidth: 430,
+          cardHeight: 480,
+          gap: 16,
+          margin: 16,
+          background: '#eceae5',
+        },
+        method: 'original-card-assembly-v1',
+        primaryEligible: true,
+        cards: Array.from({ length: 10 }, (_, i) => ({
+          slot: i + 1,
+          id: `${id}-${i}`,
+          filename: `${id}-${i}.png`,
+          sha256: '3'.repeat(64),
+          source: 'fixture',
+          use: 'ordinary',
+          match: { error: 0, runnerUpError: 100 },
+        })),
+      })),
+    });
+    const context: SourceContextPort = {
+      async prepare(stage, _brief, receivedProfile) {
+        const evidence = KnowledgeContracts.evidence.parse({
+          version: 1,
+          stage,
+          model: 'fixture',
+          createdAt: new Date().toISOString(),
+          documents: [],
+          guidance: 'fixture',
+          images: corpus.images.map((image) => ({
+            ...image,
+            attached: false,
+            reason: 'secondary source',
+            analysis: {
+              summary: 'Original set',
+              theme: 'Fixture',
+              semanticPrinciples: [],
+              visualPrinciples: [],
+              objectRoles: [],
+              avoidTransferring: [],
+              ordinarySetExample: true,
+            },
+          })),
+          cleanSets:
+            stage === 'set-review' && !missing
+              ? corpus.cleanSets?.map((sheet) => ({
+                  ...sheet,
+                  reason: 'primary clean reference',
+                  attached: true,
+                }))
+              : undefined,
+        });
+        return {
+          profile: { ...receivedProfile, knowledgeContext: evidence },
+          referencePaths: stage === 'set-review' ? ['/clean/a.png', '/clean/b.png'] : [],
+          evidence,
+        };
+      },
+    };
+    const provider = new CleanProvider(),
+      h = await harness(provider, undefined, context, { ...profile, knowledge: corpus });
+    const started = await h.service.start(
+      { ...brief, variants: 1, maxImageCalls: 10 },
+      settings,
+      StyleContracts.policy.parse({}),
+    );
+    const result = await finished(h, started.id);
+    expect(result.reviewProtocol).toBe('set-v3');
+    expect(provider.calls).toBe(10);
+    if (missing) {
+      expect(result.status).toBe('paused');
+      expect(provider.setReferences).toHaveLength(0);
+    } else {
+      expect(result.status).toBe('completed');
+      expect(provider.dimensions).toEqual([2246, 1008]);
+      expect(provider.setReferences[0]?.slice(0, 2)).toEqual(['/clean/a.png', '/clean/b.png']);
+      const variant = result.variants[0];
+      if (!variant) throw new Error('Fixture missing');
+      expect(SetRules.hasCleanSetEvidence(variant)).toBe(true);
+      expect(variant.reviewHistory?.[0]?.sheet).toBe(variant.reviewSheet);
+      expect(variant.reviewHistory?.[0]?.prompt).toBe(variant.reviewPrompt);
+      await expect(
+        fs.access(path.join(h.repository.directory(result.id), variant.reviewSheet ?? '')),
+      ).resolves.toBeUndefined();
+      const first = variant.cards[0]?.attempts[0];
+      if (!first) throw new Error('Fixture missing');
+      const preview = path.join(h.repository.directory(result.id), first.preview);
+      const original = await fs.readFile(preview);
+      const changed = await sharp({ create: { width: 430, height: 480, channels: 3, background: '#334455' } })
+        .png()
+        .toBuffer();
+      const receipt = first.hashes;
+      delete first.hashes;
+      await fs.writeFile(preview, changed);
+      await expect(
+        new ExportService(h.images).export(
+          result,
+          variant.id,
+          h.repository.directory(result.id),
+          path.join(h.root, 'changed-legacy.zip'),
+        ),
+      ).rejects.toThrow('no longer matches');
+      await fs.writeFile(preview, original);
+      first.hashes = receipt;
+      variant.sourceEvidence = undefined;
+      await expect(
+        new ExportService(h.images).export(
+          result,
+          variant.id,
+          h.repository.directory(result.id),
+          path.join(h.root, 'no-evidence.zip'),
+        ),
+      ).rejects.toThrow('passed');
+    }
+  },
+);
+
+it('snapshots active rules and reference metadata before asynchronous startup and applies edits only to later runs', async () => {
+  const h = await harness();
+  const originalReference = StyleContracts.libraryItem.parse({
+    id: 'curated',
+    filename: 'curated.png',
+    title: 'A source object.',
+    category: '1',
+    sha256: 'fixture',
+    source: 'fixture',
+    metadata: { category: '1', description: 'A floating brass magnifier.' },
+  });
+  h.service.updateProfile({ ...profile, library: [originalReference] });
+  const pending = h.service.start({ ...brief, variants: 1 }, settings);
+  const revised = {
+    ...profile,
+    rules: ['Use the revised English art direction consistently.'],
+    library: [
+      {
+        ...originalReference,
+        metadata: { category: '3' as const, description: 'A brass magnifier on a wooden desk.' },
+      },
+    ],
+    categories: { ...profile.categories, '1': 'A floating object with a sparse patterned background.' },
+  };
+  h.service.updateProfile(revised);
+  const first = await pending;
+  await finished(h, first.id);
+  expect((await h.repository.getProfile(first.id)).rules).toEqual(profile.rules);
+  expect((await h.repository.getProfile(first.id)).analysisModel).toBe(settings.codexModel);
+  expect((await h.repository.getProfile(first.id)).library?.[0]?.metadata?.category).toBe('1');
+  h.snapshots.length = 0;
+  const second = await h.service.start({ ...brief, variants: 1 }, settings);
+  await finished(h, second.id);
+  expect((await h.repository.getProfile(second.id)).rules).toEqual(revised.rules);
+  expect((await h.repository.getProfile(second.id)).library?.[0]?.metadata?.category).toBe('3');
+});
+
+it('retries an unavailable pilot review without generating a replacement, even with zero repair allowance', async () => {
+  const provider = new FixtureProvider();
+  provider.rejectReview = true;
+  const h = await harness(provider);
+  const started = await h.service.start(
+    { ...brief, variants: 1, maxImageCalls: 10 },
+    settings,
+    StyleContracts.policy.parse({ maxRepairsPerCard: 0 }),
+  );
+  const paused = await finished(h, started.id);
+  const firstId = paused.variants[0]?.cards[0]?.selectedAttemptId;
+  expect(paused.imageCalls).toBe(1);
+  provider.rejectReview = false;
+  h.snapshots.length = 0;
+  await h.service.resume(started.id);
+  const completed = await finished(h, started.id);
+  expect(completed.status).toBe('completed');
+  expect(completed.imageCalls).toBe(10);
+  expect(completed.variants[0]?.cards[0]?.selectedAttemptId).toBe(firstId);
+  expect(completed.variants[0]?.cards.every((card) => card.attempts.length === 1)).toBe(true);
+});
+it('rechecks an unverified nonpilot without requiring more image budget', async () => {
+  class ReviewFailureProvider extends FixtureProvider {
+    fail = true;
+    override async review(
+      card: Card,
+      image: string,
+      references: string[],
+      profile: Profile,
+    ): Promise<Review> {
+      if (this.fail && card.subject.endsWith('/7')) throw new Error('Temporary verifier failure');
+      return super.review(card, image, references, profile);
+    }
+  }
+  const provider = new ReviewFailureProvider();
+  const h = await harness(provider);
+  const started = await h.service.start(
+    { ...brief, variants: 1, maxImageCalls: 10 },
+    settings,
+    StyleContracts.policy.parse({ maxRepairsPerCard: 0 }),
+  );
+  expect((await finished(h, started.id)).status).toBe('paused');
+  expect(provider.calls).toBe(10);
+  provider.fail = false;
+  h.snapshots.length = 0;
+  await h.service.resume(started.id);
+  expect((await finished(h, started.id)).status).toBe('completed');
+  expect(provider.calls).toBe(10);
+});
+it('refuses export after selected image bytes change without changing the attempt ID', async () => {
+  const h = await harness();
+  const started = await h.service.start({ ...brief, variants: 1 }, settings);
+  const completed = await finished(h, started.id);
+  const variant = completed.variants[0],
+    attempt = variant?.cards[0]?.attempts[0];
+  if (!variant || !attempt) throw new Error('Missing fixture');
+  const changed = await sharp({ create: { width: 430, height: 480, channels: 3, background: '#aa2277' } })
+    .png()
+    .toBuffer();
+  await fs.writeFile(path.join(h.repository.directory(started.id), attempt.preview), changed);
+  const destination = path.join(h.root, 'unreviewed.zip');
+  await expect(
+    new ExportService(h.images).export(
+      completed,
+      variant.id,
+      h.repository.directory(started.id),
+      destination,
+    ),
+  ).rejects.toThrow('bytes have changed');
+  await expect(fs.access(destination)).rejects.toThrow();
 });

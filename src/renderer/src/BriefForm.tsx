@@ -1,23 +1,35 @@
 import { useLocalization } from './i18n/LocalizationContext';
 import { useBriefViewModel } from './viewmodels/useBriefViewModel';
-import { ArrowUpRight, Sparkles, Layers } from 'lucide-react';
-import type { Bootstrap, Brief } from '../../shared/Contracts';
+import { ArrowUpRight, Sparkles, Layers, LoaderCircle } from 'lucide-react';
+import type { Bootstrap, Brief, StudioApi } from '../../shared/Contracts';
 import { Assets } from './Assets';
 
 export function BriefForm({
   data,
   disabled,
   onStart,
+  api,
 }: {
+  api: StudioApi;
   data: Bootstrap;
   disabled: boolean;
   onStart: (brief: Brief) => Promise<void>;
 }) {
   const { t, text } = useLocalization();
-  const { theme, setTheme, wishes, setWishes, variants, setVariants, ready, submit } = useBriefViewModel(
-    data,
-    onStart,
-  );
+  const {
+    theme,
+    setTheme,
+    wishes,
+    setWishes,
+    variants,
+    setVariants,
+    ready,
+    submit,
+    canSuggest,
+    suggesting,
+    suggest,
+    error,
+  } = useBriefViewModel(data, onStart, api);
   return (
     <div className="new-layout focused-brief">
       <section className="brief-column">
@@ -47,9 +59,24 @@ export function BriefForm({
               </button>
             ))}
           </div>
-          <label htmlFor="wishes">
-            {t('Art direction')} <span className="muted">{t('Optional')}</span>
-          </label>
+          <div className="art-direction-label">
+            <label htmlFor="wishes">
+              {t('Art direction')} <span className="muted">{t('Optional')}</span>
+            </label>
+            <button
+              type="button"
+              className="ai-suggest"
+              disabled={disabled || !canSuggest}
+              title={t(
+                theme.trim().length < 2 ? 'Enter a set theme first' : 'Generate art direction with AI',
+              )}
+              aria-label={t('Generate art direction with AI')}
+              aria-busy={suggesting}
+              onClick={() => void suggest()}
+            >
+              {suggesting ? <LoaderCircle size={12} className="spin" /> : <Sparkles size={12} />} AI
+            </button>
+          </div>
           <textarea
             id="wishes"
             value={wishes}
@@ -58,6 +85,11 @@ export function BriefForm({
             rows={5}
             placeholder={t('Mood, objects, materials, constraints…')}
           />
+          {error && (
+            <p className="inline-error" role="alert">
+              {text(error)}
+            </p>
+          )}
           <label htmlFor="set-count">{t('Sets to generate')}</label>
           <input
             id="set-count"
@@ -71,7 +103,7 @@ export function BriefForm({
             className="set-count-input"
           />
           <div className="start-row">
-            <button type="submit" className="primary" disabled={disabled || !ready}>
+            <button type="submit" className="primary" disabled={disabled || !ready || suggesting}>
               <Sparkles size={18} />
               {t('Generate')}
               <ArrowUpRight size={18} />
@@ -91,7 +123,7 @@ export function BriefForm({
           <span className="eyebrow">{t('Your style')}</span>
           <span className="small-badge">
             <Layers size={12} />
-            {data.anchorReferences.length} {t('references')}
+            {data.library.length} {t('references')}
           </span>
         </div>
         <div className="reference-mosaic">

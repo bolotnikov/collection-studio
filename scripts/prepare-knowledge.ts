@@ -28,6 +28,14 @@ class KnowledgePreparation {
       'Фрейм для описания хода работы и результатов': 'delivery',
     };
     const categoryNames = ['10.35.12', '11.18.28', '11.18.41', '11.18.51', '11.19.00'];
+    let previous: SourceKnowledge | null = null;
+    try {
+      previous = KnowledgeContracts.corpus.parse(
+        JSON.parse(await fs.readFile(path.join(target, 'catalog.json'), 'utf8')),
+      );
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+    }
     const corpus: SourceKnowledge = { version: 1, documents: [], images: [] };
     await fs.mkdir(path.join(target, 'images'), { recursive: true });
     for (const section of sections) {
@@ -65,7 +73,14 @@ class KnowledgePreparation {
         role === 'category-example'
           ? KnowledgeContracts.image.shape.category.parse(String(categoryIndex + 1))
           : null;
-      const filename = `images/${item.sha256}.png`;
+      const group =
+        role === 'collection-example'
+          ? 'sets'
+          : role === 'category-example'
+            ? `categories/${category}`
+            : 'delivery';
+      const filename = `images/${group}/${item.sha256}.png`;
+      await fs.mkdir(path.dirname(path.join(target, filename)), { recursive: true });
       await fs.writeFile(path.join(target, filename), bytes);
       corpus.images.push({
         id: `knowledge-${item.sha256.slice(0, 24)}`,
@@ -80,7 +95,25 @@ class KnowledgePreparation {
     const validated = KnowledgeContracts.corpus.parse(corpus);
     if (validated.images.length !== 25 || validated.documents.length !== 7)
       throw new Error('Incomplete source corpus.');
-    await fs.writeFile(path.join(target, 'catalog.json'), JSON.stringify(validated, null, 2));
+    const catalogFile = path.join(target, 'catalog.json');
+    await fs.writeFile(catalogFile + '.tmp', JSON.stringify(validated, null, 2));
+    await fs.rename(catalogFile + '.tmp', catalogFile);
+    // Remove only verified flat prepared copies after their new paths and catalog exist.
+    // Original Art Sources and historical userData assets are never modified.
+    for (const old of previous?.images ?? []) {
+      const current = validated.images.find((image) => image.id === old.id && image.sha256 === old.sha256);
+      if (!current || current.filename === old.filename || !/^images\/[a-f0-9]{64}\.png$/.test(old.filename))
+        continue;
+      const oldFile = path.join(target, old.filename);
+      try {
+        const bytes = await fs.readFile(oldFile);
+        if (createHash('sha256').update(bytes).digest('hex') !== old.sha256)
+          throw new Error('Prepared legacy image changed.');
+        await fs.unlink(oldFile);
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      }
+    }
     console.log(
       `Prepared ${validated.documents.length} source documents and ${validated.images.length} contextual images.`,
     );

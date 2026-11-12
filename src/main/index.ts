@@ -1,3 +1,9 @@
+import { StyleRuleContracts } from '../shared/StyleRuleContracts';
+import { StyleRulesStore } from '../infrastructure/StyleRulesStore';
+import { StyleRulesService } from '../application/StyleRulesService';
+import artDirectionDefaults from '../../resources/prompts/art-direction.json';
+import { ArtDirectionService } from '../application/ArtDirectionService';
+import type { Settings } from '../shared/Contracts';
 import { RetrievalConfiguration } from '../shared/RetrievalConfiguration';
 import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import { SetContract } from '../shared/SetContract';
@@ -5,6 +11,7 @@ import type { Profile } from '../shared/Contracts';
 import { SourceKnowledgeStore } from '../infrastructure/SourceKnowledgeStore';
 import { CodexSourceContext } from '../infrastructure/style/CodexSourceContext';
 import { ReferenceLibrary } from '../infrastructure/ReferenceLibrary';
+import { ReferenceLibraryService } from '../application/style/ReferenceLibraryService';
 import { StyleContracts, type ProductionPolicy } from '../shared/StyleContracts';
 import { CodexStylePreparation } from '../infrastructure/style/CodexStylePreparation';
 import { NativeMenus } from './NativeMenus';
@@ -63,13 +70,23 @@ class DesktopApplication {
     const planningPolicy = SetContract.planningPolicy.parse(
       JSON.parse(await fs.readFile(path.join(resources, 'production-config.json'), 'utf8')),
     );
-    const profile = Contracts.profile.parse({
+    let profile = Contracts.profile.parse({
       ...JSON.parse(await fs.readFile(path.join(resources, 'style-profile.json'), 'utf8')),
       knowledge,
       promptCatalog: prompts.values,
       retrievalConfig: new RetrievalConfiguration(
         JSON.parse(await fs.readFile(path.join(resources, 'retrieval-config.json'), 'utf8')),
       ).values,
+    });
+    const styleStore = new StyleRulesStore(app.getPath('userData'));
+    await styleStore.init({ version: 1, rendering: profile.rules, categories: profile.categories });
+    profile = Contracts.profile.parse({
+      ...profile,
+      rules: styleStore.get().rendering,
+      categories: styleStore.get().categories,
+      requirements: JSON.parse(
+        await fs.readFile(path.join(resources, 'production-requirements.json'), 'utf8'),
+      ),
     });
     const referenceRoot = path.join(app.getPath('userData'), 'reference-library');
     const library = new ReferenceLibrary(referenceRoot, app.getPath('userData'));
@@ -91,33 +108,48 @@ class DesktopApplication {
         new CodexRunner(
           codexExecutable,
           path.join(runsRoot, '_codex-jobs'),
-          settings.settings.codexModel,
+          sourceProfile.analysisModel ?? settings.settings.codexModel,
           new PromptCatalog(sourceProfile.promptCatalog),
         ),
-        structuredClone(library.items),
+        structuredClone(sourceProfile.library ?? library.items),
         referenceRoot,
         path.join(app.getPath('userData'), 'reference-analysis'),
-        settings.settings.codexModel,
+        sourceProfile.analysisModel ?? settings.settings.codexModel,
         policy,
         new PromptCatalog(sourceProfile.promptCatalog),
         sourceProfile.retrievalConfig,
+        sourceProfile.categories,
       );
+    const makeProvider = (s: Settings, sourceProfile: Profile) => {
+      const templates = new PromptCatalog(sourceProfile.promptCatalog);
+      if (s.provider === 'codex') {
+        if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
+        return new CodexProvider(
+          new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), s.codexModel, templates),
+          templates,
+        );
+      }
+      return new OpenAiProvider(settings.credential(), s.imageModel, s.textModel, templates);
+    };
+    const direction = new ArtDirectionService(
+      makeProvider,
+      new PromptCatalog(
+        JSON.parse(await fs.readFile(path.join(resources, 'prompts/art-direction.json'), 'utf8')),
+        artDirectionDefaults,
+      ),
+    );
+    this.handle('suggestArtDirection', z.tuple([Contracts.artDirectionRequest]), ([request]) =>
+      direction.suggest(request, settings.settings, {
+        ...profile,
+        rules: [...profile.rules, ...library.policy.rules],
+      }),
+    );
     const service = new RunService(
       repository,
       images,
       profile,
       referenceRoot,
-      (s, sourceProfile) => {
-        const templates = new PromptCatalog(sourceProfile.promptCatalog);
-        if (s.provider === 'codex') {
-          if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
-          return new CodexProvider(
-            new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), s.codexModel, templates),
-            templates,
-          );
-        }
-        return new OpenAiProvider(settings.credential(), s.imageModel, s.textModel, templates);
-      },
+      makeProvider,
       (r) => this.publish(r),
       (policy, sourceProfile) => {
         if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
@@ -128,16 +160,44 @@ class DesktopApplication {
           new CodexRunner(
             codexExecutable,
             path.join(runsRoot, '_codex-jobs'),
-            settings.settings.codexModel,
+            sourceProfile.analysisModel ?? settings.settings.codexModel,
             new PromptCatalog(sourceProfile.promptCatalog),
           ),
           knowledgeStore.root,
           path.join(app.getPath('userData'), 'source-analysis'),
-          settings.settings.codexModel,
+          sourceProfile.analysisModel ?? settings.settings.codexModel,
           new PromptCatalog(sourceProfile.promptCatalog),
         ),
       planningPolicy,
     );
+    const styleRules = new StyleRulesService(styleStore);
+    const referenceService = new ReferenceLibraryService(library, () => {
+      if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
+      return prepareStyle(library.policy, { ...profile, library: library.items });
+    });
+    this.handle('editReference', z.tuple([StyleContracts.referenceEdit]), ([input]) =>
+      referenceService.edit(input),
+    );
+    this.handle('analyzeReference', z.tuple([z.string().min(1)]), ([id]) => referenceService.analyze(id));
+    this.handle('importReference', z.tuple([]), async () => {
+      const result = await dialog.showOpenDialog({
+        title: this.translator.t('Add reference'),
+        properties: ['openFile'],
+        filters: [{ name: this.translator.t('Images'), extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      const file = result.filePaths[0];
+      return result.canceled || !file ? null : referenceService.import(file);
+    });
+    this.handle('saveStyleRules', z.tuple([StyleRuleContracts.edit]), async ([input]) => {
+      const saved = await styleRules.save(input);
+      profile = {
+        ...profile,
+        rules: saved.rendering,
+        categories: saved.categories,
+      };
+      service.updateProfile(profile);
+      return saved;
+    });
     new AssetProtocol(runsRoot, referenceRoot, knowledgeStore.root).register();
     const cardRef = z.tuple([Contracts.id, Contracts.id]);
     this.handle('setLanguage', z.tuple([z.enum(['en', 'ru'])]), async ([locale]) => {
@@ -151,6 +211,7 @@ class DesktopApplication {
     this.handle('bootstrap', z.tuple([]), async () => {
       const catalog = await prepareStyle(library.policy).catalog();
       return {
+        styleRules: styleStore.get(),
         runs: await repository.list(),
         profile,
         settings: settings.settings,
@@ -159,14 +220,14 @@ class DesktopApplication {
         referenceCount,
         dataPath: runsRoot,
         productionPolicy: library.policy,
-        anchorReferences: catalog.filter((item) => item.origin === 'anchor'),
-        userReferences: catalog.filter((item) => item.origin === 'user'),
+        library: catalog,
       };
     });
     this.handle('start', z.tuple([Contracts.brief]), async ([brief]) => {
       if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
       if (referenceCount !== profile.references.length || referenceCount < 4)
         throw new Error('Prepare the style references before generating.');
+      service.updateProfile({ ...profile, library: structuredClone(library.items) });
       return service.start(
         {
           ...brief,
@@ -249,10 +310,13 @@ class DesktopApplication {
     });
   }
   private message(error: unknown): string {
-    return (error instanceof Error ? error.message : 'Unknown error').replace(
-      /sk-[A-Za-z0-9_-]+/g,
-      '[REDACTED]',
-    );
+    return (
+      error instanceof z.ZodError
+        ? (error.issues[0]?.message ?? 'Invalid input.')
+        : error instanceof Error
+          ? error.message
+          : 'Unknown error'
+    ).replace(/sk-[A-Za-z0-9_-]+/g, '[REDACTED]');
   }
   private handle<T extends z.ZodType>(
     name: string,

@@ -119,7 +119,11 @@ export class ProductionWorkflow {
         if (singleCard && singleCard.card.id !== pilot.id && !ProductionRules.pilotAccepted(variant, minimum))
           throw new Error('Verify the pilot before generating another card.');
         if (!singleCard && !ProductionRules.pilotAccepted(variant, minimum)) {
-          if (!pilot.locked && pilot.attempts.length < 1 + (run.productionPolicy?.maxRepairsPerCard ?? 1)) {
+          if (
+            !pilot.locked &&
+            (SetRules.needsCardReview(this.context.images.selected(pilot)) ||
+              pilot.attempts.length < 1 + (run.productionPolicy?.maxRepairsPerCard ?? 1))
+          ) {
             await this.context.publish(run, 'Generating and verifying the pilot card');
             try {
               await this.cards.produce(active, provider, variant, pilot);
@@ -153,7 +157,8 @@ export class ProductionWorkflow {
         const jobs = variant.cards.filter(
           (card) =>
             !card.locked &&
-            (card.status !== 'done' ||
+            (SetRules.needsCardReview(this.context.images.selected(card)) ||
+              card.status !== 'done' ||
               (run.productionPolicy &&
                 (!SetRules.acceptsReview(
                   this.context.images.selected(card)?.review,
@@ -263,6 +268,7 @@ export class ProductionWorkflow {
     run.status = active.stop ? 'paused' : 'completed';
     const needsReview = run.variants.some(
       (v) =>
+        (run.reviewProtocol === 'set-v3' && !SetRules.hasCleanSetEvidence(v)) ||
         (run.workflowVersion &&
           !ProductionRules.readyForExport(
             v,
@@ -272,7 +278,7 @@ export class ProductionWorkflow {
         !SetRules.acceptsSetReview(
           v.review,
           run.productionPolicy?.styleThreshold ?? 4,
-          run.reviewProtocol === 'set-v2',
+          Boolean(run.reviewProtocol),
         ) ||
         Boolean(v.reviewError) ||
         v.cards.some(

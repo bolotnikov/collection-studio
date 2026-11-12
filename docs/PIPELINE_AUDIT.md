@@ -1,0 +1,53 @@
+# Pipeline audit — 2026-11-12
+
+The current new-run pipeline passes the automated checks below. The audit found and corrected concrete gaps; it does not establish artistic acceptance or guarantee model output. The user explicitly requested **no new generation**. No external model or image-generation calls were made for this audit.
+
+## Evidence and scope
+
+- `npm run typecheck`, `npm run lint`, **114 tests in 18 files**, and `npm run package:mac` passed after integrating the parallel image-prompting work.
+- The rebuilt native application started successfully with the existing three runs paused. No run was resumed. The producer's selected theme and default one-set count were retained.
+- `npx tsx scripts/audit-pipeline.ts` independently verified hashes for **160 reference cards, 25 context images and 15 clean sheets**, plus the clean sheets' 150 original-card membership records. The catalog has **128 eligible references**, 32 excluded entries and no manual metadata overrides at audit time. Six clean ordinary sets are primary-eligible.
+- The offline capture assembled generation and review packets for ten planned positions spanning all four categories. Each generation packet contained eight rendering/category originals plus one matching composition diagram: **9 originals packed into 3 transport sheets**. No references were silently omitted. Pixel/order preservation is covered by the packing tests.
+- The final-review context selected two ordinary clean sheets, one secondary source screenshot and four category diagrams; runtime adds the candidate sheet first and four original rendering anchors last. The candidate was not generated during this audit.
+
+The capture uses the real library, cached visual descriptions, production templates and real transport packer. Archived source observations are replayed into an **isolated audit cache**. Brief interpretation, set selection and visual reranking use explicitly labeled deterministic fixtures. The historical subject plan receives an explicit offline contract fixture. These are payload/control-flow checks, not current model decisions or quality scores. Nothing is written into the production analysis cache or reference metadata.
+
+The latest capture is described by `output/pipeline-audit/report.json`, including its unique `artifactDirectory`. That directory contains planning, plan-review and whole-set prompts, ten `generation-worker.txt` / `card-review.txt` pairs, input hashes and packing manifests. It contains no generated final art.
+
+## Findings corrected
+
+| Severity | Gap                                                                                                                                           | Correction and evidence                                                                                                                                                                                                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| High     | A verifier interruption could regenerate an already saved card on resume, including a pilot.                                                  | Retry the existing image's review first. Pilot and nonpilot regressions prove no additional image call, even with zero automatic repairs and the base image budget exhausted.                                                                                                                              |
+| High     | Approval tracked attempt IDs but export could accept modified image bytes under the same ID.                                                  | New attempts persist SHA-256 for master/preview. Reads and exports validate receipts. Strict whole-set export also recomposes the sheet and requires the exact reviewed content identity; a regression covers historical attempts without receipts.                                                        |
+| High     | Source-set analysis cache identity omitted active editable category/rendering rules.                                                          | Source cache v3 includes actual active rules, categories and operative requirements. New profiles cannot reuse an analysis with unknown rule lineage. Changing categories or rendering invalidates cached analysis. Legacy-only fallback remains explicit.                                                 |
+| Medium   | Plan/set reviewers lacked explicit category definitions; card review lacked the complete visible brief and acceptance threshold.              | Review payloads now carry the relevant canonical definitions, current card role/visual requirements, shared contract and actual style threshold. Whole-set review retains all ten visual briefs.                                                                                                           |
+| Medium   | Whole-set context in each card prompt included the detailed composition of the other nine cards.                                              | Generation retains peer subject/category/role plus the shared contract. Detailed composition remains only for the current card. A regression inserts literal other-category definitions into peer visual briefs and proves they do not leak into generation.                                               |
+| Medium   | Workflow/export instructions, duplicate policy blocks, provenance fields and repeated reference manifests added avoidable generation context. | Requirement sections declare their applicable stages. Workflow gates execute in code. Policy rules are deduplicated. Numbered manifests contain useful roles/take/ignore directions; full provenance remains in saved evidence. Category-5 analysis is excluded from current operative prompt projections. |
+| Medium   | Resuming after a Settings model change could use another model for reference analysis.                                                        | New run profiles snapshot the analysis model. Analysis factories use that snapshot; run rules, catalog metadata and templates are also retained. Profile writes are atomic.                                                                                                                                |
+| Medium   | A non-PNG image could be saved as a `.png` master without conversion.                                                                         | Normalize actual master bytes to PNG/sRGB, then create an opaque 430×480 preview. Tests verify real format, dimensions, content identity and invalid paths/changed bytes. The API also explicitly requests an opaque PNG.                                                                                  |
+
+Both card and set verification now preserve their prompts. Card verification also records its numbered input manifest and source evidence, including re-review after interruption; set history retains the prompt and content-addressed sheet.
+
+The parallel image-prompting task added concrete visible-detail requirements, exact numbered generation inputs, a previous-candidate edit base for revisions, and adapter transport tests. Generated previous candidates are excluded from reviewer style references. Integration was coordinated by file ownership; there was no concurrent final packaging or commit/push.
+
+## Gates confirmed
+
+1. Validate requested set count, ten unique subjects, all four categories, exact category allocation and the structured shared contract. Independently review the plan before any images.
+2. Analyze/select references using the canonical rules and curated metadata. Preserve original authority, matching-category coverage, hashes and bounded supplemental influence.
+3. Generate and independently verify a pilot before the remaining cards. Unknown/failed pilot review blocks production. Image calls and automatic repairs remain bounded across pause/resume.
+4. Verify each delivered crop against its subject, visual brief, category and original rendering references. Retry a failed verification transport without buying a new image.
+5. Review all ten selections together using comparable clean sheets. Apply bounded targeted corrections and repeat verification. Failed, unknown or stale evidence blocks export.
+6. Export exactly ten selected 430×480 PNGs and native-resolution PNG masters, history and reports only when current-version/card/set gates and byte identities agree.
+
+## Limits that remain real
+
+- No new pilot or ten-card set was generated or visually accepted. Mocked model judgments and valid payloads cannot prove that the next real model output matches style, follows the theme, preserves the full silhouette, or forms a beautiful coherent set.
+- Reference category labels are model-inferred unless manually curated. Hashes prove file identity, not classification quality. The editor permits corrections; original provenance remains intact.
+- RAG candidate ranking and model visual reranking remain probabilistic in real execution. The offline capture proves input completeness/category routing and transport, not the optimal relevance of a fresh model selection.
+- Native image-tool processing may resample inputs internally. Local packing preserves pixels/order, but cannot prove native-tool internals or pixel-identical revision preservation.
+- Codex quality is a prompt preference. The API adapter still uses an explicitly documented square-canvas generation and crop-safe framing; delivery is portrait and reviewed after cropping.
+- Older runs retain their saved templates and protocol. New stage-scoped context/revision protocol is not silently injected into historical snapshots. A run predating frozen analysis-model metadata cannot retroactively gain an exact model provenance record.
+- The corrected source-cache identity requires a one-time analysis of contextual sheets for a new profile when no cache with the active-rule lineage exists. This audit used isolated replays and did not trigger that production work.
+
+Human art review and a separately authorized real generation remain necessary to establish end-to-end artistic quality. The application must not present automated checks as a guarantee of production acceptance or employment.

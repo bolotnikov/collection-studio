@@ -37,6 +37,7 @@ it('owns one subscription, retains live updates during bootstrap, and ignores re
     selectedVariantId: null,
   });
   const data: Bootstrap = {
+    styleRules: { version: 1, rendering: profile.rules, categories: profile.categories },
     runs: [],
     profile: Contracts.profile.parse(profile),
     settings: Contracts.settings.parse({ imageModel: 'fixture', textModel: 'fixture' }),
@@ -45,8 +46,7 @@ it('owns one subscription, retains live updates during bootstrap, and ignores re
     referenceCount: 8,
     dataPath: '/fixture',
     productionPolicy: StyleContracts.policy.parse({}),
-    userReferences: [],
-    anchorReferences: [],
+    library: [],
   };
   feed.connect();
   feed.connect();

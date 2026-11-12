@@ -1,0 +1,49 @@
+[
+  {
+    "id": "set-structure",
+    "title": "Set structure",
+    "rules": [
+      "Each set contains exactly ten distinct, recognizable subjects connected by one specific theme.",
+      "Subjects complement one another with varied roles, silhouettes and materials; a shared color alone is insufficient.",
+      "Every set includes all four composition categories. The planned allocation must match the ten cards.",
+      "Generate exactly the number of sets selected by the producer; one set is the default."
+    ],
+    "stages": ["planning", "set-review"]
+  },
+  {
+    "id": "content",
+    "title": "Content constraints",
+    "rules": [
+      "Produce ordinary object illustrations without gold-rarity character scenes, people, brands, text, rarity badges or interface frames.",
+      "Keep the main subject complete and readable in portrait 43:48 format; preserve the artistic background.",
+      "The producer's theme changes subjects and mood while the active rendering rules define the artistic treatment."
+    ],
+    "stages": ["planning", "card", "set-review"]
+  },
+  {
+    "id": "quality",
+    "title": "Production and quality checks",
+    "rules": [
+      "Validate the subject plan and shared art direction before generating images.",
+      "Verify a pilot card before producing the remaining cards.",
+      "Compare every card against original art and its assigned composition category.",
+      "Review all ten cards together against clean original sets; repair outliers within the configured limits.",
+      "Export only when the current card versions and complete set have passed the required checks."
+    ],
+    "stages": []
+  },
+  {
+    "id": "image-prompting",
+    "title": "Image brief and reference use",
+    "rules": [
+      "Define one deliverable and its use. Describe the scene, subject, visible details and constraints in labeled sections.",
+      "Specify subject shape, materials and texture; resolve lighting direction, softness, highlights and shadows from original art.",
+      "State viewpoint, orientation, relative scale, placement, framing, negative space and background depth for the assigned category.",
+      "Define concrete colors, subject/background contrast and rendering medium. Avoid vague quality slogans, unnecessary camera settings and photographic genre drift.",
+      "Identify every input image by number and purpose. Transfer only declared rendering or category evidence; exclude source subjects, UI and layout. Originals outrank supplemental examples.",
+      "For revisions, supply the previous candidate, request the smallest coherent correction and restate what must remain. The candidate is an edit base, never style authority; preservation is subordinate to the accepted plan.",
+      "Exclude unrelated objects, text, logos, watermarks, frames and people. Check the complete silhouette, materials, lighting, category and thumbnail readability against the approved brief."
+    ],
+    "stages": ["planning", "card", "set-review"]
+  }
+]

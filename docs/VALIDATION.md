@@ -68,3 +68,34 @@ The rebuilt native app was checked after restart: New Set defaults to one and di
 - The new `application-architecture` skill passed its bundled validator. General project rules are in root AGENTS.md.
 - No image generation was launched for this refactor. The new full protocol has offline coverage, not fresh end-to-end artistic acceptance.
 - Native inspection found an existing user-started “Кино-коллекция” run showing 6/10 cards, 15 image requests and a pending pause. The app was not quit or restarted to avoid interrupting that work. Therefore the newly packaged UI was not validated in a fresh native process; it takes effect on the next app launch.
+
+## Organized knowledge corpus — 2026-11-12
+
+Prepared all 25 contextual images into role/category folders and verified each SHA-256 against the source manifest: 16 set sheets, 5 category examples, 4 delivery templates. No flat PNG copies remain in the prepared image root. Source originals are preserved. New tests reject inconsistent role/category pairs and duplicated image identities/paths, and prove organized imports retain legacy flat addresses for historical profiles. Typecheck, lint, **77 tests in 13 files**, and macOS packaging passed. No live generation was performed.
+
+## Clean reference sheets — 2026-11-12
+
+- Reconstructed 15 complete reference sheets from 150 original standalone PNGs. All memberships were checked against all 160 originals using calibrated pixel-patch matching, recorded in the manifest and visually compared with the fifteen source screenshots. Verified the reordered Beach and Road Trip slots. Original screenshots and art remain intact.
+- Marked 20 gold-character slots across nine mixed sets; six complete ordinary sets are primary-eligible. The gold-only grand-set is excluded explicitly. No generated replacement images were used.
+- Candidate and reference sheets use the same composer and 2246×1008 layout. Whole-set review v3 receives clean references first, retains secondary UI context, records versioned candidate sheets, and fails closed without clean provenance.
+- `npm run typecheck`, `npm run lint`, **85 tests in 14 files**, `npm run prepare:knowledge`, and `npm run package:mac` passed. New tests cover exact tile order/corners, pixel correspondence and ambiguity, clean-reference ordering, gold exclusion metadata, lineage/layout corruption, import and v3 export gates.
+- A real offline import of the full private corpus succeeded: 7 documents, 25 original context images, 15 derived sheets, 6 primary-eligible sets, 150 original card memberships. Source data were regenerated reproducibly; packaged corpus hashes were checked separately.
+- No live model generation or new artistic-acceptance run was performed. Existing user runs were not resumed or modified. The current application was not restarted; the new protocol becomes available in the rebuilt app on the next launch and applies to new runs.
+
+## Producer tools and focused style library — 2026-11-12
+
+Typecheck, lint, 91 tests in 15 files and macOS packaging passed. New coverage checks theme/wishes-aware AI description requests, duplicate/stale-response handling, English-only local rule persistence/reload, category partitioning, removal of export/recruitment metadata from operative prompts, and rule snapshots across asynchronous run startup. There is no translation call or language-specific rule copy; labels and messages retain EN/RU localization.
+
+The rebuilt native application was restarted after confirming all existing runs were paused. Verified the four mutually exclusive library tabs, the 28-card category-1 filter and top-right image badges, empty approved examples, named primary/context set references, and English rule bodies/editor under Russian UI. Cancel left the canonical rules unchanged. One real text-only AI request for the detective-cinema theme returned a short English art direction and preserved the default one-set count. No image generation was started and no existing run was resumed. Screenshots are in `output/ui/new-set-ai.png`, `style-library.png`, `set-references.png` and `style-rules.png`.
+
+## Unified reference curation — 2026-11-12
+
+Typecheck, lint, **101 tests in 16 files**, and macOS packaging passed. New tests cover category-scoped generation/review context, manual metadata precedence over cached analysis and retrieval category selection, immutable pixels/provenance, serialized edits, persistence/reload, bounded PNG/JPEG import and deduplication, invalid image rejection, editable AI proposals, cancellation/disposal, and rule/catalog snapshots across asynchronous run startup.
+
+The rebuilt native app was restarted with all three existing runs paused. Verified the unified Reference art tab (160 originals, no separate approved-examples tab), per-image editor, category selector, English description, and native file-picker cancellation. A real visual AI call on one existing source image proposed category 1 and an English description. Cancelling retained the original description; neither the proposal nor the file-picker cancellation added or changed references. Screenshots: `output/ui/reference-editor.png`, `output/ui/unified-library.png`. Actual metadata persistence/import are covered offline; no test images or arbitrary category edits were left in the user's library. No image generation or run resumption was performed.
+
+## Full offline pipeline audit — 2026-11-12
+
+Integrated the parallel OpenAI image-prompting changes and corrected review/context/cache/export gaps. Typecheck, lint, **114 tests in 18 files**, and macOS packaging passed. The real-data offline capture verified 160 reference hashes, 25 context images, 15 clean sets and 150 original-card memberships; ten generation packets each preserve eight references plus one matching diagram in three packed inputs. It made **zero model calls and zero image generations**, used deterministic decision fixtures and replayed archived observations into an isolated cache. The latest evidence is `output/pipeline-audit/report.json`. See `docs/PIPELINE_AUDIT.md` for findings, gate coverage and limits.
+
+The packaged native app was restarted with three existing runs paused; it loaded successfully and retained the producer's selected theme and one-set count. No AI action, generation or resume was invoked. Startup proof: `output/ui/audit-ready.png`. Existing source pixels and library metadata were not changed.

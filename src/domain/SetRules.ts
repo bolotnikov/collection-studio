@@ -1,6 +1,32 @@
-import type { Brief, Plan, Run, Review, SetReview, Variant } from '../shared/Contracts';
+import type { Attempt, Brief, Plan, Run, Review, SetReview, Variant } from '../shared/Contracts';
 
 export class SetRules {
+  static needsCardReview(attempt: Attempt | undefined): boolean {
+    return Boolean(attempt && (!attempt.review || attempt.reviewError));
+  }
+  static hasCleanSetEvidence(variant: Variant): boolean {
+    const evidence = variant.sourceEvidence,
+      sheets = evidence?.cleanSets;
+    return Boolean(
+      variant.reviewSheet &&
+      evidence?.stage === 'set-review' &&
+      sheets &&
+      sheets.length >= 2 &&
+      sheets.length <= 4 &&
+      new Set(sheets.map((sheet) => sheet.sourceImageId)).size === sheets.length &&
+      sheets.every(
+        (sheet) =>
+          sheet.primaryEligible &&
+          sheet.cards.length === 10 &&
+          sheet.cards.every((card) => card.use === 'ordinary') &&
+          JSON.stringify(sheet.layout) === JSON.stringify(sheets[0]?.layout) &&
+          evidence.images.some(
+            (image) => image.id === sheet.sourceImageId && image.sha256 === sheet.sourceSha256,
+          ),
+      ),
+    );
+  }
+
   static acceptsSetReview(review: SetReview | null | undefined, minimumStyle = 4, detailed = false): boolean {
     if (!review?.passed || review.coherence < 4 || review.outlierCardIds.length) return false;
     if (!('assessment' in review)) return !detailed;

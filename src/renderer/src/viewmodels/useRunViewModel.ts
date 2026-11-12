@@ -25,6 +25,7 @@ export function useRunViewModel(
   const active = Assets.active(run);
   const complete =
     variant?.cards.length === 10 &&
+    (run.reviewProtocol !== 'set-v3' || SetRules.hasCleanSetEvidence(variant)) &&
     (!run.workflowVersion ||
       ProductionRules.readyForExport(
         variant,
@@ -34,9 +35,9 @@ export function useRunViewModel(
     SetRules.acceptsSetReview(
       variant.review,
       run.productionPolicy?.styleThreshold ?? 4,
-      run.reviewProtocol === 'set-v2',
+      Boolean(run.reviewProtocol),
     ) &&
-    SetRules.reviewMatchesSelection(variant, run.reviewProtocol === 'set-v2') &&
+    SetRules.reviewMatchesSelection(variant, Boolean(run.reviewProtocol)) &&
     !variant.reviewError &&
     variant.cards.every(
       (c) =>

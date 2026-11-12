@@ -1,3 +1,4 @@
+import type { ArtDirectionPort } from '../application/ArtDirectionPort';
 import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import { SetContract } from '../shared/SetContract';
 import type { Plan } from '../shared/Contracts';
@@ -9,7 +10,7 @@ import { zodTextFormat } from 'openai/helpers/zod';
 import { Contracts, type Brief, type Card, type Profile, type Variant } from '../shared/Contracts';
 import type { GenerationPort, ImageResult } from '../application/GenerationPort';
 
-export class OpenAiProvider implements GenerationPort {
+export class OpenAiProvider implements GenerationPort, ArtDirectionPort {
   private readonly client: OpenAI;
   constructor(
     apiKey: string,
@@ -23,6 +24,16 @@ export class OpenAiProvider implements GenerationPort {
     await this.client.models.retrieve(this.imageModel);
     await this.client.models.retrieve(this.textModel);
     return 'Key accepted; models are accessible. Available credit is checked on the first generation request.';
+  }
+  async suggestArtDirection(prompt: string) {
+    const response = await this.client.responses.parse({
+      model: this.textModel,
+      store: false,
+      input: [{ role: 'user', content: prompt }],
+      text: { format: zodTextFormat(Contracts.artDirectionResult, 'art_direction') },
+    });
+    if (!response.output_parsed) throw new Error('Art direction was not returned.');
+    return response.output_parsed;
   }
   async plan(brief: Brief, profile: Profile, referencePaths: string[] = [], correction = '') {
     const response = await this.client.responses.parse({
@@ -77,6 +88,7 @@ export class OpenAiProvider implements GenerationPort {
       quality,
       size: '1024x1024',
       output_format: 'png',
+      background: 'opaque',
     });
     const data = response.data?.[0]?.b64_json;
     if (!data) throw new Error('Generator did not return an image.');

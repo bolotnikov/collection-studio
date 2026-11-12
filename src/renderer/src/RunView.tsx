@@ -270,7 +270,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
                 </small>
               </div>
             </div>
-            <p className="category-description">{text(profile.categories[card.category])}</p>
+            <p className="category-description">{profile.categories[card.category]}</p>
             {Assets.selected(card)?.review && (
               <div className="card-review">
                 <strong>
@@ -327,7 +327,9 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
                 {t('Approve and save to library')}
               </button>
               <small>
-                {t('Only a verified version can become an approved example. Source anchors remain primary.')}
+                {t(
+                  'The verified image is added to your reference art library. You can edit its category and description there.',
+                )}
               </small>
 
               <button disabled={busy || active || !card.selectedAttemptId} onClick={toggleLock}>

@@ -121,3 +121,27 @@ describe('Style library analysis', () => {
     expect(calls).not.toHaveBeenCalled();
   });
 });
+
+it('keeps manual category/description authoritative over cached analysis without reindexing pixels', async () => {
+  const f = await fixture(2);
+  await f.create().initialize();
+  const first = f.items[0];
+  if (!first) throw new Error('Missing fixture');
+  first.metadata = { category: '4', description: 'A brass telescope beside an observatory window.' };
+  const display = await f.create().catalog();
+  expect(display[0]?.category).toBe('4');
+  expect(display[0]?.title).toBe(first.metadata.description);
+  expect(display[0]?.tags).toContain('wood');
+  expect(f.calls).toHaveBeenCalledTimes(1);
+});
+it('proposes automatic metadata for one image without changing persisted catalog or cached classification', async () => {
+  const f = await fixture(2);
+  const first = f.items[0];
+  if (!first) throw new Error('Missing fixture');
+  const result = await f.create().analyzeReference(first);
+  expect(result.category).toBe('1');
+  expect(f.calls).toHaveBeenCalledOnce();
+  expect(f.calls.mock.calls[0]?.[2]).toEqual([path.join(f.folder, first.filename)]);
+  expect((await f.create().catalog())[0]?.category).toBe('unknown');
+  expect(first.metadata).toBeUndefined();
+});

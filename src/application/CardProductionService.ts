@@ -5,8 +5,9 @@ import { ProductionContext } from './ProductionContext';
 import { SetRules } from '../domain/SetRules';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import type { Variant, Card } from '../shared/Contracts';
+import { Contracts, type Attempt, type Profile, type Variant, type Card } from '../shared/Contracts';
 import { PromptBuilder } from './PromptBuilder';
+import { GenerationRequestBuilder } from './GenerationRequestBuilder';
 
 export class CardProductionService {
   constructor(private readonly context: ProductionContext) {}
@@ -30,14 +31,40 @@ export class CardProductionService {
     };
     const prepared = await active.preparation?.prepare(run.brief, card, variant, cardProfile, instruction);
     if (active.stop) return;
+    const previous = this.context.images.selected(card);
+    const request = new GenerationRequestBuilder().build({
+      prompt: prepared?.prompt ?? PromptBuilder.build(card, variant, cardProfile, instruction),
+      profile: cardProfile,
+      brief: run.brief,
+      card,
+      references: prepared?.references ?? references,
+      prepared,
+      sourceContext: context,
+      instruction,
+      previous: previous ? { id: previous.id, path: path.join(folder, previous.master) } : undefined,
+    });
     const selectedReferences = [...(prepared?.references ?? references), ...(context?.referencePaths ?? [])];
-    const prompt = prepared?.prompt ?? PromptBuilder.build(card, variant, cardProfile, instruction);
+    const reviewProfile = { ...cardProfile, inputManifest: request.reviewManifest };
+    if (!instruction.trim() && SetRules.needsCardReview(previous)) {
+      if (!previous) throw new Error('Selected attempt missing.');
+      await this.reviewAndRepair(
+        active,
+        provider,
+        variant,
+        card,
+        previous,
+        reviewProfile,
+        selectedReferences,
+      );
+      return;
+    }
+    const prompt = request.prompt;
     SetRules.reserveImage(run);
     card.status = 'generating';
     card.error = null;
     await this.context.publish(run, `Generating: ${card.subject}`);
     const started = Date.now();
-    const result = await provider.image(prompt, selectedReferences, run.brief.quality);
+    const result = await provider.image(prompt, request.references, run.brief.quality);
     const id = randomUUID();
     const files = await this.context.images.save(folder, id, result.bytes);
     const attempt = {
@@ -56,17 +83,36 @@ export class CardProductionService {
     };
     card.attempts.push(attempt);
     card.selectedAttemptId = id;
-    card.status = 'reviewing';
-    await this.context.publish(run, `Reviewing: ${card.subject}`);
     const stored = card.attempts.find((a) => a.id === id);
     if (!stored) throw new Error('Attempt was not persisted.');
+    await this.reviewAndRepair(active, provider, variant, card, stored, reviewProfile, selectedReferences);
+  }
+  private async reviewAndRepair(
+    active: ActiveRun,
+    provider: GenerationPort,
+    variant: Variant,
+    card: Card,
+    stored: Attempt,
+    cardProfile: Profile,
+    selectedReferences: string[],
+  ): Promise<void> {
+    const run = active.run;
+    stored.review = null;
+    stored.reviewError = null;
+    stored.reviewPrompt = PromptBuilder.cardReview(card, cardProfile, run.brief);
+    stored.reviewInputManifest = cardProfile.inputManifest;
+    stored.reviewSourceEvidence = cardProfile.knowledgeContext;
+    card.status = 'reviewing';
+    await this.context.publish(run, `Reviewing: ${card.subject}`);
     try {
-      stored.review = await provider.review(
-        card,
-        path.join(folder, files.preview),
-        selectedReferences,
-        cardProfile,
-        run.brief,
+      stored.review = Contracts.review.parse(
+        await provider.review(
+          card,
+          path.join(this.context.repository.directory(run.id), stored.preview),
+          selectedReferences,
+          cardProfile,
+          run.brief,
+        ),
       );
       stored.review.passed = SetRules.acceptsReview(stored.review, run.productionPolicy?.styleThreshold ?? 4);
     } catch (error) {

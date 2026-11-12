@@ -134,7 +134,7 @@ async function prepareFixture(mode: 'complete' | 'missing' | 'duplicate') {
     },
     references: library,
   });
-  return { preparation, brief, card, variant, profile };
+  return { preparation, brief, card, variant, profile, library };
 }
 
 describe('Reference selection provenance contract', () => {
@@ -149,7 +149,7 @@ describe('Reference selection provenance contract', () => {
       expect(reference.take).toBe('Broad soft highlights');
       expect(reference.ignore).toBe('Reference object identity');
     }
-    expect(prepared.prompt).toContain('ATTACHMENT ROLES IN ORDER:');
+    expect(prepared.prompt).toContain('SELECTED ART REFERENCE ROLES IN ORDER');
   });
   it.each(['missing', 'duplicate'] as const)(
     'rejects a %s candidate explanation before returning a generation prompt',
@@ -182,4 +182,20 @@ it('uses analyzed categories and reruns visual retrieval when correction require
   );
   expect(revised.evidence.query).toContain('frosted glass');
   expect(revised.evidence.query).not.toBe(first.evidence.query);
+});
+
+it('uses curated categories in retrieval and passes curated descriptions to the visual selector', async () => {
+  const f = await prepareFixture('complete');
+  for (const item of f.library.slice(2, 4))
+    item.metadata = { category: '3', description: 'Curated marble tabletop reference.' };
+  const card = { ...f.card, category: '3' as const };
+  const result = await f.preparation.prepare(f.brief, card, f.variant, f.profile);
+  expect(
+    result.evidence.references.filter((reference) => reference.purposes?.includes('category')).length,
+  ).toBeGreaterThanOrEqual(2);
+  expect(
+    result.evidence.references
+      .filter((reference) => reference.purposes?.includes('category'))
+      .every((reference) => reference.category === '3'),
+  ).toBe(true);
 });

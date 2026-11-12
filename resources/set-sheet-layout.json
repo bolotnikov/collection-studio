@@ -1,0 +1,9 @@
+{
+  "columns": 5,
+  "rows": 2,
+  "cardWidth": 430,
+  "cardHeight": 480,
+  "gap": 16,
+  "margin": 16,
+  "background": "#eceae5"
+}

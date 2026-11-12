@@ -1,3 +1,4 @@
+import type { StyleRuleSettings, StyleRuleEdit } from './StyleRuleContracts';
 import { RetrievalConfiguration } from './RetrievalConfiguration';
 import { SetContract } from './SetContract';
 import { KnowledgeContracts } from './KnowledgeContracts';
@@ -5,6 +6,21 @@ import { StyleContracts, type ProductionPolicy, type LibraryItem } from './Style
 import { z } from 'zod';
 
 export class Contracts {
+  static readonly inputManifest = z.array(
+    z.object({
+      image: z.number().int().positive(),
+      role: z.string().min(1),
+      id: z.string().optional(),
+      category: z.string().nullable().optional(),
+      take: z.string().optional(),
+      ignore: z.string().optional(),
+    }),
+  );
+  static readonly artDirectionRequest = z.object({
+    theme: z.string().trim().min(2).max(180),
+    wishes: z.string().max(3000),
+  });
+  static readonly artDirectionResult = z.object({ text: z.string().trim().min(10).max(600) });
   static readonly brief = z.object({
     theme: z.string().trim().min(2).max(180),
     wishes: z.string().max(3000),
@@ -75,6 +91,7 @@ export class Contracts {
     id: z.string(),
     master: z.string(),
     preview: z.string(),
+    hashes: z.object({ master: z.string().length(64), preview: z.string().length(64) }).optional(),
     prompt: z.string(),
     model: z.string(),
     createdAt: z.string(),
@@ -83,6 +100,9 @@ export class Contracts {
     usage: z.record(z.string(), z.unknown()).nullable(),
     review: Contracts.review.nullable(),
     reviewError: z.string().nullable(),
+    reviewPrompt: z.string().optional(),
+    reviewInputManifest: Contracts.inputManifest.optional(),
+    reviewSourceEvidence: KnowledgeContracts.evidence.optional(),
     evidence: StyleContracts.evidence.optional(),
     sourceEvidence: KnowledgeContracts.evidence.optional(),
   });
@@ -106,10 +126,14 @@ export class Contracts {
     review: z.union([Contracts.detailedSetReview, Contracts.setReview]).nullable(),
     sourceEvidence: KnowledgeContracts.evidence.optional(),
     reviewedAttemptIds: z.array(z.string()).optional(),
+    reviewSheet: z.string().optional(),
+    reviewPrompt: z.string().optional(),
     reviewHistory: z
       .array(
         z.object({
           at: z.string(),
+          sheet: z.string().optional(),
+          prompt: z.string().optional(),
           attemptIds: z.array(z.string()),
           review: z.union([Contracts.detailedSetReview, Contracts.setReview]).nullable(),
           error: z.string().nullable(),
@@ -147,7 +171,7 @@ export class Contracts {
         }),
       )
       .optional(),
-    reviewProtocol: z.literal('set-v2').optional(),
+    reviewProtocol: z.enum(['set-v2', 'set-v3']).optional(),
   });
   static readonly reference = z.object({
     id: z.string(),
@@ -163,11 +187,25 @@ export class Contracts {
     rules: z.array(z.string()),
     categories: z.object({ '1': z.string(), '2': z.string(), '3': z.string(), '4': z.string() }),
     references: z.array(Contracts.reference),
+    library: z.array(StyleContracts.libraryItem).optional(),
+    requirements: z
+      .array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          rules: z.array(z.string().min(1)),
+          stages: z.array(z.enum(['planning', 'card', 'set-review'])).optional(),
+        }),
+      )
+      .optional(),
     activeArtContract: SetContract.art.optional(),
     retrievalConfig: RetrievalConfiguration.schema.optional(),
     promptCatalog: z.record(z.string(), z.string()).optional(),
     knowledge: KnowledgeContracts.corpus.optional(),
     knowledgeContext: KnowledgeContracts.evidence.optional(),
+    inputManifest: Contracts.inputManifest.optional(),
+    reviewStyleThreshold: z.number().min(4).max(5).optional(),
+    analysisModel: z.string().min(1).optional(),
   });
   static readonly id = z.string().uuid();
   static readonly settings = z.object({
@@ -179,6 +217,8 @@ export class Contracts {
   });
 }
 
+export type ArtDirectionRequest = z.infer<typeof Contracts.artDirectionRequest>;
+export type ArtDirectionResult = z.infer<typeof Contracts.artDirectionResult>;
 export type Brief = z.infer<typeof Contracts.brief>;
 export type Plan = z.infer<typeof Contracts.plan>;
 export type Card = z.infer<typeof Contracts.card>;
@@ -190,6 +230,7 @@ export type SetReview = z.infer<typeof Contracts.setReview> | z.infer<typeof Con
 export type Profile = z.infer<typeof Contracts.profile>;
 export type Settings = z.infer<typeof Contracts.settings>;
 export type Bootstrap = {
+  styleRules: StyleRuleSettings;
   runs: Run[];
   profile: Profile;
   settings: Settings;
@@ -198,10 +239,14 @@ export type Bootstrap = {
   referenceCount: number;
   dataPath: string;
   productionPolicy: ProductionPolicy;
-  userReferences: LibraryItem[];
-  anchorReferences: LibraryItem[];
+  library: LibraryItem[];
 };
 export interface StudioApi {
+  importReference(): Promise<LibraryItem | null>;
+  editReference(input: import('./StyleContracts').ReferenceEdit): Promise<void>;
+  analyzeReference(id: string): Promise<import('./StyleContracts').ReferenceMetadata>;
+  saveStyleRules(input: StyleRuleEdit): Promise<StyleRuleSettings>;
+  suggestArtDirection(request: ArtDirectionRequest): Promise<ArtDirectionResult>;
   saveProductionPolicy(policy: ProductionPolicy): Promise<void>;
   approveReference(runId: string, cardId: string): Promise<void>;
   removeReference(id: string): Promise<void>;

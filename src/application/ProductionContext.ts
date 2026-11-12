@@ -20,6 +20,7 @@ export class ProductionContext {
     return {
       ...active.profile,
       rules: [...new Set([...active.profile.rules, ...(active.run.productionPolicy?.rules ?? [])])],
+      reviewStyleThreshold: active.run.productionPolicy?.styleThreshold ?? 4,
     };
   }
   sourceContext(

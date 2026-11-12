@@ -1,7 +1,13 @@
 import productionRules from '../../resources/production-rules.json';
 import { z } from 'zod';
+import { StyleRuleContracts } from './StyleRuleContracts';
 
 export class StyleContracts {
+  static readonly referenceMetadata = z.object({
+    category: z.enum(['1', '2', '3', '4']),
+    description: StyleRuleContracts.line,
+  });
+  static readonly referenceEdit = StyleContracts.referenceMetadata.extend({ id: z.string().min(1) });
   static readonly policy = z.object({
     referenceLimit: z.number().int().min(4).max(12).default(8),
     maxRepairsPerCard: z.number().int().min(0).max(4).default(2),
@@ -18,6 +24,7 @@ export class StyleContracts {
     origin: z.enum(['anchor', 'user']).default('anchor'),
     approved: z.boolean().default(true),
     tags: z.array(z.string()).default([]),
+    metadata: StyleContracts.referenceMetadata.optional(),
   });
   static readonly analysis = z.object({
     eligible: z.boolean(),
@@ -73,6 +80,8 @@ export class StyleContracts {
 }
 export type StylePolicy = z.infer<typeof StyleContracts.policy>;
 export type LibraryItem = z.infer<typeof StyleContracts.libraryItem>;
+export type ReferenceMetadata = z.infer<typeof StyleContracts.referenceMetadata>;
+export type ReferenceEdit = z.infer<typeof StyleContracts.referenceEdit>;
 export type ReferenceAnalysis = z.infer<typeof StyleContracts.analysis>;
 export type StyleEvidence = z.infer<typeof StyleContracts.evidence>;
 

@@ -7,7 +7,7 @@ import { Assets } from '../Assets';
 export function useAppViewModel(api: StudioApi, t: Localization['t']) {
   const [data, setData] = useState<Bootstrap | null>(null);
   const [page, setPage] = useState('new');
-  const [libraryView, setLibraryView] = useState<'source' | 'approved' | 'knowledge'>('source');
+  const [libraryView, setLibraryView] = useState<'source' | 'knowledge' | 'rules'>('source');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ text: string; error: boolean } | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>

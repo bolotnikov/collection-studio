@@ -12,19 +12,12 @@ export function useSettingsViewModel(
   const [key, setKey] = useState('');
   const [settings, setSettings] = useState<Settings>(data.settings);
   const [policy, setPolicy] = useState(data.productionPolicy);
-  const [rules, setRules] = useState<string>(data.productionPolicy.rules.join('\n'));
   const [policySaved, setPolicySaved] = useState(false);
   const policyBusy = busy || data.runs.some(Assets.active);
   const [connection, setConnection] = useState<{ ok: boolean; message: string } | null>(null);
   const savePolicy = () =>
     perform(async () => {
-      await api.saveProductionPolicy({
-        ...policy,
-        rules: rules
-          .split('\n')
-          .map((rule) => rule.trim())
-          .filter(Boolean),
-      });
+      await api.saveProductionPolicy(policy);
       await refresh();
       setPolicySaved(true);
     });
@@ -47,8 +40,6 @@ export function useSettingsViewModel(
     setSettings,
     policy,
     setPolicy,
-    rules,
-    setRules,
     policySaved,
     policyBusy,
     connection,

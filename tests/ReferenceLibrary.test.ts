@@ -176,3 +176,61 @@ describe('Reference library approval boundary', () => {
     expect(library.items).toEqual([]);
   });
 });
+
+it('persists edits to both original and generated art without changing image bytes or provenance', async () => {
+  const f = await fixture();
+  await f.library.approve(f.run, f.card, f.runFolder);
+  const generated = f.library.items.find((item) => item.origin === 'user');
+  if (!generated) throw new Error('Missing generated reference');
+  await Promise.all([
+    f.library.editMetadata({
+      id: f.anchor.id,
+      category: '3',
+      description: 'A wooden magnifier on a marble desk.',
+    }),
+    f.library.editMetadata({
+      id: generated.id,
+      category: '4',
+      description: 'A reading lamp beside a library window.',
+    }),
+  ]);
+  const reopened = new ReferenceLibrary(f.root, f.storage);
+  await reopened.init(f.resources);
+  expect(reopened.get(f.anchor.id).metadata?.category).toBe('3');
+  expect(reopened.get(generated.id).metadata?.category).toBe('4');
+  expect(reopened.get(f.anchor.id).source).toBe(f.anchor.source);
+  expect(await fs.readFile(path.join(f.root, f.anchor.filename))).toEqual(f.anchorBytes);
+  expect(await fs.readFile(path.join(f.root, generated.filename))).toEqual(f.generatedBytes);
+  const snapshot = reopened.get(f.anchor.id);
+  await reopened.editMetadata({
+    id: f.anchor.id,
+    category: '2',
+    description: 'A revised manual description.',
+  });
+  expect(snapshot.metadata?.category).toBe('3');
+  await expect(
+    reopened.editMetadata({ id: f.anchor.id, category: '1', description: 'Русское описание' }),
+  ).rejects.toThrow('English');
+  expect(reopened.get(f.anchor.id).metadata?.category).toBe('2');
+  await expect(
+    reopened.editMetadata({ id: 'missing', category: '1', description: 'A valid description.' }),
+  ).rejects.toThrow('not found');
+});
+it('imports local images once into the unified catalog and preserves them after restart', async () => {
+  const f = await fixture();
+  const image = path.join(f.runFolder, 'upload.jpg');
+  await sharp({ create: { width: 40, height: 30, channels: 3, background: '#556677' } })
+    .jpeg()
+    .toFile(image);
+  const [first, second] = await Promise.all([f.library.importImage(image), f.library.importImage(image)]);
+  expect(first.id).toBe(second.id);
+  expect(first.origin).toBe('user');
+  expect(first.category).toBe('unknown');
+  expect((await sharp(path.join(f.root, first.filename)).metadata()).format).toBe('png');
+  const reopened = new ReferenceLibrary(f.root, f.storage);
+  await reopened.init(f.resources);
+  expect(reopened.items).toHaveLength(2);
+  await fs.writeFile(path.join(f.runFolder, 'invalid.png'), 'not an image');
+  await expect(reopened.importImage(path.join(f.runFolder, 'invalid.png'))).rejects.toThrow();
+  expect(reopened.items).toHaveLength(2);
+});

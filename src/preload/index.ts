@@ -2,6 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { StudioApi, Run } from '../shared/Contracts';
 
 const api: StudioApi = {
+  importReference: () => ipcRenderer.invoke('studio:importReference'),
+  editReference: (input) => ipcRenderer.invoke('studio:editReference', input),
+  analyzeReference: (id) => ipcRenderer.invoke('studio:analyzeReference', id),
+  saveStyleRules: (input) => ipcRenderer.invoke('studio:saveStyleRules', input),
+  suggestArtDirection: (request) => ipcRenderer.invoke('studio:suggestArtDirection', request),
   getSystemLanguages: () => ipcRenderer.invoke('studio:getSystemLanguages'),
   setLanguage: (locale) => ipcRenderer.invoke('studio:setLanguage', locale),
   saveProductionPolicy: (policy) => ipcRenderer.invoke('studio:saveProductionPolicy', policy),

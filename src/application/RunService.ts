@@ -28,7 +28,7 @@ export class RunService {
   constructor(
     private readonly repository: RunStore,
     private readonly images: ImageStore,
-    private readonly profile: Profile,
+    private profile: Profile,
     private readonly referenceRoot: string,
     private readonly makeProvider: (settings: Settings, profile: Profile) => GenerationPort,
     private readonly notify: (run: Run) => void,
@@ -36,6 +36,9 @@ export class RunService {
     private readonly makeSourceContext?: (profile: Profile) => SourceContextPort,
     private readonly planningDefaults = SetContract.planningPolicy.parse(productionDefaults),
   ) {}
+  updateProfile(profile: Profile): void {
+    this.profile = structuredClone(profile);
+  }
   private async publish(run: Run, message?: string): Promise<void> {
     if (message) {
       run.stage = message;
@@ -55,9 +58,10 @@ export class RunService {
   }
   async start(input: Brief, settings: Settings, policy?: ProductionPolicy): Promise<Run> {
     return this.whenIdle(async () => {
+      const profile = { ...structuredClone(this.profile), analysisModel: settings.codexModel };
       const brief = Contracts.brief.parse(input);
       SetRules.validateBrief(brief);
-      const provider = this.makeProvider(settings, this.profile);
+      const provider = this.makeProvider(settings, profile);
       const now = new Date().toISOString();
       const run: Run = {
         id: randomUUID(),
@@ -77,11 +81,16 @@ export class RunService {
         workflowVersion: 'planned-pilot-v1',
         planningPolicy: structuredClone(this.planningDefaults),
         planHistory: [],
-        reviewProtocol: this.profile.knowledge && this.makeSourceContext ? 'set-v2' : undefined,
+        reviewProtocol:
+          profile.knowledge && this.makeSourceContext
+            ? profile.knowledge.cleanSets?.length
+              ? 'set-v3'
+              : 'set-v2'
+            : undefined,
       };
       await this.publish(run, run.stage);
-      await this.repository.saveProfile(run.id, this.profile);
-      this.launch(run, provider, this.profile);
+      await this.repository.saveProfile(run.id, profile);
+      this.launch(run, provider, profile);
       return structuredClone(run);
     });
   }

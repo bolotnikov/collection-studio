@@ -1,4 +1,6 @@
-import { SourceKnowledgeView } from './SourceKnowledgeView';
+import { ReferenceGallery } from './ReferenceGallery';
+import { StyleRulesView } from './StyleRulesView';
+import { SetReferenceView } from './SetReferenceView';
 import { useLocalization } from './i18n/LocalizationContext';
 import { Layers, Plus, Library, Settings2, ArrowUpRight, X, LoaderCircle, Sun, Moon } from 'lucide-react';
 import type { StudioApi } from '../../shared/Contracts';
@@ -164,7 +166,9 @@ export function App({ api }: { api: StudioApi }) {
               </button>
             </div>
           )}
-          {page === 'new' && <BriefForm data={data} disabled={busy || Boolean(active)} onStart={start} />}
+          {page === 'new' && (
+            <BriefForm api={api} data={data} disabled={busy || Boolean(active)} onStart={start} />
+          )}
           {current && (
             <RunView
               key={current.id}
@@ -182,9 +186,7 @@ export function App({ api }: { api: StudioApi }) {
               <h1>{t('Style library')}</h1>
               <p className="lead">
                 {' '}
-                {t(
-                  'Original source art stays the style authority. Your approved images add useful examples.',
-                )}{' '}
+                {t('Manage reference art, set examples and the rules used for generation.')}{' '}
               </p>
               <div className="library-switch" role="group" aria-label={t('Reference collection')}>
                 <button
@@ -192,14 +194,7 @@ export function App({ api }: { api: StudioApi }) {
                   className={libraryView === 'source' ? 'selected' : ''}
                   onClick={() => setLibraryView('source')}
                 >
-                  {t('Source art')} <span>{data.anchorReferences.length}</span>
-                </button>
-                <button
-                  aria-pressed={libraryView === 'approved'}
-                  className={libraryView === 'approved' ? 'selected' : ''}
-                  onClick={() => setLibraryView('approved')}
-                >
-                  {t('Approved examples')} <span>{data.userReferences.length}</span>
+                  {t('Reference art')} <span>{data.library.length}</span>
                 </button>
                 {data.profile.knowledge && (
                   <button
@@ -207,97 +202,31 @@ export function App({ api }: { api: StudioApi }) {
                     className={libraryView === 'knowledge' ? 'selected' : ''}
                     onClick={() => setLibraryView('knowledge')}
                   >
-                    {t('Rules and sets')}
+                    {t('Set references')}
                   </button>
                 )}
+                <button
+                  aria-pressed={libraryView === 'rules'}
+                  className={libraryView === 'rules' ? 'selected' : ''}
+                  onClick={() => setLibraryView('rules')}
+                >
+                  {t('Generation rules')}
+                </button>
               </div>
               {libraryView === 'knowledge' && data.profile.knowledge && (
-                <SourceKnowledgeView corpus={data.profile.knowledge} />
+                <SetReferenceView corpus={data.profile.knowledge} />
               )}
               {libraryView === 'source' && (
-                <>
-                  <h2>{t('Source art')}</h2>
-                  <p className="form-note">
-                    {t(
-                      'The source archive is searched during preparation. Category labels appear after analysis.',
-                    )}
-                  </p>
-                  <div className="library-grid">
-                    {data.anchorReferences.map((r) => (
-                      <figure key={r.id}>
-                        <img loading="lazy" src={Assets.reference(r.filename)} alt={text(r.title)} />
-                        <figcaption>
-                          <strong>{text(r.title)}</strong>
-                          <span>
-                            {r.tags.includes('exclude:ordinary-card-generation')
-                              ? t('Excluded from generation')
-                              : r.category === 'unknown'
-                                ? t('Pending analysis')
-                                : `${t('Category')} ${r.category}`}
-                          </span>
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                </>
+                <ReferenceGallery
+                  items={data.library}
+                  api={api}
+                  refresh={refresh}
+                  canAnalyze={data.codexReady}
+                  disabled={busy}
+                  onRemove={(id) => void removeReference(id)}
+                />
               )}
-              {libraryView === 'approved' && (
-                <section className="curated-library">
-                  <h2>
-                    {t('Approved examples')} <span className="muted">{data.userReferences.length}</span>
-                  </h2>
-                  {data.userReferences.length === 0 ? (
-                    <p className="lead">
-                      {t('Approve a generated card and save it here from its detail view.')}
-                    </p>
-                  ) : (
-                    <div className="library-grid">
-                      {data.userReferences.map((reference) => (
-                        <figure key={reference.id}>
-                          <img
-                            loading="lazy"
-                            src={Assets.reference(reference.filename)}
-                            alt={reference.title}
-                          />
-                          <figcaption>
-                            <strong>{reference.title}</strong>
-                            <span>
-                              {t('Category')} {reference.category}
-                            </span>
-                            <button
-                              disabled={busy || Boolean(active)}
-                              onClick={() => void removeReference(reference.id)}
-                            >
-                              {t('Remove from library')}
-                            </button>
-                          </figcaption>
-                        </figure>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              )}
-              <details className="library-guidance">
-                <summary>{t('Rendering rules')}</summary>
-                <div className="library-rules">
-                  <div>
-                    <h2>{t('Rendering rules')}</h2>
-                    <ul>
-                      {data.profile.rules.map((r) => (
-                        <li key={r}>{text(r)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h2>{t('Composition categories')}</h2>
-                    {Object.entries(data.profile.categories).map(([n, d]) => (
-                      <p key={n}>
-                        <b>{n.padStart(2, '0')}</b> {text(d)}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </details>
+              {libraryView === 'rules' && <StyleRulesView data={data} api={api} refresh={refresh} />}
             </div>
           )}
           {page === 'settings' && (

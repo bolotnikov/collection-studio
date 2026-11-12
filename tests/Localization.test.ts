@@ -21,17 +21,14 @@ describe('Localization', () => {
       expect(translation.match(/\{\w+\}/g) ?? [], key).toEqual(english[key]?.match(/\{\w+\}/g) ?? []);
     }
   });
-  it('translates profile guidance and system stages without changing user content', () => {
+  it('localizes interface stages while preserving canonical English generator rules', () => {
     const russian: Record<string, string> = ru;
-    for (const source of [
-      profile.name,
-      ...profile.rules,
-      ...Object.values(profile.categories),
-      ...profile.references.map((r) => r.title),
-    ]) {
+    for (const source of [profile.name, ...profile.references.map((r) => r.title)]) {
       expect(russian[source], source).toBeDefined();
     }
     const localization = new Localization('ru');
+    for (const rule of [...profile.rules, ...Object.values(profile.categories)])
+      expect(localization.text(rule)).toBe(rule);
     expect(localization.text('Generating: My custom subject')).toBe('Генерация: My custom subject');
     expect(localization.text('A user-authored brief')).toBe('A user-authored brief');
     expect(localization.t('Saved: {path}', { path: '/tmp/art.png' })).toBe('Сохранено: /tmp/art.png');

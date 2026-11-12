@@ -29,8 +29,6 @@ export function SettingsView({
     setSettings,
     policy,
     setPolicy,
-    rules,
-    setRules,
     policySaved,
     policyBusy,
     connection,
@@ -110,16 +108,6 @@ export function SettingsView({
             <option value={4}>4 / 5</option>
             <option value={5}>5 / 5</option>
           </select>
-          <details className="advanced">
-            <summary>{t('Additional art rules')}</summary>
-            <p>{t('One rule per line. Assignment requirements and original anchors always apply.')}</p>
-            <textarea
-              rows={7}
-              value={rules}
-              onChange={(e) => setRules(e.target.value)}
-              aria-label={t('Additional art rules')}
-            />
-          </details>
           <div className="actions">
             <button type="submit" className="primary" disabled={policyBusy}>
               {t('Save production settings')}

@@ -4,10 +4,12 @@ import { z } from 'zod';
 /** Immutable authored text with explicit, non-executable substitution. */
 export class PromptCatalog {
   readonly values: Readonly<Record<string, string>>;
-  constructor(input: unknown = defaults) {
+  constructor(input: unknown = defaults, required: Readonly<Record<string, string>> = defaults) {
     const values = z.record(z.string(), z.string().min(1)).parse(input);
-    for (const [key, template] of Object.entries(defaults)) {
+    for (const [key, template] of Object.entries(required)) {
       const value = values[key];
+      // This additive protocol is absent in historical snapshots; never inject it into them.
+      if (!value && key === 'generation.context.v1' && input !== defaults) continue;
       if (!value) throw new Error(`Missing prompt template: ${key}`);
       const slots = (text: string) => [...new Set(text.match(/\{\{\w+\}\}/g) ?? [])].sort().join(',');
       if (slots(value) !== slots(template)) throw new Error(`Invalid prompt placeholders: ${key}`);

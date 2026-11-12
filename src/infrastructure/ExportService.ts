@@ -13,6 +13,7 @@ export class ExportService {
     if (!variant || variant.cards.length !== 10 || variant.cards.some((c) => !c.selectedAttemptId))
       throw new Error('Export requires all ten images in the variant.');
     if (
+      (run.reviewProtocol === 'set-v3' && !SetRules.hasCleanSetEvidence(variant)) ||
       (run.workflowVersion &&
         !ProductionRules.readyForExport(
           variant,
@@ -22,9 +23,9 @@ export class ExportService {
       !SetRules.acceptsSetReview(
         variant.review,
         run.productionPolicy?.styleThreshold ?? 4,
-        run.reviewProtocol === 'set-v2',
+        Boolean(run.reviewProtocol),
       ) ||
-      !SetRules.reviewMatchesSelection(variant, run.reviewProtocol === 'set-v2') ||
+      !SetRules.reviewMatchesSelection(variant, Boolean(run.reviewProtocol)) ||
       variant.reviewError ||
       variant.cards.some((card) => {
         const attempt = this.images.selected(card);
@@ -35,20 +36,23 @@ export class ExportService {
       })
     )
       throw new Error('Production export requires passed card and set reviews.');
+    const sheet = await this.images.sheet(folder, variant, variant.sourceEvidence?.cleanSets?.[0]?.layout);
+    if (run.reviewProtocol === 'set-v3' && path.basename(sheet) !== variant.reviewSheet)
+      throw new Error('Export sheet no longer matches the reviewed image bytes.');
     const zip = new AdmZip();
     for (const [index, card] of variant.cards.entries()) {
       const attempt = this.images.selected(card);
       if (!attempt) throw new Error('Selected attempt missing.');
       const prefix = String(index + 1).padStart(2, '0');
-      zip.addFile(`cards/${prefix}.png`, await fs.readFile(path.join(folder, attempt.preview)));
-      zip.addFile(`masters/${prefix}.png`, await fs.readFile(path.join(folder, attempt.master)));
+      zip.addFile(`cards/${prefix}.png`, await this.images.read(folder, attempt, 'preview'));
+      zip.addFile(`masters/${prefix}.png`, await this.images.read(folder, attempt, 'master'));
       for (const history of card.attempts)
         zip.addFile(
           `history/${card.id}/${history.id}.png`,
-          await fs.readFile(path.join(folder, history.preview)),
+          await this.images.read(folder, history, 'preview'),
         );
     }
-    zip.addFile('contact-sheet.png', await fs.readFile(await this.images.sheet(folder, variant)));
+    zip.addFile('contact-sheet.png', await fs.readFile(sheet));
     zip.addFile('run.json', Buffer.from(JSON.stringify(run, null, 2)));
     zip.addFile('selection.json', Buffer.from(JSON.stringify({ variantId, variant }, null, 2)));
     zip.addFile('style-profile.json', await fs.readFile(path.join(folder, 'style-profile.json')));
