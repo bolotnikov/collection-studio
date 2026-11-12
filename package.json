@@ -1,0 +1,81 @@
+{
+  "name": "collection-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reference-guided production of collectible card sets",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests scripts/*.ts",
+    "test": "vitest run",
+    "prepare:references": "tsx scripts/prepare-references.ts",
+    "smoke:api": "tsx scripts/smoke-api.ts",
+    "package:mac": "npm run build && electron-builder --mac --dir",
+    "format": "prettier --write src tests scripts/*.ts docs/*.md README.md",
+    "calibrate:codex": "tsx scripts/calibrate-codex.ts",
+    "prepare:icon": "tsx scripts/prepare-icon.ts",
+    "prepare:library": "tsx scripts/prepare-library.ts"
+  },
+  "build": {
+    "appId": "studio.collection.desktop",
+    "productName": "Collection Studio",
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/style-profile.json",
+        "to": "style-profile.json"
+      },
+      {
+        "from": "resources/references",
+        "to": "references"
+      },
+      {
+        "from": "resources/library.json",
+        "to": "library.json"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "identity": null,
+      "icon": "resources/icon.icns"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "dotenv": "^18.0.10",
+    "lucide-react": "^1.72.0",
+    "openai": "^7.55.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.3.1",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "eslint": "^10.14.0",
+    "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

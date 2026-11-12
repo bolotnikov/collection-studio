@@ -1,0 +1,86 @@
+{
+  "id": "summer-reference-v1",
+  "name": "Summer Collection · Casual 3D",
+  "rules": [
+    "Polished stylized 3D-like painted illustration, rounded appealing volumes and clean silhouettes, no dark outlines.",
+    "One dominant instantly recognizable subject; supporting parts must belong to that subject. Avoid busy microdetail.",
+    "Bright saturated but controlled colors. Use color contrast between subject and background, not a monochrome set.",
+    "Soft directional light, broad highlights, gentle ambient occlusion and believable contact shadows where appropriate.",
+    "Distinguish wood, glass, fabric, plastic and metal with simplified readable material cues; do not make everything glossy plastic.",
+    "Illustrated environments remain simple and subordinate. Realistic environment means spatially believable in the SAME stylized rendering, not photography.",
+    "No humans, character faces, gold cards, rarity effects, branded logos, card borders, stars, labels or typography.",
+    "Frame large objects boldly. Keep all identity-defining parts intact in a portrait 43:48 crop."
+  ],
+  "categories": {
+    "1": "Simple floating object; no ground contact. Gradient, rays, stripes or restrained repeated pattern background.",
+    "2": "Simple object resting on a surface; behind it a simple vertical plane or gradient/pattern background.",
+    "3": "Object on a recognizable realistic material surface, with spatial depth and a restrained simple background; limited contextual details.",
+    "4": "Main object integrated into a recognizable surrounding environment. The environment supports the story but the object stays dominant."
+  },
+  "references": [
+    {
+      "id": "3458764679576006333",
+      "filename": "reference-21.png",
+      "title": "Graduation cap",
+      "category": "1",
+      "sha256": "e5fd84a3eae5908ade5fb0505cc1457989ee7e9c86a589bf6718d0a8617a9e39",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006333"
+    },
+    {
+      "id": "3458764679576006337",
+      "filename": "reference-24.png",
+      "title": "Calculator",
+      "category": "1",
+      "sha256": "6242149b15fc110a55826dc2e76ea861cec10ef379b7a64b76b9493c4fb884c7",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006337"
+    },
+    {
+      "id": "3458764679576006672",
+      "filename": "reference-14.png",
+      "title": "Sneakers",
+      "category": "2",
+      "sha256": "f7c207c15d3dfc3f8be0a63f0744f9c0e5c69c8772750f4e4f9f588306560e7d",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006672"
+    },
+    {
+      "id": "3458764679576006866",
+      "filename": "reference-53.png",
+      "title": "Apple basket",
+      "category": "2",
+      "sha256": "8484d8d4d99523f7651f1ef4d06318e9fe55dfac59c6db2a1d8a232150fd676e",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006866"
+    },
+    {
+      "id": "3458764679576006671",
+      "filename": "reference-13.png",
+      "title": "Football on grass",
+      "category": "3",
+      "sha256": "46b055210f415a7e29750b91ba8978b7a82fe51b131ed9b5f38d7023b43471d0",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006671"
+    },
+    {
+      "id": "3458764679576006387",
+      "filename": "reference-48.png",
+      "title": "Fruit on a wooden surface",
+      "category": "3",
+      "sha256": "be28de04cb995ef077eb5b03a831cba108bdca191104287c178ba5956fe58c85",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006387"
+    },
+    {
+      "id": "3458764679576006454",
+      "filename": "reference-91.png",
+      "title": "Sandcastle",
+      "category": "4",
+      "sha256": "b3ec2323a3621aaa9b3222bbc85a136dc94fa1891801e8e97445929026e32f1c",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006454"
+    },
+    {
+      "id": "3458764679576006878",
+      "filename": "reference-60.png",
+      "title": "Boat at a pier",
+      "category": "4",
+      "sha256": "58ebd298caff0885f186306ef4a538f7208b79606e9aff3a7b36d60aa453f280",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006878"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Source artwork and reference material remain local.
+/art/
+/Art/
+/references/
+/References/
+.DS_Store
+.env
+.env.*
+!.env.example
+__pycache__/
+.venv/
+node_modules/
+out/
+release/
+/runs/
+/resources/references/
+/output/
+.npm-cache/
+/Art Sources/
