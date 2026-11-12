@@ -1,3 +1,4 @@
+import productionRules from '../../resources/production-rules.json';
 import { z } from 'zod';
 
 export class StyleContracts {
@@ -5,16 +6,7 @@ export class StyleContracts {
     referenceLimit: z.number().int().min(4).max(12).default(8),
     maxRepairsPerCard: z.number().int().min(0).max(4).default(2),
     styleThreshold: z.number().min(4).max(5).default(5),
-    rules: z
-      .array(z.string().trim().min(5).max(1500))
-      .max(40)
-      .default([
-        'A set tells one coherent story through ten varied recognizable objects; shared color or a loose theme alone is insufficient.',
-        'Every set includes all four composition categories with varied silhouettes, materials and environmental complexity.',
-        'The generated set must coexist with the supplied game reference art without perceptible rendering-style differences.',
-        'Genre atmosphere changes subjects and storytelling, never the anchor rendering style.',
-        'No gold character cards, people, typography, card frames or rarity decorations.',
-      ]),
+    rules: z.array(z.string().trim().min(5).max(1500)).max(40).default(productionRules),
   });
   static readonly libraryItem = z.object({
     id: z.string().min(1),
@@ -63,6 +55,8 @@ export class StyleContracts {
     references: z.array(
       z.object({
         id: z.string(),
+        category: z.enum(['1', '2', '3', '4', 'unknown']).optional(),
+        purposes: z.array(z.enum(['shared-style', 'category', 'supporting'])).optional(),
         sha256: z.string(),
         source: z.string(),
         origin: z.enum(['anchor', 'user']),

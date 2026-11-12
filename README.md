@@ -1,6 +1,6 @@
 # Collection Studio
 
-A desktop art-production tool for collectible mobile-game card sets. Enter a set theme and art direction; produce 3–5 complete ten-card variants, inspect them against source art, keep the strongest versions, and export a delivery archive.
+A desktop art-production tool for collectible mobile-game card sets. Enter a set theme and art direction; produce 1–5 complete ten-card variants (one by default), inspect them against source art, keep the strongest versions, and export a delivery archive.
 
 English and Russian interface with persistent **Dark / Light** palettes inspired by Photoshop. **Settings → Interface** offers device language (default), English or Russian. Unsupported device languages fall back to English. Built with Electron, React and strict TypeScript.
 
@@ -37,7 +37,7 @@ The API adapter uses `images.edit`, explicit PNG MIME types, reference images, s
 ## Producer workflow
 
 1. Open **New set** and enter the theme and free-form art direction.
-2. Generate three ten-card variants. The main screen contains only theme and optional art direction. Settings control the reference budget, style threshold and bounded automatic repairs.
+2. Choose the number of ten-card variants (1–5, default one). The main screen contains theme, optional art direction and the set count. Settings control the reference budget, style threshold and bounded automatic repairs.
 3. Start generation. The planner validates ten distinct subjects and all four composition categories in each variant before image generation begins.
 4. Open a card to compare its selected image with a category reference, inspect review findings, compare versions, regenerate or lock the selection.
 5. Use **Pause** to stop scheduling. Two already-running requests may finish. **Resume** retains finished images. After an interruption, unfinished requests are marked uncertain and never silently replayed.
@@ -134,3 +134,15 @@ To restore prepared PNGs from a source checkout, run `REFERENCE_ART_DIR=/absolut
 `npx tsx scripts/probe-style-preparation.ts` runs real library indexing and a reference-selection probe. Add `--generate` to generate and review one calibration image. These scripts use subscription usage and never run as offline tests.
 
 Use `--index-only` to prepare the library without generating images. `--repair` reuses the last calibration’s references and reviewer correction, preserves image versions and permits at most two repairs.
+
+## Complete assignment context
+
+Run `npm run prepare:knowledge` after importing the complete `Art Sources` export. It prepares seven original documents and all 25 non-card images under the ignored `resources/knowledge/` folder. This private corpus is packaged locally and deliberately omitted from the source-only archive. The three operative source documents are supplied verbatim to planning, generation and verification; reference inventories and delivery material remain separately identified.
+
+Sixteen complete set sheets and five composition figures are analyzed once and cached. Semantic selection chooses relevant original sets. Planning and whole-set review receive actual set images and category figures; card generation receives derived set principles and the applicable composition figure. Category 5 is an exclusion example, and result templates never become positive style references. The Library's **Rules and sets** view exposes the source material.
+
+Set verification evaluates style compatibility, thematic cohesion, silhouette/material diversity, palette/composition balance, category coverage and duplicate subjects. Corrections identify actual card IDs. Every review is saved with the selected image-version IDs; export requires a current passing review. Existing runs keep historical source snapshots; the new complete context applies to new runs.
+
+`npx tsx scripts/probe-source-context.ts RUN_ID` analyzes source context and reviews an existing complete set without generating new images. See [production readiness audit](docs/PRODUCTION_REVIEW.md) for remaining acceptance evidence and the reasoning about workflows and vector retrieval.
+
+The application now uses MVVM presentation and a reviewed-plan/pilot production protocol. New runs require an independently accepted structured art contract before any image generation, then a verified pilot before the other nine cards. Prompt text is editable in `resources/prompts/production.json`. See [application architecture](docs/APPLICATION_ARCHITECTURE.md) for configuration, persistence, reference roles and legacy-run behavior.

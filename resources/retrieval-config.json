@@ -1,0 +1,15 @@
+{
+  "weights": {
+    "title": 6,
+    "tags": 3,
+    "subject": 7,
+    "materials": 8,
+    "silhouette": 2,
+    "background": 1.5,
+    "rendering": 0.15,
+    "lighting": 0.25,
+    "palette": 0.25
+  },
+  "categoryBoost": 4,
+  "anchorBoost": 0.5
+}

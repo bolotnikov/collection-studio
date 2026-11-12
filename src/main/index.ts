@@ -1,9 +1,15 @@
+import { RetrievalConfiguration } from '../shared/RetrievalConfiguration';
+import { PromptCatalog } from '../application/prompts/PromptCatalog';
+import { SetContract } from '../shared/SetContract';
+import type { Profile } from '../shared/Contracts';
+import { SourceKnowledgeStore } from '../infrastructure/SourceKnowledgeStore';
+import { CodexSourceContext } from '../infrastructure/style/CodexSourceContext';
 import { ReferenceLibrary } from '../infrastructure/ReferenceLibrary';
 import { StyleContracts, type ProductionPolicy } from '../shared/StyleContracts';
 import { CodexStylePreparation } from '../infrastructure/style/CodexStylePreparation';
 import { NativeMenus } from './NativeMenus';
 import { Localization } from '../shared/i18n/Localization';
-import { app, BrowserWindow, dialog, ipcMain, protocol, nativeTheme } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, protocol, nativeTheme, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -49,9 +55,22 @@ class DesktopApplication {
       }
     };
     await refreshCodex();
-    const profile = Contracts.profile.parse(
-      JSON.parse(await fs.readFile(path.join(resources, 'style-profile.json'), 'utf8')),
+    const knowledgeStore = new SourceKnowledgeStore(path.join(app.getPath('userData'), 'knowledge-assets'));
+    const knowledge = await knowledgeStore.import(resources);
+    const prompts = new PromptCatalog(
+      JSON.parse(await fs.readFile(path.join(resources, 'prompts/production.json'), 'utf8')),
     );
+    const planningPolicy = SetContract.planningPolicy.parse(
+      JSON.parse(await fs.readFile(path.join(resources, 'production-config.json'), 'utf8')),
+    );
+    const profile = Contracts.profile.parse({
+      ...JSON.parse(await fs.readFile(path.join(resources, 'style-profile.json'), 'utf8')),
+      knowledge,
+      promptCatalog: prompts.values,
+      retrievalConfig: new RetrievalConfiguration(
+        JSON.parse(await fs.readFile(path.join(resources, 'retrieval-config.json'), 'utf8')),
+      ).values,
+    });
     const referenceRoot = path.join(app.getPath('userData'), 'reference-library');
     const library = new ReferenceLibrary(referenceRoot, app.getPath('userData'));
     await library.init(resources);
@@ -67,36 +86,59 @@ class DesktopApplication {
     const repository = new RunRepository(runsRoot),
       images = new ImageFiles();
     await repository.recover();
-    const prepareStyle = (policy: ProductionPolicy) =>
+    const prepareStyle = (policy: ProductionPolicy, sourceProfile: Profile = profile) =>
       new CodexStylePreparation(
-        new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), settings.settings.codexModel),
+        new CodexRunner(
+          codexExecutable,
+          path.join(runsRoot, '_codex-jobs'),
+          settings.settings.codexModel,
+          new PromptCatalog(sourceProfile.promptCatalog),
+        ),
         structuredClone(library.items),
         referenceRoot,
         path.join(app.getPath('userData'), 'reference-analysis'),
         settings.settings.codexModel,
         policy,
+        new PromptCatalog(sourceProfile.promptCatalog),
+        sourceProfile.retrievalConfig,
       );
     const service = new RunService(
       repository,
       images,
       profile,
       referenceRoot,
-      (s) => {
+      (s, sourceProfile) => {
+        const templates = new PromptCatalog(sourceProfile.promptCatalog);
         if (s.provider === 'codex') {
           if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
           return new CodexProvider(
-            new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), s.codexModel),
+            new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), s.codexModel, templates),
+            templates,
           );
         }
-        return new OpenAiProvider(settings.credential(), s.imageModel, s.textModel);
+        return new OpenAiProvider(settings.credential(), s.imageModel, s.textModel, templates);
       },
       (r) => this.publish(r),
-      (policy) => {
+      (policy, sourceProfile) => {
         if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
-        return prepareStyle(policy);
+        return prepareStyle(policy, sourceProfile);
       },
+      (sourceProfile) =>
+        new CodexSourceContext(
+          new CodexRunner(
+            codexExecutable,
+            path.join(runsRoot, '_codex-jobs'),
+            settings.settings.codexModel,
+            new PromptCatalog(sourceProfile.promptCatalog),
+          ),
+          knowledgeStore.root,
+          path.join(app.getPath('userData'), 'source-analysis'),
+          settings.settings.codexModel,
+          new PromptCatalog(sourceProfile.promptCatalog),
+        ),
+      planningPolicy,
     );
-    new AssetProtocol(runsRoot, referenceRoot).register();
+    new AssetProtocol(runsRoot, referenceRoot, knowledgeStore.root).register();
     const cardRef = z.tuple([Contracts.id, Contracts.id]);
     this.handle('setLanguage', z.tuple([z.enum(['en', 'ru'])]), async ([locale]) => {
       this.translator = new Localization(locale);
@@ -153,42 +195,15 @@ class DesktopApplication {
       z.tuple([Contracts.id, Contracts.id, z.string().max(2000)]),
       ([id, card, instruction]) => service.retry(id, card, instruction, structuredClone(library.policy)),
     );
-    this.handle(
-      'selectAttempt',
-      z.tuple([Contracts.id, Contracts.id, Contracts.id]),
-      ([id, cardId, attemptId]) =>
-        service.edit(id, (run) => {
-          const card = run.variants.flatMap((v) => v.cards).find((c) => c.id === cardId);
-          if (!card || !card.attempts.some((a) => a.id === attemptId)) throw new Error('Version not found.');
-          if (card.locked) throw new Error('Unlock the card first.');
-          card.selectedAttemptId = attemptId;
-          const variant = run.variants.find((v) => v.cards.some((c) => c.id === cardId));
-          if (variant) {
-            variant.review = null;
-            variant.reviewError = 'Selection changed manually; set review is now outdated.';
-          }
-        }),
+    this.handle('selectAttempt', z.tuple([Contracts.id, Contracts.id, Contracts.id]), ([id, card, attempt]) =>
+      service.selectAttempt(id, card, attempt),
     );
-    this.handle('lock', z.tuple([Contracts.id, Contracts.id, z.boolean()]), ([id, cardId, locked]) =>
-      service.edit(id, (run) => {
-        const card = run.variants.flatMap((v) => v.cards).find((c) => c.id === cardId);
-        if (!card) throw new Error('Card not found.');
-        if (locked && !card.selectedAttemptId) throw new Error('Generate an image first.');
-        card.locked = locked;
-      }),
+    this.handle('lock', z.tuple([Contracts.id, Contracts.id, z.boolean()]), ([id, card, locked]) =>
+      service.lock(id, card, locked),
     );
-    this.handle('selectVariant', cardRef, ([id, variantId]) =>
-      service.edit(id, (run) => {
-        if (!run.variants.some((v) => v.id === variantId)) throw new Error('Variant not found.');
-        run.selectedVariantId = variantId;
-      }),
-    );
+    this.handle('selectVariant', cardRef, ([id, variant]) => service.selectVariant(id, variant));
     this.handle('setBudget', z.tuple([Contracts.id, z.number().int().min(1).max(150)]), ([id, maximum]) =>
-      service.edit(id, (run) => {
-        if (maximum < run.imageCalls || maximum < run.brief.variants * 10)
-          throw new Error('The limit must cover existing requests and the base set size.');
-        run.brief.maxImageCalls = maximum;
-      }),
+      service.setBudget(id, maximum),
     );
     this.handle('export', cardRef, async ([id, variantId]) => {
       const run = await repository.get(id);
@@ -280,7 +295,12 @@ class DesktopApplication {
       },
     });
     this.window = window;
-    window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    window.webContents.setWindowOpenHandler(({ url }) => {
+      const target = new URL(url);
+      if (target.origin === 'https://miro.com' && target.pathname.startsWith('/app/board/'))
+        void shell.openExternal(target.href);
+      return { action: 'deny' };
+    });
     window.webContents.on('will-navigate', (event) => event.preventDefault());
     window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) =>
       callback(false),

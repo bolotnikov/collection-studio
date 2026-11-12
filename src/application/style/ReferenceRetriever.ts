@@ -1,3 +1,4 @@
+import { RetrievalConfiguration } from '../../shared/RetrievalConfiguration';
 import type { LibraryItem, ReferenceAnalysis } from '../../shared/StyleContracts';
 
 type SearchField = { weight: number; terms: string[] };
@@ -5,6 +6,7 @@ type SearchDocument = { item: LibraryItem; analysis: ReferenceAnalysis | undefin
 
 /** Weighted lexical retrieval over analyzed metadata, followed by visual reranking. */
 export class ReferenceRetriever {
+  constructor(private readonly config = new RetrievalConfiguration().values) {}
   private static readonly stopWords = new Set(
     'the and for with from into that this these those only same image images card cards reference references source employer collection object objects style use using create generate must should not without avoid keep all each its are was has have will can main scene subject new simple'.split(
       ' ',
@@ -34,15 +36,15 @@ export class ReferenceRetriever {
           analysis,
           // Material and subject evidence outweigh generic rendering vocabulary in long briefs.
           fields: [
-            this.field(item.title, 6),
-            this.field(item.tags.join(' '), 3),
-            this.field(analysis?.subject ?? '', 7),
-            this.field(analysis?.materials.join(' ') ?? '', 8),
-            this.field(analysis?.silhouette ?? '', 2),
-            this.field(analysis?.background ?? '', 1.5),
-            this.field(analysis?.rendering ?? '', 0.15),
-            this.field(analysis?.lighting ?? '', 0.25),
-            this.field(analysis?.palette ?? '', 0.25),
+            this.field(item.title, this.config.weights.title),
+            this.field(item.tags.join(' '), this.config.weights.tags),
+            this.field(analysis?.subject ?? '', this.config.weights.subject),
+            this.field(analysis?.materials.join(' ') ?? '', this.config.weights.materials),
+            this.field(analysis?.silhouette ?? '', this.config.weights.silhouette),
+            this.field(analysis?.background ?? '', this.config.weights.background),
+            this.field(analysis?.rendering ?? '', this.config.weights.rendering),
+            this.field(analysis?.lighting ?? '', this.config.weights.lighting),
+            this.field(analysis?.palette ?? '', this.config.weights.palette),
           ],
         };
       });
@@ -59,8 +61,11 @@ export class ReferenceRetriever {
       ) ?? [];
     return documents
       .map((document) => {
-        let score = (document.analysis?.category ?? document.item.category) === category ? 4 : 0;
-        if (document.item.origin === 'anchor') score += 0.5;
+        let score =
+          (document.analysis?.category ?? document.item.category) === category
+            ? this.config.categoryBoost
+            : 0;
+        if (document.item.origin === 'anchor') score += this.config.anchorBoost;
         for (const [index, field] of document.fields.entries()) {
           const counts = new Map<string, number>();
           for (const term of field.terms) counts.set(term, (counts.get(term) ?? 0) + 1);
@@ -83,7 +88,13 @@ export class ReferenceRetriever {
       .map(({ item }) => item);
   }
 
-  select(ranked: LibraryItem[], selectedIds: string[], limit: number): LibraryItem[] {
+  select(
+    ranked: LibraryItem[],
+    selectedIds: string[],
+    limit: number,
+    category?: string,
+    anchorIds: string[] = [],
+  ): LibraryItem[] {
     this.validateLimit(limit);
     if (limit < 4) throw new Error('Reference selection requires room for four original anchors.');
     const unique = this.unique(ranked);
@@ -101,9 +112,20 @@ export class ReferenceRetriever {
       selected.push(item);
       usedHashes.add(item.sha256);
     };
-    // Fixed source anchors remain authoritative, including known category diversity.
-    for (const category of ['1', '2', '3', '4'])
-      add(eligible.find((item) => item.origin === 'anchor' && item.category === category));
+    for (const id of anchorIds) add(eligible.find((item) => item.id === id && item.origin === 'anchor'));
+    if (category) {
+      const matching = eligible.filter((item) => item.origin === 'anchor' && item.category === category);
+      for (const item of matching.slice(0, 2)) add(item);
+      if (selected.filter((item) => item.origin === 'anchor' && item.category === category).length < 2)
+        throw new Error(`At least two original category ${category} references are required.`);
+      for (const item of eligible.filter((item) => item.origin === 'anchor')) {
+        if (selected.filter((r) => r.origin === 'anchor').length >= 4) break;
+        add(item);
+      }
+    } else {
+      for (const category of ['1', '2', '3', '4'])
+        add(eligible.find((item) => item.origin === 'anchor' && item.category === category));
+    }
     for (const id of selectedIds) {
       const item = byId.get(id);
       if (!item) throw new Error(`Reference selector returned an unknown ID: ${id}`);

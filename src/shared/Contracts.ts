@@ -1,3 +1,6 @@
+import { RetrievalConfiguration } from './RetrievalConfiguration';
+import { SetContract } from './SetContract';
+import { KnowledgeContracts } from './KnowledgeContracts';
 import { StyleContracts, type ProductionPolicy, type LibraryItem } from './StyleContracts';
 import { z } from 'zod';
 
@@ -5,7 +8,7 @@ export class Contracts {
   static readonly brief = z.object({
     theme: z.string().trim().min(2).max(180),
     wishes: z.string().max(3000),
-    variants: z.number().int().min(3).max(5),
+    variants: z.number().int().min(1).max(5).default(1),
     quality: z.enum(['low', 'medium', 'high']),
     maxImageCalls: z.number().int().min(1).max(150),
     autoRepair: z.boolean(),
@@ -15,15 +18,30 @@ export class Contracts {
     description: z.string().min(10),
     category: z.enum(['1', '2', '3', '4']),
     role: z.string().min(3),
+    visual: SetContract.visual.optional(),
   });
   static readonly plan = z.object({
     variants: z.array(
       z.object({
         title: z.string(),
         concept: z.string(),
+        artContract: SetContract.art.optional(),
         cards: z.array(Contracts.plannedCard),
       }),
     ),
+  });
+  static readonly productionPlan = z.object({
+    variants: z
+      .array(
+        z.object({
+          title: z.string().min(2),
+          concept: z.string().min(10),
+          artContract: SetContract.art,
+          cards: z.array(Contracts.plannedCard.extend({ visual: SetContract.visual })).length(10),
+        }),
+      )
+      .min(1)
+      .max(5),
   });
   static readonly review = z.object({
     passed: z.boolean(),
@@ -40,6 +58,19 @@ export class Contracts {
     findings: z.array(z.string()),
     outlierCardIds: z.array(z.string()),
   });
+  static readonly detailedSetReview = Contracts.setReview.extend({
+    assessment: z.object({
+      styleCompatibility: z.number().min(1).max(5),
+      thematicCohesion: z.number().min(1).max(5),
+      silhouetteDiversity: z.number().min(1).max(5),
+      materialDiversity: z.number().min(1).max(5),
+      paletteBalance: z.number().min(1).max(5),
+      compositionBalance: z.number().min(1).max(5),
+      categoryCoverage: z.boolean(),
+      redundantSubjects: z.boolean(),
+    }),
+    corrections: z.array(z.object({ cardId: z.string(), instruction: z.string().min(1) })),
+  });
   static readonly attempt = z.object({
     id: z.string(),
     master: z.string(),
@@ -53,6 +84,7 @@ export class Contracts {
     review: Contracts.review.nullable(),
     reviewError: z.string().nullable(),
     evidence: StyleContracts.evidence.optional(),
+    sourceEvidence: KnowledgeContracts.evidence.optional(),
   });
   static readonly card = Contracts.plannedCard.extend({
     id: z.string(),
@@ -66,8 +98,25 @@ export class Contracts {
     id: z.string(),
     title: z.string(),
     concept: z.string(),
+    artContract: SetContract.art.optional(),
+    planReview: SetContract.review.optional(),
+    planSignature: z.string().optional(),
+    pilotAttemptId: z.string().optional(),
     cards: z.array(Contracts.card),
-    review: Contracts.setReview.nullable(),
+    review: z.union([Contracts.detailedSetReview, Contracts.setReview]).nullable(),
+    sourceEvidence: KnowledgeContracts.evidence.optional(),
+    reviewedAttemptIds: z.array(z.string()).optional(),
+    reviewHistory: z
+      .array(
+        z.object({
+          at: z.string(),
+          attemptIds: z.array(z.string()),
+          review: z.union([Contracts.detailedSetReview, Contracts.setReview]).nullable(),
+          error: z.string().nullable(),
+          sourceEvidence: KnowledgeContracts.evidence.optional(),
+        }),
+      )
+      .optional(),
     reviewError: z.string().nullable(),
   });
   static readonly run = z.object({
@@ -85,6 +134,20 @@ export class Contracts {
     events: z.array(z.object({ at: z.string(), message: z.string() })),
     selectedVariantId: z.string().nullable(),
     productionPolicy: StyleContracts.policy.optional(),
+    sourceEvidence: KnowledgeContracts.evidence.optional(),
+    workflowVersion: z.literal('planned-pilot-v1').optional(),
+    planningPolicy: SetContract.planningPolicy.optional(),
+    planHistory: z
+      .array(
+        z.object({
+          at: z.string(),
+          plan: Contracts.plan,
+          reviews: z.array(SetContract.review),
+          errors: z.array(z.string()),
+        }),
+      )
+      .optional(),
+    reviewProtocol: z.literal('set-v2').optional(),
   });
   static readonly reference = z.object({
     id: z.string(),
@@ -100,6 +163,11 @@ export class Contracts {
     rules: z.array(z.string()),
     categories: z.object({ '1': z.string(), '2': z.string(), '3': z.string(), '4': z.string() }),
     references: z.array(Contracts.reference),
+    activeArtContract: SetContract.art.optional(),
+    retrievalConfig: RetrievalConfiguration.schema.optional(),
+    promptCatalog: z.record(z.string(), z.string()).optional(),
+    knowledge: KnowledgeContracts.corpus.optional(),
+    knowledgeContext: KnowledgeContracts.evidence.optional(),
   });
   static readonly id = z.string().uuid();
   static readonly settings = z.object({
@@ -118,7 +186,7 @@ export type Attempt = z.infer<typeof Contracts.attempt>;
 export type Variant = z.infer<typeof Contracts.variant>;
 export type Run = z.infer<typeof Contracts.run>;
 export type Review = z.infer<typeof Contracts.review>;
-export type SetReview = z.infer<typeof Contracts.setReview>;
+export type SetReview = z.infer<typeof Contracts.setReview> | z.infer<typeof Contracts.detailedSetReview>;
 export type Profile = z.infer<typeof Contracts.profile>;
 export type Settings = z.infer<typeof Contracts.settings>;
 export type Bootstrap = {

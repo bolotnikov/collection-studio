@@ -161,3 +161,25 @@ describe('Reference selection provenance contract', () => {
     },
   );
 });
+
+it('uses analyzed categories and reruns visual retrieval when correction requirements change', async () => {
+  const f = await prepareFixture('complete');
+  const first = await f.preparation.prepare(f.brief, f.card, f.variant, f.profile);
+  expect(
+    first.evidence.references.filter((reference) => reference.purposes?.includes('category')).length,
+  ).toBeGreaterThanOrEqual(2);
+  expect(
+    first.evidence.references.filter((reference) => reference.purposes?.includes('shared-style')),
+  ).toHaveLength(2);
+  // The fixture's catalog spans four categories; the visual analyzer identifies every image as category 1.
+  expect(first.evidence.references.every((reference) => reference.category === '1')).toBe(true);
+  const revised = await f.preparation.prepare(
+    f.brief,
+    f.card,
+    f.variant,
+    f.profile,
+    'Use frosted glass instead of shiny wood',
+  );
+  expect(revised.evidence.query).toContain('frosted glass');
+  expect(revised.evidence.query).not.toBe(first.evidence.query);
+});

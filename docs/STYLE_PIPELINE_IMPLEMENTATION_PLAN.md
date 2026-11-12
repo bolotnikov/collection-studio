@@ -49,3 +49,11 @@ Application services own orchestration and invariants through narrow ports. Infr
 These specialist agents are bounded structured model tasks. Deterministic application code controls their order, validation and side effects. Resizing, file integrity, budget enforcement and export are ordinary tested services. There is no free-running agent swarm or vector database claim.
 
 Real indexing, calibration results, packaging checks and remaining assignment deliverables are recorded in `VALIDATION.md`. Application implementation does not imply that the three final cinema sets or the external submission are complete.
+
+## Source completeness and economical runs
+
+The source-context follow-up is implemented in `KnowledgeContracts`, `SourceKnowledgeStore`, `CodexSourceContext` and `SourceContextPort`. It preserves seven documents, analyzes sixteen set layouts and five rule figures, and supplies operative source text plus stage-appropriate examples. Set-v2 verification records dimension scores, targeted card corrections and exact reviewed image versions.
+
+The producer now selects 1–5 set variants, default one, by explicit user request. The per-run plan count and total card/request budgets follow that selection. The assignment still asks for 3–5 candidate variants when preparing its final submission.
+
+See `PRODUCTION_REVIEW.md` for the readiness decision, source-use audit, agent/workflow terminology, vector-retrieval tradeoffs and remaining acceptance work.

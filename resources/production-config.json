@@ -1,0 +1,5 @@
+{
+  "maxPlanRepairs": 1,
+  "minimumPlanScore": 4,
+  "productionConcurrency": 2
+}

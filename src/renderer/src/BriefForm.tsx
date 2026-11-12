@@ -1,5 +1,5 @@
 import { useLocalization } from './i18n/LocalizationContext';
-import { useState, type FormEvent } from 'react';
+import { useBriefViewModel } from './viewmodels/useBriefViewModel';
 import { ArrowUpRight, Sparkles, Layers } from 'lucide-react';
 import type { Bootstrap, Brief } from '../../shared/Contracts';
 import { Assets } from './Assets';
@@ -14,29 +14,16 @@ export function BriefForm({
   onStart: (brief: Brief) => Promise<void>;
 }) {
   const { t, text } = useLocalization();
-  const [theme, setTheme] = useState('');
-  const [wishes, setWishes] = useState('');
-  const ready =
-    data.codexReady &&
-    (data.settings.provider === 'codex' ? data.codexReady : data.hasKey) &&
-    data.referenceCount > 0;
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    void onStart({
-      theme,
-      wishes,
-      variants: 3,
-      quality: 'low',
-      autoRepair: true,
-      maxImageCalls: Math.min(150, 30 * (1 + data.productionPolicy.maxRepairsPerCard)),
-    });
-  };
+  const { theme, setTheme, wishes, setWishes, variants, setVariants, ready, submit } = useBriefViewModel(
+    data,
+    onStart,
+  );
   return (
     <div className="new-layout focused-brief">
       <section className="brief-column">
         <div className="eyebrow">{t('Create in your game style')}</div>
         <h1>{t('What set do you need?')}</h1>
-        <p className="lead">{t('Three complete options. Matched to your reference library.')}</p>
+        <p className="lead">{t('Complete sets matched to your reference library.')}</p>
         <form onSubmit={submit} className="brief-form">
           <label htmlFor="theme">{t('Set theme')}</label>
           <input
@@ -71,16 +58,30 @@ export function BriefForm({
             rows={5}
             placeholder={t('Mood, objects, materials, constraints…')}
           />
+          <label htmlFor="set-count">{t('Sets to generate')}</label>
+          <input
+            id="set-count"
+            type="number"
+            min={1}
+            max={5}
+            step={1}
+            required
+            value={Number.isNaN(variants) ? '' : variants}
+            onChange={(event) => setVariants(event.currentTarget.valueAsNumber)}
+            className="set-count-input"
+          />
           <div className="start-row">
             <button type="submit" className="primary" disabled={disabled || !ready}>
               <Sparkles size={18} />
-              {t('Generate set options')}
+              {t('Generate')}
               <ArrowUpRight size={18} />
             </button>
           </div>
           <p className="form-note">
             {ready
-              ? t('30 cards · automatic review and bounded revisions')
+              ? t('{count} cards · automatic review and bounded revisions', {
+                  count: Number.isInteger(variants) && variants > 0 ? variants * 10 : 0,
+                })
               : t('Configure a provider and prepare the style references.')}
           </p>
         </form>

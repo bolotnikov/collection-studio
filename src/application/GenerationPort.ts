@@ -1,11 +1,12 @@
+import type { PlanReviewPort } from './PlanReviewPort';
 import type { Brief, Card, Plan, Profile, Review, SetReview, Variant } from '../shared/Contracts';
 export interface ImageResult {
   bytes: Buffer;
   requestId: string | null;
   usage: Record<string, unknown> | null;
 }
-export interface GenerationPort {
-  plan(brief: Brief, profile: Profile, referencePaths?: string[]): Promise<Plan>;
+export interface GenerationPort extends PlanReviewPort {
+  plan(brief: Brief, profile: Profile, referencePaths?: string[], correction?: string): Promise<Plan>;
   image(prompt: string, referencePaths: string[], quality: Brief['quality']): Promise<ImageResult>;
   review(
     card: Card,

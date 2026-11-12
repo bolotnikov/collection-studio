@@ -1,3 +1,4 @@
+import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
@@ -17,6 +18,7 @@ export class CodexRunner {
     private readonly executable: string,
     private readonly jobsRoot: string,
     private readonly model: string,
+    private readonly prompts = new PromptCatalog(),
   ) {}
   static async locate(configured = ''): Promise<string> {
     const candidates = configured
@@ -70,9 +72,19 @@ export class CodexRunner {
       await fs.copyFile(file, destination);
       inputs.push(destination);
     }
-    const packing = generateImage ? await new ReferenceImagePacker().pack(inputs, folder) : null;
+    const packing = generateImage ? await new ReferenceImagePacker(this.prompts).pack(inputs, folder) : null;
     const attachments = packing?.paths ?? inputs;
-    const instruction = `You are a bounded worker inside Collection Studio. Complete only the supplied art-production task. Do not access credentials or unrelated files, use external APIs, install software, or delegate to agents. Return the requested structured JSON. ${generateImage ? 'Generate exactly one image using the BUILT-IN image_gen tool. Do not draw with code, SVG or copy an input as output. Save or copy the actual generated image to ' + path.join(folder, 'image.png') + '. If unavailable, return success false and explain; never fall back to paid API.' : 'Do not run shell commands or generate images. Analyse the attached images when provided.'}\n\n${prompt}\n\n${packing?.instruction ?? ''}\n\nATTACHED LOCAL FILES IN ORDER: ${JSON.stringify(attachments)}. ${generateImage ? 'Pass ALL listed files to the built-in image tool as local reference images, in this order. Do not rely on a limited recent-image window or silently omit references. If the tool cannot accept them, report failure.' : 'These paths identify the attached images; do not edit them.'}`;
+    const instruction = this.prompts.render('CodexRunner.run', {
+      taskMode: this.prompts.render(generateImage ? 'worker.image' : 'worker.analysis', {
+        outputPath: path.join(folder, 'image.png'),
+      }),
+      prompt: prompt,
+      referenceMapping: packing?.instruction ?? '',
+      attachmentPaths: JSON.stringify(attachments),
+      attachmentInstructions: this.prompts.render(
+        generateImage ? 'worker.imageAttachments' : 'worker.analysisAttachments',
+      ),
+    });
     await fs.writeFile(path.join(folder, 'prompt.txt'), instruction);
     const args = [
       'exec',

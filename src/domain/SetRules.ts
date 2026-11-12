@@ -1,6 +1,42 @@
-import type { Brief, Plan, Run, Review } from '../shared/Contracts';
+import type { Brief, Plan, Run, Review, SetReview, Variant } from '../shared/Contracts';
 
 export class SetRules {
+  static acceptsSetReview(review: SetReview | null | undefined, minimumStyle = 4, detailed = false): boolean {
+    if (!review?.passed || review.coherence < 4 || review.outlierCardIds.length) return false;
+    if (!('assessment' in review)) return !detailed;
+    const a = review.assessment;
+    return (
+      a.styleCompatibility >= minimumStyle &&
+      a.thematicCohesion >= 4 &&
+      a.silhouetteDiversity >= 4 &&
+      a.materialDiversity >= 4 &&
+      a.paletteBalance >= 4 &&
+      a.compositionBalance >= 4 &&
+      a.categoryCoverage &&
+      !a.redundantSubjects
+    );
+  }
+  static validateSetReview(review: SetReview, variant: Variant): void {
+    const ids = new Set(variant.cards.map((c) => c.id));
+    if (
+      new Set(review.outlierCardIds).size !== review.outlierCardIds.length ||
+      review.outlierCardIds.some((id) => !ids.has(id))
+    )
+      throw new Error('Review contains invalid card IDs.');
+    if (
+      'corrections' in review &&
+      (review.corrections.some((c) => !ids.has(c.cardId)) ||
+        review.outlierCardIds.some((id) => !review.corrections.some((c) => c.cardId === id)))
+    )
+      throw new Error('Every set outlier needs a targeted correction.');
+  }
+  static reviewMatchesSelection(variant: Variant, required = false): boolean {
+    if (!variant.reviewedAttemptIds) return !required;
+    return (
+      variant.reviewedAttemptIds.length === variant.cards.length &&
+      variant.cards.every((c, i) => c.selectedAttemptId === variant.reviewedAttemptIds?.[i])
+    );
+  }
   static acceptsReview(review: Review | null | undefined, minimumStyle = 4): boolean {
     return Boolean(
       review?.passed &&

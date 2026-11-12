@@ -1,3 +1,4 @@
+import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -24,6 +25,7 @@ export type ReferencePackingManifest = {
 
 /** Adapts complete references to the native image tool's five-path limit without dropping art. */
 export class ReferenceImagePacker {
+  constructor(private readonly prompts = new PromptCatalog()) {}
   async pack(
     inputs: string[],
     folder: string,
@@ -86,15 +88,29 @@ export class ReferenceImagePacker {
     }
     await fs.writeFile(path.join(folder, 'reference-packing.json'), JSON.stringify(manifest, null, 2) + '\n');
     const mapping = manifest.attachments
-      .map(
-        (attachment) =>
-          `${packed ? 'Sheet' : 'Attachment'} ${attachment.attachmentIndex} (${attachment.filename}): ${attachment.cards.map((card) => `${card.position} = ORIGINAL REFERENCE ${card.originalIndex}`).join('; ')}`,
+      .map((attachment) =>
+        this.prompts.render('ReferenceImagePacker.pack', {
+          attachmentType: packed ? 'Sheet' : 'Attachment',
+          attachmentIndex: attachment.attachmentIndex,
+          filename: attachment.filename,
+          positions: attachment.cards
+            .map((card) =>
+              this.prompts.render('references.position', {
+                position: card.position,
+                index: card.originalIndex,
+              }),
+            )
+            .join('; '),
+        }),
       )
       .join('\n');
     return {
       paths,
       manifest,
-      instruction: `REFERENCE ATTACHMENT MAPPING:\n${mapping}\n${packed ? 'The attached sheets are transport containers holding complete, unscaled original cards. All reference numbers and per-reference roles in the task refer to ORIGINAL REFERENCE indices above, not sheet indices. Inspect every card in every sheet. Use the individual cards as references; ignore sheet gutters and layout. ' : ''}Generate exactly ONE new card. Never reproduce a sheet, grid, collage, multiple panels or multiple cards in the output.`,
+      instruction: this.prompts.render('ReferenceImagePacker.pack.2', {
+        mapping: mapping,
+        packingInstructions: packed ? this.prompts.render('references.packed') : '',
+      }),
     };
   }
 }

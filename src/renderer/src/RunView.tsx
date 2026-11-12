@@ -1,5 +1,7 @@
+import { SetPlanDetails } from './SetPlanDetails';
+import { useRunViewModel } from './viewmodels/useRunViewModel';
+import { SetReviewDetails } from './SetReviewDetails';
 import { useLocalization } from './i18n/LocalizationContext';
-import { useState } from 'react';
 import {
   Download,
   Pause,
@@ -15,36 +17,43 @@ import {
   LoaderCircle,
   ChevronRight,
 } from 'lucide-react';
-import type { Card, Profile, Run } from '../../shared/Contracts';
+import type { Card, Profile, Run, StudioApi } from '../../shared/Contracts';
 import { Assets } from './Assets';
 
 type Props = {
+  api: StudioApi;
   run: Run;
   profile: Profile;
   busy: boolean;
   perform: (action: () => Promise<unknown>) => Promise<void>;
   onLibraryChanged: () => Promise<void>;
 };
-export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props) {
+export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: Props) {
   const { t, text, locale } = useLocalization();
-  const [tab, setTab] = useState<string | null>(null);
-  const [cardId, setCardId] = useState<string | null>(null);
-  const [instruction, setInstruction] = useState('');
-  const [budget, setBudget] = useState(run.brief.maxImageCalls);
-  const variant =
-    run.variants.find((v) => v.id === tab) ??
-    run.variants.find((v) => v.id === run.selectedVariantId) ??
-    run.variants[0];
-  const card = variant?.cards.find((c) => c.id === cardId);
-  const evidence = card ? Assets.selected(card)?.evidence : undefined;
-  const total = run.brief.variants * 10,
-    done = run.variants.flatMap((v) => v.cards).filter((c) => c.selectedAttemptId).length;
-  const active = Assets.active(run);
-  const complete =
-    variant?.cards.length === 10 &&
-    variant.review?.passed &&
-    variant.cards.every((c) => Assets.selected(c)?.review?.passed);
-  const action = (task: () => Promise<unknown>) => void perform(task);
+  const {
+    setTab,
+    setCardId,
+    instruction,
+    setInstruction,
+    budget,
+    setBudget,
+    variant,
+    card,
+    evidence,
+    total,
+    done,
+    active,
+    complete,
+    pause,
+    resume,
+    exportSet,
+    selectVariant,
+    updateBudget,
+    selectAttempt,
+    approve,
+    toggleLock,
+    retry,
+  } = useRunViewModel(run, api, perform, onLibraryChanged);
   return (
     <div className="run-view">
       <div className="eyebrow">
@@ -64,19 +73,15 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
         </div>
         <div className="actions">
           {active ? (
-            <button disabled={busy} onClick={() => action(() => window.studio.pause(run.id))}>
+            <button disabled={busy} onClick={pause}>
               <Pause size={16} /> {t('Pause')}{' '}
             </button>
           ) : run.status !== 'completed' ? (
-            <button disabled={busy} onClick={() => action(() => window.studio.resume(run.id))}>
+            <button disabled={busy} onClick={resume}>
               <Play size={16} /> {t('Resume')}{' '}
             </button>
           ) : null}
-          <button
-            className="primary"
-            disabled={busy || active || !complete}
-            onClick={() => variant && action(() => window.studio.exportRun(run.id, variant.id))}
-          >
+          <button className="primary" disabled={busy || active || !complete} onClick={exportSet}>
             <Download size={16} /> {t('Export set')}{' '}
           </button>
         </div>
@@ -133,10 +138,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
               <h2>{variant.title}</h2>
               <p>{variant.concept}</p>
             </div>
-            <button
-              disabled={busy || active || variant.id === run.selectedVariantId}
-              onClick={() => action(() => window.studio.selectVariant(run.id, variant.id))}
-            >
+            <button disabled={busy || active || variant.id === run.selectedVariantId} onClick={selectVariant}>
               {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
               {variant.id === run.selectedVariantId ? t('Selected for delivery') : t('Select for delivery')}
             </button>
@@ -181,6 +183,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
               )}
             </ul>
           </div>
+          <SetReviewDetails variant={variant} />
         </>
       ) : (
         <div className="planning-empty">
@@ -193,6 +196,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
           </p>
         </div>
       )}
+      <SetPlanDetails run={run} variant={variant} />
       <details className="trace">
         <summary>
           {' '}
@@ -209,10 +213,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
             value={budget}
             onChange={(e) => setBudget(Number(e.target.value))}
           />
-          <button
-            disabled={busy || active || budget === run.brief.maxImageCalls}
-            onClick={() => action(() => window.studio.setBudget(run.id, budget))}
-          >
+          <button disabled={busy || active || budget === run.brief.maxImageCalls} onClick={updateBudget}>
             {' '}
             {t('Update limit')}{' '}
           </button>
@@ -311,7 +312,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
                   disabled={busy || active || card.locked}
                   className={card.selectedAttemptId === a.id ? 'selected' : ''}
                   key={a.id}
-                  onClick={() => action(() => window.studio.selectAttempt(run.id, card.id, a.id))}
+                  onClick={() => selectAttempt(a.id)}
                 >
                   <img src={Assets.image(run, a.preview)} alt={t('Version {number}', { number: i + 1 })} />
                   <span>
@@ -322,25 +323,14 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
               ))}
             </div>
             <div className="drawer-controls">
-              <button
-                disabled={busy || active || !Assets.selected(card)?.review?.passed}
-                onClick={() =>
-                  action(async () => {
-                    await window.studio.approveReference(run.id, card.id);
-                    await onLibraryChanged();
-                  })
-                }
-              >
+              <button disabled={busy || active || !Assets.selected(card)?.review?.passed} onClick={approve}>
                 {t('Approve and save to library')}
               </button>
               <small>
                 {t('Only a verified version can become an approved example. Source anchors remain primary.')}
               </small>
 
-              <button
-                disabled={busy || active || !card.selectedAttemptId}
-                onClick={() => action(() => window.studio.lock(run.id, card.id, !card.locked))}
-              >
+              <button disabled={busy || active || !card.selectedAttemptId} onClick={toggleLock}>
                 {card.locked ? <Lock size={16} /> : <Unlock size={16} />}{' '}
                 {card.locked ? t('Locked') : t('Lock selection')}
               </button>
@@ -356,7 +346,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged }: Props
               <button
                 className="primary"
                 disabled={busy || active || card.locked || run.imageCalls >= run.brief.maxImageCalls}
-                onClick={() => action(() => window.studio.retry(run.id, card.id, instruction))}
+                onClick={retry}
               >
                 <RefreshCw size={16} /> {t('Generate revision')}{' '}
               </button>

@@ -1,3 +1,4 @@
+import { ProductionRules } from '../domain/ProductionRules';
 import { SetRules } from '../domain/SetRules';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -12,7 +13,18 @@ export class ExportService {
     if (!variant || variant.cards.length !== 10 || variant.cards.some((c) => !c.selectedAttemptId))
       throw new Error('Export requires all ten images in the variant.');
     if (
-      !variant.review?.passed ||
+      (run.workflowVersion &&
+        !ProductionRules.readyForExport(
+          variant,
+          run.productionPolicy?.styleThreshold ?? 4,
+          run.planningPolicy,
+        )) ||
+      !SetRules.acceptsSetReview(
+        variant.review,
+        run.productionPolicy?.styleThreshold ?? 4,
+        run.reviewProtocol === 'set-v2',
+      ) ||
+      !SetRules.reviewMatchesSelection(variant, run.reviewProtocol === 'set-v2') ||
       variant.reviewError ||
       variant.cards.some((card) => {
         const attempt = this.images.selected(card);

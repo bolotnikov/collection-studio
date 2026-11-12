@@ -18,7 +18,8 @@
     "format": "prettier --write src tests scripts/*.ts docs/*.md README.md",
     "calibrate:codex": "tsx scripts/calibrate-codex.ts",
     "prepare:icon": "tsx scripts/prepare-icon.ts",
-    "prepare:library": "tsx scripts/prepare-library.ts"
+    "prepare:library": "tsx scripts/prepare-library.ts",
+    "prepare:knowledge": "tsx scripts/prepare-knowledge.ts"
   },
   "build": {
     "appId": "studio.collection.desktop",
@@ -39,6 +40,26 @@
       {
         "from": "resources/library.json",
         "to": "library.json"
+      },
+      {
+        "from": "resources/knowledge",
+        "to": "knowledge"
+      },
+      {
+        "from": "resources/prompts",
+        "to": "prompts"
+      },
+      {
+        "from": "resources/production-config.json",
+        "to": "production-config.json"
+      },
+      {
+        "from": "resources/retrieval-config.json",
+        "to": "retrieval-config.json"
+      },
+      {
+        "from": "resources/production-rules.json",
+        "to": "production-rules.json"
       }
     ],
     "directories": {

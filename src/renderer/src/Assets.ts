@@ -1,6 +1,9 @@
 import type { Card, Run } from '../../shared/Contracts';
 
 export class Assets {
+  static knowledge(filename: string): string {
+    return `studio-asset://knowledge/${filename.split('/').map(encodeURIComponent).join('/')}`;
+  }
   static reference(filename: string): string {
     return `studio-asset://references/${encodeURIComponent(filename)}`;
   }

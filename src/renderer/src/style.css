@@ -1443,3 +1443,47 @@ li {
   overflow-wrap: anywhere;
   color: var(--muted);
 }
+
+.source-document {
+  white-space: pre-wrap;
+  font: inherit;
+  line-height: 1.6;
+  max-width: 85ch;
+}
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 18px;
+}
+.knowledge-grid figure {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+}
+.knowledge-grid img {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+}
+.knowledge-grid figcaption {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.set-review-details {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+}
+.set-review-details dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.set-review-details dd {
+  margin: 4px 0;
+  font-weight: 600;
+}
+
+.brief-form .set-count-input {
+  max-width: 120px;
+}
