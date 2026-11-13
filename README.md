@@ -1,12 +1,16 @@
 # Collection Studio
 
-A desktop art-production tool for collectible mobile-game card sets. Enter a set theme and art direction; produce 1–5 complete ten-card variants (one by default), inspect them against source art, keep the strongest versions, and export a delivery archive.
+A desktop art-production tool for collectible mobile-game card sets, built with Electron, React and strict TypeScript. Enter a theme and optional art direction, generate 1–5 ten-card variants (one by default), compare versions with source references, and export a selected set.
 
-English and Russian interface with persistent **Dark / Light** palettes inspired by Photoshop. **Settings → Interface** offers device language (default), English or Russian. Unsupported device languages fall back to English. Built with Electron, React and strict TypeScript.
+The interface supports English and Russian, device-language detection with English fallback, and persistent dark/light themes. Generator rules have one canonical Russian source, independent of interface language.
 
-**Style** contains the shared rendering rules and operational image guidance. Edit each category's canonical generation rule inside **Categories**; inspect set structure and source statistics under **Sets**. Rule text has one canonical Russian source, independent of interface language. Statistics show an explanatory tooltip on hover, keyboard focus or click; secondary attributes are grouped in expandable sections.
+## Requirements and first launch
 
-## Run
+- The validated desktop platform is macOS on Apple Silicon. Other platforms are not established as supported releases.
+- Use Node.js 22.13 or later in the 22.x line, or Node.js 24+, with npm. Earlier Node 22 versions do not satisfy the locked development tools.
+- Image generation and model-assisted editing require an installed Codex CLI signed in with ChatGPT. Browsing the prepared knowledge base does not require a model request.
+
+From the repository root:
 
 ```sh
 npm ci
@@ -14,79 +18,118 @@ npm run build
 npm start
 ```
 
-Node.js 22+ and macOS are required for the validated configuration. `npm run dev` enables development reloads. If package-manager policy disables dependency install scripts, run `node node_modules/electron/install.js` once.
+A clone or GitHub source ZIP includes the prepared reference images and knowledge catalog under `resources/`. Raw `art/`, `Art Sources/`, root `references/`, private download manifests and developer caches are not required for a normal build or first launch. No preparation or source-analysis command is needed to use the supplied database.
 
-The local macOS bundle is produced by `npm run package:mac` at `release/mac-arm64/Collection Studio.app`. It is an unsigned local build, not a notarized distribution. The bundle includes all 160 private source card references for local evaluation; do not publish that bundle or the supplied art without permission.
+`npm run dev` starts development mode with reloads. If dependency install scripts were disabled and Electron's binary is missing, run `node node_modules/electron/install.js` before launching.
 
-Keep only this current bundle under `release`; temporary packaging belongs outside that directory. The project list offers a Trash button with confirmation. Deletion moves the complete project folder to the system Trash and removes it from history. Library references and separately exported files remain. Pause generation and wait for in-flight requests to finish before deleting a project.
+### Connect Codex
 
-## Generation through Codex CLI
+1. Install Codex CLI and run `codex login`, choosing **Sign in with ChatGPT**.
+2. Open **Settings**. If automatic executable discovery fails, enter its absolute path under **Codex executable**.
+3. Choose the generation/check model: **GPT-6.1 Terra** by default, or **GPT-6.1 Sol**. The separate **Collection planning model** can use either model or inherit the generation model.
+4. Save settings, then click **Test connection**. The test uses the saved executable settings and checks CLI discovery and ChatGPT authentication; it does not generate an image or establish image-tool compatibility.
 
-### Codex CLI / ChatGPT
+The adapter was calibrated with CLI `0.167.0-alpha.4.1`. Compatibility with another installation should be checked using the optional [live calibration](#maintenance-and-live-calibration) before production work.
 
-1. Install Codex CLI and sign in using `codex login` → **Sign in with ChatGPT**.
-2. Open **Settings**, choose a Codex model (Terra by default), and click **Test connection**.
-3. If auto-detection fails, set the absolute executable path under **Codex executable**.
-
-The main process launches `codex exec` without a shell, in an isolated per-request job directory. The CLI reuses its own login. API-key environment variables are removed; the application does not read, copy or exchange ChatGPT tokens. Images use native `image_gen`; planning and visual review use structured CLI responses. Each task uses `workspace-write` sandboxing. Unrelated app connectors and agent delegation are disabled.
-
-This mode uses Codex subscription limits. Image generation consumes included usage more quickly than ordinary text turns. **Quality is a prompt preference in this mode**, not a guaranteed low/medium/high API parameter. Actual underlying image model and billing details remain controlled by Codex. Compatibility was verified with CLI `0.167.0-alpha.4.1`; other versions require a connection and image calibration check.
-
-Settings expose two independent verification/correction limits, both **0 by default**: per-card mandatory corrections and whole-set correction rounds. Zero skips that model verification entirely; a positive value enables verification and bounds automatic corrections. The whole-set stage uses one initial check plus one check after each correction round. Policies are frozen per run; originals and all intermediate versions are retained. See [bounded composition workflow](docs/COMPOSITION_ONLY_WORKFLOW.md).
-
-Technical image failures always trigger retries independently of those verification settings, until an image is saved, the user pauses, or the image-request budget is exhausted. Invalid image bytes also trigger this recovery. Each failed request consumes the budget and is persisted in card diagnostics. Native Codex image artifacts are collected directly from the exact CLI thread, with their source and hash recorded; truncated tool output or a worker's failed save does not discard an available image. Worker shell tools are disabled, so image payloads never need to fit in command-line arguments. Historical run data and original artifacts remain untouched.
+Codex uses its saved login and subscription limits. Image requests, planning and visual analysis all consume provider usage. Image quality is a prompt preference, not a guaranteed low/medium/high image API parameter. The application has no API-key generation provider.
 
 ## Producer workflow
 
-1. Open **New set** and enter the theme and free-form art direction.
-2. Choose the number of ten-card variants (1–5, default one). The main screen contains theme, optional art direction and the set count. Settings select Codex/planning models and independent card/set correction limits.
-3. Start generation. The planner validates ten distinct subjects and all four composition categories in each variant before image generation begins.
-4. Open a card to compare its selected image with a category reference, inspect review findings, compare versions, regenerate or lock the selection.
-5. Use **Pause** to stop scheduling. Two already-running requests may finish. **Resume** retains finished images. After an interruption, unfinished requests are marked uncertain and never silently replayed.
-6. Use **Select for delivery**, then **Export set**. New runs export all ten selected images. Optional bounded composition corrections retain their findings in diagnostics; no artistic score or human approval gate is applied. Historical strict-mode runs retain their original gates unless resumed under the current automatic policy.
+1. Open **New set**, enter the theme and optional art direction, and choose 1–5 variants. **Include gold cards** is off by default. The **AI** button can draft a short English art direction from the theme and current wishes; this makes a model request.
+2. Start generation. Each variant contains exactly ten subjects and all four ordinary composition categories. Gold-enabled sets additionally include category 5 within the same ten-card total. Multi-variant planning checks subject uniqueness across the batch.
+3. Open a card to inspect its selected image, the references actually used for that version, prompt metadata and version history. Choose an earlier version, regenerate, or lock the selection. **Approve and save to library** adds the selected image as a supplemental user reference; approval is not required for delivery.
+4. Use **Pause** to stop scheduling new work. Already-running requests may finish; the current image worker pool has two workers. Wait for the run to become inactive before editing selections or deleting it. **Resume** retains saved images. A restart pauses interrupted runs and records unfinished image requests as having an unknown outcome; work resumes only on an explicit user action.
+5. Choose a variant. With multiple variants, **Select for delivery** records the preferred one. **Export set** exports the currently displayed complete variant. Game-window previews also have individual PNG download actions.
 
-The **Production log & limits** panel can raise the image-request cap while a run is idle. The cap counts application image requests, including failed attempts; it is not a dollar limit or a precise measure of native Codex tool retries. Planning and review also consume provider usage.
+### Manual revisions and slot tags
 
-## References and data
+In the card drawer, **Regenerate image** with empty instructions creates a fresh version. Nonempty **Revision instructions** use the selected stored master as the edit base. Earlier versions remain available.
 
-- `art/`: original employer-supplied artwork, excluded from Git.
-- `references/`: board exports, download manifest, contact sheets and research evidence, excluded from Git.
-- `resources/style-profile.json`: canonical rendering rules, four categories and eight curated anchor candidates; every reference pack retains at least four originals.
-- `resources/library.json`: all available employer references, source hashes, set tags and exclusions.
-- `src/shared/StyleContracts.ts`: validated production policy and structured agent evidence.
-- `resources/references/`: prepared reference images, excluded from Git.
-- Run data defaults to the application user-data directory. Set `COLLECTION_STUDIO_DATA` before launch to choose another directory. The development verification uses the project `runs/` directory.
-- A run contains atomic `run.json`, a style-profile snapshot, original image masters, 430×480 previews and contact sheets. Codex job prompts, structured responses and transcripts live in `_codex-jobs/` beside runs.
+Slot tags are editable while the run is inactive and the card is unlocked. Save tag changes before regenerating; saving alone does not redraw the card. Removing a tag removes that requirement, so write prohibitions in the revision instructions. Category-defining constraints and character restrictions stay fixed. Tag edits, reference selections and per-version target snapshots are persisted without rewriting earlier images or reviews.
 
-The complete local toolbar export in `Art Sources/` contains **185 of 185 board PNG assets**: **160 individual cards** are imported into the style library; **25 collection sheets, screenshots and result-frame images** remain reference-only. All 185 export hashes were verified before import. The original 120 API-downloaded cards retain their recorded Miro IDs and curated filenames. The 40 newly available cards use stable SHA-derived IDs and frame/filename provenance; their individual Miro item IDs are not claimed. The older API download manifest remains unchanged and still records its original partial download history.
+### Verification, corrections and request limits
 
-To recreate the private style library, obtain the supplied originals and run `REFERENCE_ART_DIR=/absolute/path/to/originals npm run prepare:references`. The script searches subfolders and verifies source hashes. Without that variable it uses the local Miro manifest. The eight required original filenames are `CardC6_card_21.png`, `24`, `14`, `53`, `13`, `48`, `91`, and `60` with the same prefix/extension. Copying the already prepared private reference folder is also supported. The distributable source contains no employer artwork.
+Settings expose two independent limits, both **0 by default**:
+
+| Setting                                    | At 0                                                         | At a positive value                                                                                                                      |
+| ------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Maximum corrections per card               | Skips card model verification and automatic card corrections | Checks generated cards and permits bounded corrections for confirmed subject, silhouette, character, category or background defects      |
+| Maximum correction rounds after set review | Skips whole-set model verification and corrections           | Checks the selected 5×2 grid and permits bounded rounds of targeted relationship corrections, checking the updated grid after each round |
+
+The card limit applies to each initial/manual generation chain. A whole-set limit of N rounds permits one initial check plus up to N checks after correction rounds. These settings are saved in each new run. Changing Settings does not overwrite an existing run's policy. Automatic corrections retain earlier versions and identify their exact previous candidate. Locks, saved attempt identities and the shared image-request budget remain enforced. Artistic scores are not used; uncertainty and unresolved observations remain in **Diagnostics** and do not block current-protocol delivery.
+
+Technical image failures are retried independently of these limits, using the same prompt and references, until an image is saved, the user pauses, or the image-request budget is exhausted. Failed image requests consume that budget and are recorded in diagnostics.
+
+Open **Diagnostics → Production log & limits** to adjust the image-request limit while the run is inactive, up to 150 requests. This counts application image requests, including technical retries and revisions; it is not a monetary cap or an exact count of native Codex tool calls. Planning and verification calls are outside this image counter.
+
+Historical runs retain their saved evidence. Explicitly resuming or regenerating an archived run can activate the current protocol and records that transition. Historical strict-mode export gates apply until the run's protocol is explicitly transitioned. See [composition-only production](docs/COMPOSITION_ONLY_WORKFLOW.md).
+
+## Knowledge base and generation
+
+The collapsible **Knowledge base** group contains:
+
+- **Cards**: source and supplemental reference art, category/pattern filters, descriptions, classifications and entity analysis/editing.
+- **Sets**: ordered source-set membership, composition observations and aggregate statistics.
+- **Categories**: composition examples and each category's canonical generation rule.
+- **Style**: shared editable rendering rules and operational image guidance.
+
+Cards, Sets and Categories support source-entity additions and removals. Source bytes and historical run snapshots are retained. Knowledge edits apply to subsequent production snapshots. Opening a new project reuses prepared source analysis; it does not reanalyze the unchanged library. Missing or changed source observations can require model analysis, with readiness and errors shown in Settings.
+
+The current production sequence is:
+
+```text
+Prepared source catalog
+  → deterministic category/pattern, color and 5×2 grid planning
+  → frozen structurally matching original references per slot
+  → one structured set-design request, with bounded structural retries if needed
+  → ten images through the same worker pool
+  → optional card and whole-grid verification/corrections
+  → user version selection and export
+```
+
+Planning uses aggregate source statistics rather than copying one source-set layout. New rhythm contracts forbid repeated color-family/pattern pairs and equal color families in horizontal or vertical neighbors. These are product constraints, not claims that every original source set follows the same rules.
+
+Each initial slot has at least two and at most eight matching original card references. Current catalog-based selection does not add a separate vision-reranking call for every card. Applicable category figures and revision bases have explicit input roles. Larger input packs are transported in complete, unscaled reference sheets to fit the adapter's five-path image-tool limit, retaining mappings and hashes. Delivery templates are not style references.
 
 ## Export
 
-Each ZIP contains:
+For the current `composition-v1` protocol, export requires ten selected image versions and an inactive run. Successful artistic reviews or manual approval are not prerequisites. Image-file integrity is checked during export.
 
-- `cards/01.png` … `10.png` at 430×480;
-- unchanged selected originals under `masters/`;
-- previous card previews under `history/`;
-- `contact-sheet.png`, `selection.json`, `run.json`, `style-profile.json`, and `report.md`.
+The desktop production ZIP contains:
 
-Source reference artwork and credentials are not included. Run metadata includes prompts, attempts, model/backend identifiers, usage when supplied, request/thread IDs, review findings, manual selection and locks. Production export is blocked until every selected card and the complete set pass review. Unresolved work remains saved for inspection and correction.
+- `cards/01.png` … `10.png`: 430×480 sRGB PNG crops;
+- `masters/01.png` … `10.png`: full-resolution stored PNG masters, normalized to sRGB when saved;
+- `history/<card-id>/<attempt-id>.png`: previews for all saved versions, including the selected version;
+- `contact-sheet.png`: the selected grid;
+- `delivery/`: game-window composites and their selection manifest;
+- `selection.json`, `run.json`, `style-profile.json` and `report.md`;
+- `journal.md` and `diagnostics.json`: execution narrative and sanitized diagnostic evidence.
 
-## Architecture
+Historical protocols may also include `quality-warnings.json`. Individual source-reference files and Codex authentication files are not copied into the delivery ZIP. Game-window composites do retain the supplied template artwork and captions. Run/profile metadata contains the brief, prompts, source identities, model identifiers, attempts, selections and stored observations.
 
-```text
-React renderer → typed preload bridge → validated Electron IPC
-                                      ↓
-                                  RunService
-                          domain rules + narrow ports
-                                      ↓
-                 Codex / OpenAI adapters + filesystem storage
-```
+**Download execution log** is available for inactive projects and exports a Russian chronological journal. **Diagnostics → Download diagnostics** exports sanitized run/profile/journal JSON. Missing historical evidence is identified rather than reconstructed. Stored request/response text retains its original language.
 
-The renderer has no Node integration or credential access. The application layer depends on `GenerationPort`, `RunStore` and `ImageStore`. State transitions, budget reservation and persistence are deterministic; image generation and model judgments are probabilistic. No game SDK changes are involved.
+## Resources and local data
 
-## Validation
+`resources/` is the canonical build source for supplied reference assets. The prepared corpus contains 200 unique PNG files:
+
+| Location                                          | Contents                                                                                                                   |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `resources/references/`                           | 160 hash-verified original card PNGs                                                                                       |
+| `resources/knowledge/images/`                     | 25 contextual images: 16 source-set windows, 5 category figures and 4 delivery templates; plus 15 derived clean-set sheets |
+| `resources/knowledge/catalog.json`                | Seven source documents, contextual image provenance and clean-set membership                                               |
+| `resources/knowledge/visual-catalog.json`         | Published card, category and 16-set visual analysis                                                                        |
+| Other `resources/*.json` and `resources/prompts/` | Default profile, canonical rules, validated planning policies, layouts, taxonomies and prompt templates                    |
+
+Clean sheets and source screenshots serve different purposes; individual card membership points to the canonical card files. Raw `art/` / `Art/`, `Art Sources/`, and root `references/` / `References/` remain ignored maintenance inputs. The supplied art retains its original usage and redistribution restrictions.
+
+Electron user data holds settings, edited rules, working knowledge, imported references and project history. Runs default to its `runs/` directory. Set `COLLECTION_STUDIO_DATA=/absolute/path/to/runs` before launch to relocate runs and their worker evidence; this does **not** relocate all settings or knowledge edits.
+
+Each run retains `run.json`, a profile snapshot, stored image versions, contact sheets and `execution.jsonl`. Project Codex requests live in that run's `_jobs/`; non-project operations use separate directories such as `_codex-jobs/`, `_catalog-jobs/` and `_knowledge-jobs/` under the runs root.
+
+For backup or transfer, close the app and preserve the entire Electron user-data directory, plus any custom runs directory. A delivery ZIP is an export of a selected set, not a complete backup of the editable workspace. Deleting an inactive project through its confirmed Trash action moves its complete run folder to the system Trash; shared library references and separately exported files remain.
+
+## Development and validation
 
 ```sh
 npm run typecheck
@@ -95,78 +138,51 @@ npm test
 npm run build
 ```
 
-Offline integration tests cover structural invariants, call caps, pause/resume, concurrent starts, interrupted requests, review failures and ten-card exports. Synthetic test rasters are disposable fixtures and are never presented as generated art.
+Offline tests cover planning contracts, reference identity and resource completeness, image integrity, budgets, corrections, pause/resume, interruption, historical protocols, localization and exports. Test images and provider responses are fixtures; passing tests does not establish generated-art quality.
 
-`npm run calibrate:codex` performs one real reference-guided image generation and visual review using subscription usage. It never runs during ordinary automated tests.
+### Local macOS bundle
 
-See [current implementation plan](docs/STYLE_PIPELINE_IMPLEMENTATION_PLAN.md), [art and research notes](docs/ART_AND_RESEARCH.md), and [validation record](docs/VALIDATION.md). Final cinema sets, a calibrated multi-model benchmark, Miro placement and a GitHub publication must be reported separately from application implementation.
+```sh
+npm run package:mac
+```
 
-## Official provider documentation
+On the validated Apple Silicon platform this creates `release/mac-arm64/Collection Studio.app`, including the prepared resources. It is an unsigned local build; notarized distribution and clean-machine installation are not established. Keep one current bundle at that path. Perform temporary packaging outside `release/` and replace the canonical bundle only after successful checks.
 
-- [Codex image generation and subscription usage](https://learn.chatgpt.com/docs/image-generation)
-- [Non-interactive Codex, structured output and saved authentication](https://learn.chatgpt.com/docs/non-interactive-mode)
-- [OpenAI image generation API](https://developers.openai.com/api/docs/guides/image-generation)
+### Maintenance and live calibration
 
-Direct Sign in with ChatGPT token-sharing API limitations do not establish the capabilities of native Codex CLI tools. The CLI adapter invokes the installed first-party application, not an undocumented token exchange or browser session.
+These commands are not part of first launch:
 
-## Localization
+- `REFERENCE_ART_DIR=/absolute/path/to/originals npm run prepare:library` restores all catalogued card PNGs by SHA-256. Importing an updated full toolbar export instead uses `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:library`.
+- `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:knowledge` imports source documents/context images and rebuilds clean-set sheets. The full export must contain `Файлы.json` and `Разделы.json`.
+- `npm run prepare:references` restores only the eight legacy curated anchors from local originals/manifest; it does not restore the full library or knowledge publication.
+- `npm run kb:sync` updates and publishes prepared visual analysis. The staged commands are `npm run kb:analyze-cards` and `npm run kb:analyze-sets`. These use Codex text/vision requests and subscription usage, but do not generate artwork. Preserve incremental checkpoints under `output/catalog/cache/` when continuing maintenance. See [prepared knowledge](docs/KNOWLEDGE_CATALOG.md).
+- `npm run calibrate:codex` uses GPT-6.1 Sol to generate one reference-guided calibration image and perform a legacy-style visual review. It consumes subscription usage, writes to `output/codex-calibration/`, and does not exercise the complete current set-production workflow.
 
-`src/shared/i18n/Localization.ts` owns locale resolution, typed catalog lookup and interpolation. Separate `en.json` / `ru.json` catalogs have matching keys and placeholders, checked by tests. `LocalizationContext` supplies the presentation service to React; Electron supplies the device language list and applies the same locale to native menus and export dialogs. Dates use the active locale. Language and theme preferences are stored locally and apply immediately. User-authored briefs, generated content, prompts and external provider diagnostics retain their original text. Add catalog entries for new interface strings; do not embed locale conditionals in components.
+Preparation commands can rewrite tracked catalogs and assets; review the resulting changes together before distribution. Ordinary tests and builds do not invoke live calibration or image generation.
 
-Palette reference: [Adobe Photoshop interface preferences](https://helpx.adobe.com/photoshop/web/get-set-up/preferences-and-settings/app-settings-and-preferences.html). The application uses an adapted two-theme palette, not an exact reproduction of Adobe chrome.
+## Architecture and further reading
 
-## Style-first production
+```text
+React views / ViewModels → typed preload bridge → validated Electron IPC
+                                                       ↓
+                                           Application use cases / ports
+                                                       ↓
+                                            Domain rules and invariants
 
-Detailed implementation and acceptance plan: [STYLE_PIPELINE_IMPLEMENTATION_PLAN.md](docs/STYLE_PIPELINE_IMPLEMENTATION_PLAN.md). Inspected public source and architecture decisions: [STYLE_ARCHITECTURE_RESEARCH.md](docs/STYLE_ARCHITECTURE_RESEARCH.md).
+Electron composition supplies Codex, filesystem, image and export adapters.
+```
 
-The reference librarian analyzes source images in batches of eight (two concurrent batches), caches results by SHA/model/schema version, and excludes character/gold/UI sources. The producer analyst turns the brief into retrieval requirements. Weighted lexical retrieval over visual metadata (BM25-like IDF, material/subject/category features) produces candidates; a separate vision art director reranks the images and assigns each attachment an explicit role, take/ignore guidance and selection reason. This is retrieval-augmented context construction, not an embedding/vector database implementation.
+Domain/application code does not depend on React, Electron or concrete providers. The renderer has no Node integration; filesystem and provider operations cross the validated IPC boundary. Prompt text and tunable production policies live in validated JSON resources. Model output is decoded before use; image rendering and visual observations remain probabilistic.
 
-Every reference pack retains original category anchors, uses 4–12 images (default eight), and allows at most 25% explicitly approved user examples. Context, source hashes, policy, role manifests and final prompts are recorded per attempt. Existing runs retain their production-policy snapshot. Rules in the assignment/profile remain mandatory; editable policy guidance supplements them.
+Codex workers run `codex exec` without a shell, in per-request workspaces with `workspace-write` sandboxing. App connectors, plugins, shell tools and agent delegation are disabled. `OPENAI_*` and `CODEX_API_KEY` environment variables are filtered; the app relies on CLI-managed ChatGPT authentication rather than copying login tokens.
 
-Archived protocols used a **5/5** style threshold and at most two corrective generations per card. Current production uses [composition-only verification and manual revisions](docs/COMPOSITION_ONLY_WORKFLOW.md). Archived snapshots retain their saved thresholds and limits. A lower threshold allows minor visible rendering deviations; it is not an exact-match claim. The native Codex tool in the tested installation rejects more than five reference file paths. Larger packs are transported as up to five sheets containing two or three complete unscaled references each. Original PNGs, the positional map and SHA-256 hashes remain in the job; no reference is silently dropped.
+- [Current composition workflow and corrections](docs/COMPOSITION_ONLY_WORKFLOW.md)
+- [Aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md)
+- [Application architecture](docs/APPLICATION_ARCHITECTURE.md)
+- [Image-prompting requirements](docs/IMAGE_PROMPTING.md)
+- [Execution evidence and exports](docs/EXECUTION_LOG.md)
+- [Prepared knowledge and maintenance](docs/KNOWLEDGE_CATALOG.md)
 
-Card review compares the exported crop to the chosen references and original brief. Set review receives original references as well as the generated sheet. Failed reviews trigger finite corrective attempts, including set outliers, within both per-card and total image budgets. Missing reviews and exhausted retries do not constitute approval. Export validates approval; image preparation checks resolution and opacity, creates sRGB PNG outputs and retains original masters.
+Research, implementation plans and earlier validation records in `docs/` preserve historical decisions and may describe superseded protocols. They are not instructions to enable old artistic scoring, review gates or HTTP providers for new runs.
 
-The preparation service and generation use the installed, ChatGPT-authenticated Codex CLI with the prepared reference pack. Cold library indexing consumes subscription usage and can take several minutes; subsequent runs reuse its cache.
-
-Import the complete toolbar export with `SOURCE_EXPORT_DIR="Art Sources" npm run prepare:library` (or `REFERENCE_EXPORT_DIR=/absolute/path/to/export`). With no environment overrides, `npm run prepare:library` also prefers the local `Art Sources/Файлы.json` export when present. This verifies `Файлы.json`, reads frame provenance from `Разделы.json`, preserves existing source IDs by hash, and imports individual cards only. New cards retain unknown composition categories until visual analysis; filename numbers are recorded as tags without inventing unverified set names.
-
-To restore prepared PNGs from a source checkout, run `REFERENCE_ART_DIR=/absolute/path/to/complete-original-art npm run prepare:library`. PNGs are matched against the tracked 160-card library catalog by SHA-256, so a private Miro download manifest is not required; all catalogued originals must be available. Explicit `REFERENCE_MANIFEST=/path/to/manifest.json` selects the legacy API-manifest import workflow, which refuses to remove previously catalogued sources.
-
-`npx tsx scripts/probe-style-preparation.ts` runs real library indexing and a reference-selection probe. Add `--generate` to generate and review one calibration image. These scripts use subscription usage and never run as offline tests.
-
-Use `--index-only` to prepare the library without generating images. `--repair` reuses the last calibration’s references and reviewer correction, preserves image versions and permits at most two repairs.
-
-## Complete assignment context
-
-Run `npm run prepare:knowledge` after importing the complete `Art Sources` export. It prepares seven original documents and all 25 non-card images under the ignored `resources/knowledge/` folder. This private corpus is packaged locally and deliberately omitted from the source-only archive. New runs use operational production requirements and active canonical Russian style rules. Original documents remain archived for provenance; reference inventories and delivery material remain separately identified.
-
-Sixteen complete set sheets and five composition figures are analyzed once and cached. New plans use aggregate statistics from all applicable sets; comparison sheets are selected after the slot plan is fixed. Card generation receives its frozen matching originals and applicable composition figure. Category 5 is enabled only by the gold-card option; delivery templates never become style references. The Library's **Set references** and **Generation rules** views explain their operative roles.
-
-Optional whole-set composition verification checks the actual selected grid against the shared contract and records relationship findings and targeted corrections by actual card ID. Every observation is bound to the selected image-version IDs; unresolved findings remain in diagnostics and do not gate export. Existing runs keep historical source snapshots; the new complete context applies to new runs.
-
-`npx tsx scripts/probe-source-context.ts RUN_ID` analyzes source context and reviews an existing complete set without generating new images. See [production readiness audit](docs/PRODUCTION_REVIEW.md) for remaining acceptance evidence and the reasoning about workflows and vector retrieval.
-
-The application uses MVVM presentation and a slots-first production protocol. Code allocates ten source-supported patterns and freezes matching original references before one structured concept/subject request. All cards share one worker queue; generated cards and the assembled set receive visual checks and bounded corrections. See [aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md) and [application architecture](docs/APPLICATION_ARCHITECTURE.md).
-
-Clean whole-set references are prepared automatically by `npm run prepare:knowledge` (or `npm run prepare:clean-sets` separately). Fifteen source sets are reconstructed from original card PNGs with verified slot membership; six complete ordinary sets are primary references for the no-gold task. New final reviews compare candidate and reference sheets in the same neutral 5×2 layout, with original game windows as secondary context. See [clean whole-set review](docs/APPLICATION_ARCHITECTURE.md#clean-whole-set-review-set-v3).
-
-Style library navigation contains Reference art, Set references and Generation rules. Original, imported and accepted generated images share one category-filtered gallery with corner badges. Every reference has an editor for its description and composition category, with optional visual AI suggestions. Saved metadata overrides inferred labels in both display and retrieval; source pixels and provenance remain intact. Rendering rules and category definitions can be edited in **Generation rules** and are stored as one Russian source of truth; UI language does not translate generator rules. The optional **AI** button beside art direction drafts a short English description from the selected set theme using the current provider.
-
-For an offline payload/integrity audit using the local private corpus, run `npx tsx scripts/audit-pipeline.ts`. It captures ten production-shaped requests with explicit deterministic/replay labels, performs no network/model/image-generation calls, and writes `output/pipeline-audit/report.json`. See [pipeline audit](docs/PIPELINE_AUDIT.md) for corrected findings, gate coverage and limits; an offline pass does not establish artistic quality.
-
-Prepared visual cataloging, explicit synchronization, source lineage and runtime composition contracts are documented in [Knowledge catalog](docs/KNOWLEDGE_CATALOG.md). Developer entry points are `npm run kb:sync`, `npm run kb:analyze-cards` and `npm run kb:analyze-sets`. The private prepared index is packaged with the art resources. New projects do not perform source-library analysis.
-
-### Knowledge workspace
-
-Use **Cards**, **Sets**, and **Categories** to inspect and maintain the working knowledge base. Cards show only artwork until opened; category and abstract pattern filters share the same machine facets used by composition planning and reference retrieval. Entity details support editing and explicit reanalysis; all three sections support adding and removing source entities. Sets expose ordered membership and observed per-set composition ranges. Source bytes and historical production snapshots are retained. Generation rules are edited once in Settings, separately from UI localization. The creation form includes **Include gold cards**, disabled by default.
-
-New-set composition is fitted to joint-pattern statistics across the full prepared source corpus, with original-reference coverage per slot. No single source layout is selected for new runs. See [aggregate planning](docs/AGGREGATE_COMPOSITION_PLANNING.md); existing runs keep their frozen planning protocol.
-
-The header language selector and Settings share the same language preference. Settings expose a separate Sol/Terra planning-model selector. Current production disables automatic revisions and artistic scoring, with at most eight frozen structurally matching card references. Historical run policies remain frozen.
-
-The sidebar keeps **New set** and project history separate from the collapsible **Knowledge base** administration group (Cards, Sets, Categories, Style). Inactive projects offer **Download execution log**; production ZIPs also include the Markdown journal. See [Execution log](docs/EXECUTION_LOG.md) for captured evidence, historical-run limitations and credential/image redaction.
-
-Current new-run workflow: deterministic category/pattern, color and 5×2 grid planning → one LLM request for the complete set concept and ten Russian slot briefs → image generation → composition-only observations. There are no automatic redraws, artistic scores or whole-set grading. New versions are requested manually from a card. Source-reference analysis is reused; it is not repeated per project. See [aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md) for protocol compatibility and quality-warning delivery.
-
-See [composition-only production, whole-grid rhythm, Russian journals and individual preview export](docs/COMPOSITION_ONLY_WORKFLOW.md) for the current protocol; earlier review sections describe archived execution.
+Official provider documentation: [Codex CLI](https://learn.chatgpt.com/docs/codex/cli), [image generation and usage](https://learn.chatgpt.com/docs/image-generation), and [non-interactive execution](https://learn.chatgpt.com/docs/non-interactive-mode).
