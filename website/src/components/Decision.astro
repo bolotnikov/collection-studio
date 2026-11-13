@@ -1,0 +1,25 @@
+---
+interface Props {
+  question: string;
+  yes: string;
+  no: string;
+}
+const { question, yes, no } = Astro.props;
+---
+
+<figure
+  class="decision-figure"
+  aria-label="Выбор следующего действия по результату проверки"
+>
+  <div class="decision-question">{question}</div>
+  <div class="decision-branches">
+    <div>
+      <span>ДА</span>
+      <strong>{yes}</strong>
+    </div>
+    <div>
+      <span>НЕТ</span>
+      <strong>{no}</strong>
+    </div>
+  </div>
+</figure>

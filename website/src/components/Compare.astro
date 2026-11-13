@@ -1,0 +1,107 @@
+---
+import { SitePaths } from '../SitePaths';
+interface Props {
+  kind: 'rover' | 'rhythm' | 'json';
+}
+const { kind } = Astro.props;
+const colors = [
+  '#d49c5c',
+  '#8e6baf',
+  '#669aa4',
+  '#b97b8b',
+  '#9ca564',
+  '#649a83',
+  '#a67d58',
+  '#bfaa65',
+  '#698ac1',
+  '#bc7887',
+];
+---
+
+{kind === 'rover' && (
+  <figure class="rover-compare">
+    <div>
+      <span class="compare-kicker">ВЕРСИЯ 1 / ЗЕЛЁНЫЙ ФОН</span>
+      <img
+        src={SitePaths.public('/media/rover-1.webp')}
+        alt="Планетоход на траве среди зелёных холмов"
+        width="430"
+        height="480"
+      />
+      <p>Зелёный интерпретирован как трава.</p>
+    </div>
+    <span class="compare-arrow" aria-hidden="true">
+      →
+    </span>
+    <div>
+      <span class="compare-kicker">ВЕРСИЯ 3 / ЛУННАЯ СРЕДА</span>
+      <img
+        src={SitePaths.public('/media/rover-3.webp')}
+        alt="Тот же жёлтый планетоход на серой поверхности с кратерами"
+        width="430"
+        height="480"
+      />
+      <p>Лунная версия из реальной истории.</p>
+    </div>
+    <figcaption>
+      Две сохранённые версии показывают изменение окружения планетохода.
+    </figcaption>
+  </figure>
+)}
+{kind === 'rhythm' && (
+  <figure class="rhythm-figure">
+    <div class="figure-heading">
+      <span class="figure-label">УПРОЩЁННЫЙ ПРИМЕР</span>
+      <strong>Сначала отношения, затем изображения</strong>
+    </div>
+    <div class="rhythm-grid">
+      {colors.map((color, index) => (
+        <div style={`--tile:${color}`}>
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          <svg viewBox="0 0 100 70" fill="none" aria-hidden="true">
+            {index % 3 === 0 ? (
+              <>
+                <circle cx="50" cy="35" r="15" />
+                <circle cx="50" cy="35" r="27" />
+                <circle cx="50" cy="35" r="40" />
+              </>
+            ) : index % 3 === 1 ? (
+              <path d="M10 0v70m20-70v70m20-70v70m20-70v70m20-70v70" />
+            ) : (
+              <path d="m0 0 100 70M100 0 0 70M50 0v70M0 35h100" />
+            )}
+          </svg>
+        </div>
+      ))}
+    </div>
+    <div class="rhythm-rules">
+      <span>✓ Различимые соседи</span>
+      <span>✓ Разные пары «цвет + узор»</span>
+      <span>✓ Все десять слотов заранее</span>
+    </div>
+    <figcaption>
+      Условный пример распределения цветов и узоров в сетке 5×2.
+    </figcaption>
+  </figure>
+)}
+{kind === 'json' && (
+  <figure class="json-figure">
+    <div>
+      <span class="figure-label">ПРОГРАММА → МОДЕЛЬ</span>
+      <strong>Контекст и ограничения</strong>
+      <pre><code>{'{\n  "тема": "Кино коллекция",\n  "слоты": ["10 требований"],\n  "референсы": ["реальные файлы"]\n}'}</code></pre>
+    </div>
+    <span class="json-arrow" aria-hidden="true">
+      ⇄
+    </span>
+    <div>
+      <span class="figure-label">МОДЕЛЬ → ПРОГРАММА</span>
+      <strong>Данные по заданной схеме</strong>
+      <pre><code>{'{\n  "идея": "Экспедиция",\n  "предметы": ["10 описаний"],\n  "связи": "общая история"\n}'}</code></pre>
+    </div>
+    <figcaption>
+      Упрощённый пример обмена: тема и требования передаются в именованных
+      полях.
+    </figcaption>
+  </figure>
+)}

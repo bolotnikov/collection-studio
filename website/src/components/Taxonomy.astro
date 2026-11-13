@@ -1,0 +1,330 @@
+---
+import stats from '../data/catalog-statistics.json';
+interface Props {
+  kind:
+    | 'entities'
+    | 'space'
+    | 'patterns'
+    | 'appearance'
+    | 'environment'
+    | 'semantics';
+}
+const { kind } = Astro.props;
+const labels: Record<string, string> = {
+  none: 'Нет',
+  'simple-plane': 'Простая плоскость',
+  'material-surface': 'Материальная поверхность',
+  environment: 'Окружение',
+  plain: 'Однотонный',
+  gradient: 'Градиент',
+  pattern: 'Узор',
+  'surface-continuation': 'Продолжение поверхности',
+  flat: 'Плоская',
+  shallow: 'Небольшая',
+  spatial: 'Пространственная',
+  minimal: 'Минимальный',
+  contextual: 'Выраженный',
+  rays: 'Лучи',
+  stripes: 'Полосы',
+  'repeated-motifs': 'Повторяющиеся мотивы',
+  geometric: 'Геометрия',
+  organic: 'Органика',
+  waves: 'Волны',
+  circles: 'Круги',
+  checker: 'Клетка',
+  red: 'Красный',
+  orange: 'Оранжевый',
+  yellow: 'Жёлтый',
+  green: 'Зелёный',
+  cyan: 'Голубой',
+  blue: 'Синий',
+  purple: 'Фиолетовый',
+  pink: 'Розовый',
+  brown: 'Коричневый',
+  cream: 'Кремовый',
+  white: 'Белый',
+  gray: 'Серый',
+  black: 'Чёрный',
+  multicolor: 'Многоцветный',
+  front: 'Спереди',
+  'three-quarter': 'Три четверти',
+  top: 'Сверху',
+  low: 'Снизу',
+  other: 'Другой',
+  small: 'Мелкий',
+  medium: 'Средний',
+  large: 'Крупный',
+  center: 'В центре',
+  left: 'Слева',
+  right: 'Справа',
+  upper: 'Вверху',
+  lower: 'Внизу',
+  sky: 'Небо',
+  landscape: 'Ландшафт',
+  waterside: 'У воды',
+  underwater: 'Под водой',
+  interior: 'Интерьер',
+  stage: 'Сцена',
+  architecture: 'Архитектура',
+  'open-field': 'Открытое поле',
+  'layered-bands': 'Планы полосами',
+  'side-framing': 'Боковое обрамление',
+  'enclosing-surfaces': 'Охватывающие поверхности',
+  'broad-masses': 'Крупные массы',
+  'local-accents': 'Локальные акценты',
+  'repeated-detail': 'Повтор мелких деталей',
+  'one-or-two': 'Один или два',
+  several: 'Несколько',
+  subject: 'Предмет и роль',
+  palette: 'Палитра',
+  silhouette: 'Силуэт',
+  rendering: 'Отрисовка',
+  lighting: 'Освещение',
+  characters: 'Число персонажей',
+  wood: 'Дерево',
+  glass: 'Стекло',
+  plastic: 'Пластик',
+  rubber: 'Резина',
+  steel: 'Сталь',
+  metal: 'Металл',
+  brass: 'Латунь',
+  gold: 'Золото',
+  chrome: 'Хром',
+  fabric: 'Ткань',
+  velvet: 'Бархат',
+  satin: 'Атлас',
+  leather: 'Кожа',
+  paper: 'Бумага',
+  stone: 'Камень',
+  ceramic: 'Керамика',
+  emerald: 'Изумруд',
+};
+const groups = {
+  space: [
+    {
+      title: 'Опора',
+      axis: 'support',
+      values: ['none', 'simple-plane', 'material-surface', 'environment'],
+    },
+    {
+      title: 'Задний план',
+      axis: 'backdrop',
+      values: [
+        'plain',
+        'gradient',
+        'pattern',
+        'surface-continuation',
+        'environment',
+      ],
+    },
+    { title: 'Глубина', axis: 'depth', values: ['flat', 'shallow', 'spatial'] },
+    {
+      title: 'Контекст',
+      axis: 'contextDensity',
+      values: ['none', 'minimal', 'contextual'],
+    },
+  ],
+  patterns: [
+    {
+      title: 'Геометрия фона',
+      axis: 'pattern',
+      values: [
+        'none',
+        'rays',
+        'stripes',
+        'repeated-motifs',
+        'geometric',
+        'organic',
+        'waves',
+        'circles',
+        'checker',
+      ],
+    },
+  ],
+  appearance: [
+    {
+      title: 'Цвет фона',
+      axis: 'backgroundColor',
+      values: [
+        'red',
+        'orange',
+        'yellow',
+        'green',
+        'cyan',
+        'blue',
+        'purple',
+        'pink',
+        'brown',
+        'cream',
+        'white',
+        'gray',
+        'black',
+        'multicolor',
+      ],
+    },
+    {
+      title: 'Ракурс',
+      axis: 'camera',
+      values: ['front', 'three-quarter', 'top', 'low', 'other'],
+    },
+    {
+      title: 'Масштаб предмета',
+      axis: 'subjectScale',
+      values: ['small', 'medium', 'large'],
+    },
+    {
+      title: 'Положение предмета',
+      axis: 'subjectPosition',
+      values: ['center', 'left', 'right', 'upper', 'lower'],
+    },
+  ],
+  environment: [
+    {
+      title: 'Тип места',
+      axis: 'environmentKind',
+      values: [
+        'sky',
+        'landscape',
+        'waterside',
+        'underwater',
+        'interior',
+        'stage',
+        'architecture',
+      ],
+    },
+    {
+      title: 'Структура фона',
+      axis: 'backgroundLayout',
+      values: [
+        'open-field',
+        'layered-bands',
+        'side-framing',
+        'enclosing-surfaces',
+      ],
+    },
+    {
+      title: 'Детали',
+      axis: 'backgroundDetail',
+      values: ['broad-masses', 'local-accents', 'repeated-detail'],
+    },
+    {
+      title: 'Вторичные объекты',
+      axis: 'backgroundProps',
+      values: ['none', 'one-or-two', 'several'],
+    },
+  ],
+  semantics: [
+    {
+      title: 'Описание изображения',
+      axis: 'descriptive',
+      values: ['subject', 'palette', 'silhouette', 'rendering', 'lighting'],
+    },
+    {
+      title: 'Число персонажей: наблюдения',
+      axis: 'characterCount',
+      values: ['0', '1', '2'],
+    },
+    {
+      title: 'Группы материалов для поиска',
+      axis: 'materials',
+      values: [
+        'wood',
+        'glass',
+        'plastic',
+        'rubber',
+        'steel',
+        'metal',
+        'brass',
+        'gold',
+        'chrome',
+        'fabric',
+        'velvet',
+        'satin',
+        'leather',
+        'paper',
+        'stone',
+        'ceramic',
+        'emerald',
+      ],
+    },
+  ],
+};
+const selected = kind === 'entities' ? [] : groups[kind];
+const axes: Record<string, Record<string, number>> = stats.axes;
+---
+
+{kind === 'entities' ? (
+  <figure class="entity-figure">
+    <div class="entity-center">
+      <span>БАЗА ЗНАНИЙ</span>
+      <strong>Изображение + смысл + связи</strong>
+    </div>
+    <div class="entity-grid">
+      {[
+        [
+          'Карточка',
+          '160 оригиналов',
+          'Предмет, категория, признаки, уверенность',
+        ],
+        ['Категория', '5 профилей', 'Эталоны, вариации, ограничения'],
+        ['Набор', '16 коллекций', '10 карточек, их порядок и общая история'],
+        ['Документ', 'Правила и задание', 'Тексты требований и происхождение'],
+        [
+          'Пример',
+          'Изображение-пример',
+          'Лист категории или исходная коллекция',
+        ],
+        [
+          'Исправление',
+          'Проверенное решение',
+          'Обоснование и привязка к исходнику',
+        ],
+      ].map(([title, count, detail], i) => (
+        <div>
+          <span class="entity-index">0{i + 1}</span>
+          <strong>{title}</strong>
+          <em>{count}</em>
+          <p>{detail}</p>
+        </div>
+      ))}
+    </div>
+    <figcaption>
+      Карточки связаны с категориями, наборами и результатами анализа.
+    </figcaption>
+  </figure>
+) : (
+  <figure class:list={['taxonomy-figure', `taxonomy-${kind}`]}>
+    <div class="taxonomy-groups">
+      {selected.map((group) => (
+        <div class="taxonomy-group">
+          <h3>{group.title}</h3>
+          <div class="taxonomy-tags">
+            {group.values.map((value) => (
+              <span
+                class:list={[
+                  'taxonomy-tag',
+                  { empty: group.axis in axes && !axes[group.axis]?.[value] },
+                ]}
+              >
+                {group.axis === 'backgroundColor' && (
+                  <i
+                    style={`--swatch:${({ cream: '#f0dfb3', multicolor: 'linear-gradient(45deg,#d97e53,#66a1ce,#aa82c7)' } as Record<string, string>)[value] ?? value}`}
+                  ></i>
+                )}
+                {labels[value] ?? value}
+                {group.axis in axes && <b>{axes[group.axis]?.[value] ?? 0}</b>}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <figcaption>
+      {kind === 'semantics'
+        ? 'Для персонажей указано число наблюдений. Материалы объединены в группы для поиска.'
+        : kind === 'environment'
+          ? 'Эти признаки подробно описывают окружение главного предмета.'
+          : 'Число справа показывает, сколько карточек имеют этот признак. Ноль означает, что в базе пока нет такого примера.'}
+    </figcaption>
+  </figure>
+)}

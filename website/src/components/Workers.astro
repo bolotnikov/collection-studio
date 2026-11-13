@@ -1,0 +1,27 @@
+<figure class="workers-figure">
+  <div class="figure-heading">
+    <span class="figure-label">ПРИМЕР РАБОТЫ ПУЛА</span>
+    <strong>Два задания одновременно</strong>
+  </div>
+  <div class="worker-lanes">
+    <div>
+      <span>ИСПОЛНИТЕЛЬ 1</span>
+      <strong>Карточка 01</strong>
+      <i></i>
+    </div>
+    <div>
+      <span>ИСПОЛНИТЕЛЬ 2</span>
+      <strong>Карточка 02</strong>
+      <i></i>
+    </div>
+  </div>
+  <div class="worker-queue">
+    <span>В ОЧЕРЕДИ</span>
+    {Array.from({ length: 8 }, (_, i) => (
+      <b>{String(i + 3).padStart(2, '0')}</b>
+    ))}
+  </div>
+  <figcaption>
+    Освободившийся исполнитель берёт следующую карточку из очереди.
+  </figcaption>
+</figure>

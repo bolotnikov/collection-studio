@@ -35,6 +35,9 @@ import { CompositionFixture } from './fixtures/CompositionFixture';
 import contentModes from '../resources/content-modes.json';
 import { SetComposition } from '../src/domain/SetComposition';
 import { SlotTagContracts } from '../src/shared/SlotTagContracts';
+import sourceCatalog from '../resources/knowledge/visual-catalog.json';
+import { VisualCatalogContracts } from '../src/shared/VisualCatalogContracts';
+import { SetRhythmPlanner } from '../src/domain/SetRhythmPlanner';
 
 let pixels: Buffer;
 let profile: Profile;
@@ -83,9 +86,24 @@ class FixtureProvider implements GenerationPort {
               ? `New object ${variantIndex} ${slot.index}`
               : 'New object ' + slot.index,
           subjectType:
-            _profile.subjectUniqueness === 'batch-unique-v1'
+            _profile.entityUniqueness || _profile.subjectUniqueness === 'batch-unique-v1'
               ? `object_${variantIndex}_${slot.index}`
               : undefined,
+          depictedEntities: _profile.entityUniqueness
+            ? slot.target.category === '5'
+              ? Array.from({ length: slot.target.required.characterCount ?? 1 }, (_, actor) => ({
+                  identity: `person_${variantIndex}_${slot.index}_${actor}`,
+                  kind: 'character' as const,
+                  appearance: `Distinct person ${variantIndex} ${slot.index} ${actor} with unique hair and clothes`,
+                }))
+              : [
+                  {
+                    identity: `object_${variantIndex}_${slot.index}`,
+                    kind: 'object' as const,
+                    appearance: `Distinct object ${variantIndex} ${slot.index} with readable form`,
+                  },
+                ]
+            : undefined,
           role: 'Distinct story role ' + slot.index,
           materials: ['wood'],
           silhouette: 'Rounded large form',
@@ -1519,8 +1537,7 @@ it('continues generation when independent checks are unavailable without fabrica
   expect(DeliveryReadiness.accepts(result, result.variants[0])).toBe(true);
 });
 
-function slotFirstProfile(): Profile {
-  const { catalog } = CompositionFixture.create();
+function slotFirstProfile(catalog = CompositionFixture.create().catalog): Profile {
   const library = catalog.cards.map((card) =>
     StyleContracts.libraryItem.parse({
       ...card,
@@ -1537,6 +1554,71 @@ function slotFirstProfile(): Profile {
     compositionPlanning: CompositionPlanningContracts.defaults,
   });
 }
+
+it('excludes earlier runs and other variants from new color-family layouts', async () => {
+  const h = await harness(
+    new FixtureProvider(),
+    undefined,
+    undefined,
+    slotFirstProfile(VisualCatalogContracts.catalog.parse(sourceCatalog)),
+    'best-effort-v1',
+  );
+  const keys: string[] = [];
+  for (let request = 0; request < 2; request++) {
+    const started = await h.service.start({ ...brief, variants: 2, maxImageCalls: 20 }, settings);
+    const run = await finished(h, started.id);
+    expect(run.status).toBe('completed');
+    expect((await h.repository.getProfile(run.id)).previousRhythmLayouts).toEqual(keys);
+    for (const variant of run.variants) {
+      const composition = variant.artContract?.composition;
+      if (!composition) throw new Error('Missing composition');
+      const key = SetRhythmPlanner.layoutKey(composition);
+      expect(keys).not.toContain(key);
+      keys.push(key);
+    }
+  }
+  expect(new Set(keys).size).toBe(4);
+});
+
+it.each([false, true])(
+  'blocks a recurring gold hero before images and respects bounded plan repair (persistent=%s)',
+  async (persistent) => {
+    const provider = new FixtureProvider();
+    const h = await harness(
+      provider,
+      undefined,
+      undefined,
+      slotFirstProfile(VisualCatalogContracts.catalog.parse(sourceCatalog)),
+      'best-effort-v1',
+    );
+    const original = provider.designSlotSet.bind(provider);
+    let calls = 0;
+    const port: GenerationPort = provider;
+    const design = vi.spyOn(port, 'designSlotSet').mockImplementation(async (...args) => {
+      expect(provider.calls).toBe(0);
+      const result = await original(args[0], args[1], args[2]);
+      const gold = result.variants[0]?.cards.filter((card) => card.compatibleCategories.includes('5'));
+      const first = gold?.[0]?.depictedEntities?.[0];
+      const second = gold?.[1]?.depictedEntities;
+      if (!first || !second) throw new Error('Missing gold actors');
+      if (++calls === 1 || persistent) second[0] = first;
+      return result;
+    });
+    const started = await h.service.start(
+      { ...brief, variants: 1, includeGold: true, maxImageCalls: 10 },
+      settings,
+    );
+    const result = await finished(h, started.id);
+    expect(design).toHaveBeenCalledTimes(2);
+    expect(result.planHistory?.[0]?.errors.join(' ')).toContain('Duplicate depicted entity');
+    expect(design.mock.calls[1]?.[2]).toEqual(design.mock.calls[0]?.[2]);
+    expect(design.mock.calls[1]?.[4]).toContain('previousDesign');
+    expect(result.status).toBe(persistent ? 'failed' : 'completed');
+    expect(provider.calls).toBe(persistent ? 0 : 10);
+    const saved = await h.repository.getProfile(started.id);
+    expect(saved.entityUniqueness).toBe('depicted-entities-v1');
+  },
+);
 
 it.each(['subject', 'subjectType', 'missing-type'] as const)(
   'repairs multi-set %s conflicts before images while preserving slots and supplying the rejected design',
@@ -1686,7 +1768,10 @@ it('freezes slots and reference candidates before one design call, skips redunda
   expect(result.qualityWarnings).toEqual([]);
   expect((await h.repository.getProfile(result.id)).referenceSelection).toBe('catalogue-v1');
   expect((await h.repository.getProfile(result.id)).subjectUniqueness).toBeUndefined();
-  expect(result.variants[0]?.cards.every((card) => card.subjectType === undefined)).toBe(true);
+  expect((await h.repository.getProfile(result.id)).entityUniqueness).toBe('depicted-entities-v1');
+  expect(result.variants[0]?.cards.every((card) => card.subjectType && card.depictedEntities?.length)).toBe(
+    true,
+  );
 });
 
 it('freezes shuffled per-variant references across pause/resume and sends their saved order to image generation', async () => {
@@ -1788,12 +1873,14 @@ it('resumes historical multi-set drafts without adding the new policy or requiri
   const paused = await finished(h, started.id);
   const saved = await h.repository.getProfile(started.id);
   delete saved.subjectUniqueness;
+  delete saved.entityUniqueness;
   await h.repository.saveProfile(started.id, saved);
   const assigned = paused.compositionDraft?.assignedSubjects;
   if (!assigned) throw new Error('Missing historical slot design');
   for (const variant of assigned.variants)
     for (const card of variant.cards) {
       delete card.subjectType;
+      delete card.depictedEntities;
       card.subject = `Legacy object ${card.index}`;
     }
   await h.repository.save(paused);

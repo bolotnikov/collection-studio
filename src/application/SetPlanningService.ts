@@ -5,6 +5,7 @@ import type { PlanningPolicy, PlanReview } from '../shared/SetContract';
 import { ProductionRules } from '../domain/ProductionRules';
 import { SetComposition } from '../domain/SetComposition';
 import { BatchSubjectRules } from '../domain/BatchSubjectRules';
+import { DepictedEntityRules } from '../domain/DepictedEntityRules';
 
 /** Persist each proposal and review before advancing; resume partially reviewed proposals. */
 export class SetPlanningService {
@@ -37,7 +38,8 @@ export class SetPlanningService {
           ? JSON.stringify({
               errors: previous.errors,
               reviews: previous.reviews,
-              ...(profile.subjectUniqueness === 'batch-unique-v1'
+              ...(profile.subjectUniqueness === 'batch-unique-v1' ||
+              profile.entityUniqueness === 'depicted-entities-v1'
                 ? { previousDesign: previous.compositionDraft?.assignedSubjects }
                 : {}),
             })
@@ -78,6 +80,7 @@ export class SetPlanningService {
           ProductionRules.validatePlan(plan, brief.variants, Boolean(brief.includeGold));
           if (profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1)
             BatchSubjectRules.validate(plan);
+          if (profile.entityUniqueness === 'depicted-entities-v1') DepictedEntityRules.validate(plan);
           ProductionRules.validateReferenceBindings(plan);
           if (profile.visualCatalog)
             SetComposition.validate(

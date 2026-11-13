@@ -1,0 +1,119 @@
+---
+import { SitePaths } from '../SitePaths';
+import { chapters } from '../data/chapters.js';
+import Cover from './Cover.astro';
+import ProjectLinks from './ProjectLinks.astro';
+import { showcase } from '../data/showcase.js';
+const topicCount = chapters.reduce(
+  (count, chapter) => count + chapter.topics.length,
+  0,
+);
+---
+
+<div class="handbook-home">
+  <section class="home-hero">
+    <div class="hero-copy">
+      <div class="hero-kicker">
+        <span></span> ДНЕВНИК ПРОЕКТА И РУКОВОДСТВО
+      </div>
+      <h1 id="_top">
+        От идеи
+        <br />
+        до <span>коллекции.</span>
+      </h1>
+      <p>
+        Collection Studio создаёт наборы игровых карточек.
+        <br class="desktop-break" /> Исследование, база знаний и управляемая
+        генерация —<br class="desktop-break" /> весь путь Collection Studio в
+        коротких темах.
+      </p>
+      <div class="hero-actions">
+        <a class="hero-primary" href={SitePaths.public('/development/')}>
+          Начать знакомство <span>↗</span>
+        </a>
+        <a class="hero-secondary" href={SitePaths.public('/guide/')}>
+          Открыть руководство →
+        </a>
+      </div>
+      <ProjectLinks />
+      <div class="hero-footnote">
+        <span>05 РАЗДЕЛОВ</span>
+        <span>{topicCount} КОРОТКИХ ТЕМ</span>
+        <span>РЕАЛЬНЫЕ ПРИМЕРЫ</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="hero-orbit orbit-one"></div>
+      <div class="hero-orbit orbit-two"></div>
+      <div class="hero-art-label">
+        <span class="live-dot"></span> КОЛЛЕКЦИЯ / В ПРОИЗВОДСТВЕ
+      </div>
+      {showcase.map((card, index) => (
+        <div
+          class={`hero-card hero-card-${['back', 'middle', 'front'][index]}`}
+        >
+          <img
+            src={SitePaths.public(card.src)}
+            alt={`${card.title} · ${card.set} · категория ${card.category}`}
+            width="430"
+            height="480"
+          />
+          {index === 2 && (
+            <span>
+              01 <i>ЭКСПЕДИЦИЯ</i> ↗
+            </span>
+          )}
+        </div>
+      ))}
+      <div class="hero-art-note">
+        <span>10</span>
+        <div>
+          КАРТОЧЕК
+          <br />
+          ОДНА ИСТОРИЯ
+        </div>
+      </div>
+      <div class="hero-art-coordinate">5 × 2 / ОБЩИЙ ВИЗУАЛЬНЫЙ РИТМ</div>
+    </div>
+  </section>
+  <section class="home-chapters" aria-labelledby="chapters-heading">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">КАРТА ПРОЕКТА</span>
+        <h2 id="chapters-heading">Выберите раздел</h2>
+      </div>
+      <p>
+        От «почему» к «как».
+        <br />
+        Читайте последовательно или начните с нужного.
+      </p>
+    </div>
+    <div class="chapter-cards">
+      {chapters.map((chapter) => (
+        <a class="chapter-card" href={SitePaths.public(`/${chapter.slug}/`)}>
+          <Cover kind={chapter.cover} />
+          <div class="chapter-card-body">
+            <div class="chapter-card-meta">
+              <span>РАЗДЕЛ {chapter.number}</span>
+              <span>{chapter.topics.length} ТЕМ</span>
+            </div>
+            <div class="chapter-card-title">
+              <h3>{chapter.title}</h3>
+              <span>↗</span>
+            </div>
+            <p>{chapter.description}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+  <aside class="reading-note">
+    <span>↳</span>
+    <p>
+      <strong>По одной мысли за раз.</strong> Каждая тема — короткое объяснение,
+      схема или настоящий пример. От изучения исходников до осмысленного выбора
+      результата.
+    </p>
+    <a href={SitePaths.public('/algorithm/overview/')}>Посмотреть алгоритм →</a>
+  </aside>
+</div>

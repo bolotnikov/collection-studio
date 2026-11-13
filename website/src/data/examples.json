@@ -1,0 +1,182 @@
+{
+  "detective": {
+    "title": "Тайна пропавшей киноплёнки",
+    "cards": [
+      {
+        "title": "Кинопроектор в пустом зале",
+        "src": "/media/detective-01.webp"
+      },
+      {
+        "title": "Конверт с отпечатком пальца",
+        "src": "/media/detective-02.webp"
+      },
+      {
+        "title": "Дверь кинобудки с замочной скважиной",
+        "src": "/media/detective-03.webp"
+      },
+      {
+        "title": "Увеличительное стекло с плёночным кадром",
+        "src": "/media/detective-04.webp"
+      },
+      {
+        "title": "Настенный сейф за отодвинутой панелью",
+        "src": "/media/detective-05.webp"
+      },
+      {
+        "title": "Чемодан для киноплёнки",
+        "src": "/media/detective-06.webp"
+      },
+      {
+        "title": "Открытая коробка с киноплёнкой",
+        "src": "/media/detective-07.webp"
+      },
+      {
+        "title": "Ключ от кинобудки",
+        "src": "/media/detective-08.webp"
+      },
+      {
+        "title": "Полоска киноплёнки на ветру",
+        "src": "/media/detective-09.webp"
+      },
+      {
+        "title": "Хлопушка детективного фильма",
+        "src": "/media/detective-10.webp"
+      }
+    ]
+  },
+  "western": {
+    "title": "Вестерн: дорога через прерию",
+    "cards": [
+      {
+        "title": "Деревянная станция Дикого Запада",
+        "src": "/media/western-01.webp"
+      },
+      {
+        "title": "Ковбойское седло",
+        "src": "/media/western-02.webp"
+      },
+      {
+        "title": "Крытая повозка переселенцев",
+        "src": "/media/western-03.webp"
+      },
+      {
+        "title": "Ковбойская шляпа",
+        "src": "/media/western-04.webp"
+      },
+      {
+        "title": "Двери салуна",
+        "src": "/media/western-05.webp"
+      },
+      {
+        "title": "Походный костёр с котелком",
+        "src": "/media/western-06.webp"
+      },
+      {
+        "title": "Походный керосиновый фонарь",
+        "src": "/media/western-07.webp"
+      },
+      {
+        "title": "Ковбойский шейный платок",
+        "src": "/media/western-08.webp"
+      },
+      {
+        "title": "Перекати-поле",
+        "src": "/media/western-09.webp"
+      },
+      {
+        "title": "Пара ковбойских сапог",
+        "src": "/media/western-10.webp"
+      }
+    ]
+  },
+  "space": {
+    "title": "Экспедиция к далёкой планете",
+    "cards": [
+      {
+        "title": "Посадочный модуль",
+        "src": "/media/space-01.webp"
+      },
+      {
+        "title": "Звёздный атлас",
+        "src": "/media/space-02.webp"
+      },
+      {
+        "title": "Планетоход",
+        "src": "/media/space-03.webp"
+      },
+      {
+        "title": "Космический шлем",
+        "src": "/media/space-04.webp"
+      },
+      {
+        "title": "Буровая установка",
+        "src": "/media/space-05.webp"
+      },
+      {
+        "title": "Контейнер с образцом",
+        "src": "/media/space-06.webp"
+      },
+      {
+        "title": "Переносной анализатор",
+        "src": "/media/space-07.webp"
+      },
+      {
+        "title": "Реактивный ранец",
+        "src": "/media/space-08.webp"
+      },
+      {
+        "title": "Орбитальный спутник",
+        "src": "/media/space-09.webp"
+      },
+      {
+        "title": "Энергетический ключ",
+        "src": "/media/space-10.webp"
+      }
+    ]
+  },
+  "underwater": {
+    "title": "Тайна подводной станции",
+    "cards": [
+      {
+        "title": "Подводная станция",
+        "src": "/media/underwater-01.webp"
+      },
+      {
+        "title": "Сонарная карта",
+        "src": "/media/underwater-02.webp"
+      },
+      {
+        "title": "Подводный шлюз",
+        "src": "/media/underwater-03.webp"
+      },
+      {
+        "title": "Гидрофон",
+        "src": "/media/underwater-04.webp"
+      },
+      {
+        "title": "Автономный подводный бур",
+        "src": "/media/underwater-05.webp"
+      },
+      {
+        "title": "Сфера энергии",
+        "src": "/media/underwater-06.webp"
+      },
+      {
+        "title": "Аварийный маяк",
+        "src": "/media/underwater-07.webp"
+      },
+      {
+        "title": "Кислородный баллон",
+        "src": "/media/underwater-08.webp"
+      },
+      {
+        "title": "Разведывательный подводный аппарат",
+        "src": "/media/underwater-09.webp"
+      },
+      {
+        "title": "Катушка подводного кабеля",
+        "src": "/media/underwater-10.webp"
+      }
+    ]
+  }
+}

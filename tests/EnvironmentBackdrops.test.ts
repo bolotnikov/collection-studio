@@ -235,6 +235,7 @@ it.each(['disabled', 'current', 'historical'] as const)(
     });
     const context = new ProductionContext(
       {
+        list: async () => [],
         directory: () => '/run',
         save: async () => {},
         get: async () => run,

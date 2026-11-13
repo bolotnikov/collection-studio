@@ -35,6 +35,16 @@ export class CompositionPlanningContracts {
     .min(2)
     .max(80)
     .regex(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/);
+  static readonly depictedEntities = z
+    .array(
+      z.object({
+        identity: CompositionPlanningContracts.subjectType,
+        kind: z.enum(['object', 'character']),
+        appearance: z.string().min(10),
+      }),
+    )
+    .min(1)
+    .max(10);
   static readonly compatibility = z.object({
     support: z.array(VisualCatalogContracts.facets.shape.support).min(1),
     backdrop: z.array(VisualCatalogContracts.facets.shape.backdrop).min(1),
@@ -46,6 +56,7 @@ export class CompositionPlanningContracts {
     id: z.string().min(1),
     subject: z.string().min(2),
     subjectType: CompositionPlanningContracts.subjectType.optional(),
+    depictedEntities: CompositionPlanningContracts.depictedEntities.optional(),
     role: z.string().min(3),
     materials: z.array(z.string().min(1)).min(1),
     silhouette: z.string().min(3),
@@ -145,6 +156,25 @@ export class CompositionPlanningContracts {
         }),
       )
       .min(2)
+      .max(5),
+  });
+  static readonly entityAssignedSubjects = CompositionPlanningContracts.assignedSubjects.extend({
+    variants: z
+      .array(
+        CompositionPlanningContracts.assignedSubjects.shape.variants.element.extend({
+          cards: z
+            .array(
+              CompositionPlanningContracts.assignedSubjects.shape.variants.element.shape.cards.element.extend(
+                {
+                  subjectType: CompositionPlanningContracts.subjectType,
+                  depictedEntities: CompositionPlanningContracts.depictedEntities,
+                },
+              ),
+            )
+            .length(10),
+        }),
+      )
+      .min(1)
       .max(5),
   });
   static readonly details = z.object({

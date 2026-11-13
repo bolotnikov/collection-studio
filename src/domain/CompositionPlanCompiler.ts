@@ -51,6 +51,7 @@ export class CompositionPlanCompiler {
             return {
               subject: slot.subject.subject,
               subjectType: slot.subject.subjectType,
+              depictedEntities: slot.subject.depictedEntities,
               role: slot.subject.role,
               category: slot.target.category,
               description: detail.description,

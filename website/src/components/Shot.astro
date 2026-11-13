@@ -1,0 +1,113 @@
+---
+import { SitePaths } from '../SitePaths';
+interface Marker {
+  x: number;
+  y: number;
+  label: string;
+}
+interface Props {
+  src: string;
+  alt: string;
+  caption: string;
+  markers?: Marker[];
+  showLegend?: boolean;
+  aspectRatio?: number;
+  crop?: { x: number; y: number; width: number; height: number };
+}
+const {
+  src,
+  alt,
+  caption,
+  markers = [],
+  showLegend = true,
+  aspectRatio = 2880 / 1880,
+  crop = { x: 0, y: 0, width: 100, height: 100 },
+} = Astro.props;
+---
+
+<figure class="screenshot-figure">
+  <div class="shot-frame">
+    <div class="shot-topbar">
+      <span></span>
+      <span></span>
+      <span></span>
+      <small>COLLECTION STUDIO / РАБОЧЕЕ ПРОСТРАНСТВО</small>
+    </div>
+    <div
+      class="shot-viewport"
+      style={`aspect-ratio:${(aspectRatio * crop.width) / crop.height}`}
+    >
+      <div
+        class="shot-image"
+        style={`position:absolute;width:${10000 / crop.width}%;left:${(-100 * crop.x) / crop.width}%;top:${(-100 * crop.y) / crop.height}%`}
+      >
+        <img
+          src={SitePaths.public(src)}
+          alt={alt}
+          width="1440"
+          height={1440 / aspectRatio}
+          loading="lazy"
+        />
+        {markers.length > 0 && (
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            class="shot-overlay"
+            aria-hidden="true"
+          >
+            <defs>
+              <marker
+                id={`arrow-${src.replace(/\W/g, '')}`}
+                markerWidth="5"
+                markerHeight="5"
+                refX="4"
+                refY="2.5"
+                orient="auto"
+              >
+                <path d="m0 0 5 2.5L0 5" fill="#57d22d" />
+              </marker>
+            </defs>
+            {markers.map((mark) => (
+              <g>
+                <path
+                  d={`M${mark.x + 5} ${mark.y - 5} L${mark.x + 1} ${mark.y - 1}`}
+                  stroke="#57d22d"
+                  stroke-width=".45"
+                  marker-end={`url(#arrow-${src.replace(/\W/g, '')})`}
+                />
+                <ellipse
+                  cx={mark.x + 6}
+                  cy={mark.y - 6}
+                  rx="1.4"
+                  ry="2.5"
+                  fill="#57d22d"
+                  stroke="#202020"
+                  stroke-width=".3"
+                />
+                <text
+                  x={mark.x + 6}
+                  y={mark.y - 5}
+                  text-anchor="middle"
+                  font-size="2.6"
+                  font-family="sans-serif"
+                  font-weight="700"
+                  fill="#202020"
+                >
+                  {markers.indexOf(mark) + 1}
+                </text>
+              </g>
+            ))}
+          </svg>
+        )}
+      </div>
+    </div>
+  </div>
+  <figcaption>{caption}</figcaption>
+  {showLegend && markers.length > 0 && (
+    <ol class="shot-legend">
+      {markers.map((marker) => (
+        <li>{marker.label}</li>
+      ))}
+    </ol>
+  )}
+</figure>

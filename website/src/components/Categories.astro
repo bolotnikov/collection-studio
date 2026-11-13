@@ -1,0 +1,84 @@
+---
+import stats from '../data/catalog-statistics.json';
+const categories = [
+  {
+    id: '1',
+    title: 'Без опоры',
+    text: 'Предмет свободно расположен в поле карточки.',
+  },
+  {
+    id: '2',
+    title: 'Простая плоскость',
+    text: 'Условная опора, простой задний план.',
+  },
+  {
+    id: '3',
+    title: 'Материальная поверхность',
+    text: 'Читаемая фактура и объём опоры.',
+  },
+  {
+    id: '4',
+    title: 'Окружение',
+    text: 'Предмет встроен в узнаваемое пространство.',
+  },
+  {
+    id: '5',
+    title: 'Сюжет с персонажами',
+    text: 'Один или два героя в простой сценке.',
+  },
+];
+---
+
+<figure class="categories-figure">
+  <div class="category-grid">
+    {categories.map((category, i) => (
+      <div class="category-item">
+        <svg viewBox="0 0 120 86" fill="none" aria-hidden="true">
+          <rect
+            x="1"
+            y="1"
+            width="118"
+            height="84"
+            rx="8"
+            stroke="currentColor"
+            opacity=".2"
+          />
+          {i >= 1 && (
+            <path
+              d={i === 1 ? 'M12 63h96' : 'm12 62 48-12 48 12-48 17-48-17Z'}
+              stroke="currentColor"
+              opacity=".4"
+            />
+          )}
+          {i >= 3 && (
+            <path
+              d="M14 62V24l25 9V14h29v14l37-9v43"
+              stroke="currentColor"
+              opacity=".4"
+            />
+          )}
+          <path
+            d={
+              i === 4
+                ? 'M46 40a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-9 23V48a9 9 0 0 1 18 0v15m24-17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm-8 18v-9a8 8 0 0 1 16 0v9'
+                : 'm60 25 19 11v22L60 69 41 58V36l19-11Zm0 22 19-11M60 47 41 36m19 11v22'
+            }
+            stroke="var(--brand)"
+            stroke-width="2"
+          />
+        </svg>
+        <span class="figure-label">КАТЕГОРИЯ {category.id}</span>
+        <strong>{category.title}</strong>
+        <p>{category.text}</p>
+        <span class="category-count">
+          {stats.categories[category.id as keyof typeof stats.categories]}{' '}
+          карточек
+        </span>
+      </div>
+    ))}
+  </div>
+  <figcaption>
+    Наблюдаемое распределение 160 оригиналов. Категории 1–4 — обычные; категория
+    5 включается отдельно.
+  </figcaption>
+</figure>

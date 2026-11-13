@@ -1,0 +1,92 @@
+<studio-theme-toggle
+  class="theme-toggle"
+  role="group"
+  aria-label="Оформление сайта"
+>
+  <button
+    type="button"
+    data-theme="dark"
+    aria-label="Тёмная тема"
+    aria-pressed="true"
+  >
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M20.5 13.5A9 9 0 0 1 10.5 3 9 9 0 1 0 20.5 13.5Z"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <span>Тёмная</span>
+  </button>
+  <button
+    type="button"
+    data-theme="light"
+    aria-label="Светлая тема"
+    aria-pressed="false"
+  >
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7" />
+      <path
+        d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+      />
+    </svg>
+    <span>Светлая</span>
+  </button>
+</studio-theme-toggle>
+
+<script>
+  class StudioThemeToggle extends HTMLElement {
+    connectedCallback() {
+      this.update();
+      this.addEventListener('click', this.onClick);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('click', this.onClick);
+    }
+
+    private readonly onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const theme =
+        event.target.closest<HTMLButtonElement>('button[data-theme]')?.dataset
+          .theme;
+      if (theme !== 'dark' && theme !== 'light') return;
+      document.documentElement.dataset.theme = theme;
+      try {
+        localStorage.setItem('collection-studio-docs-theme', theme);
+      } catch {
+        // Theme selection also works without persistent storage.
+      }
+      this.update();
+    };
+
+    private update() {
+      for (const button of this.querySelectorAll<HTMLButtonElement>(
+        'button[data-theme]',
+      ))
+        button.setAttribute(
+          'aria-pressed',
+          String(
+            button.dataset.theme === document.documentElement.dataset.theme,
+          ),
+        );
+    }
+  }
+  customElements.define('studio-theme-toggle', StudioThemeToggle);
+</script>

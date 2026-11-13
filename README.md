@@ -4,6 +4,19 @@ Collection Studio помогает создавать коллекции кар�
 
 В программе есть русский и английский интерфейсы, светлая и тёмная темы. Язык выбирается по настройкам устройства; для остальных языков используется английский. Выбранное оформление сохраняется между запусками.
 
+## Документация
+
+Читайте короткие темы о работе с программой, базе знаний и алгоритме на [сайте документации](https://bolotnikov.github.io/collection-studio/). GitHub Actions проверяет и публикует сайт при изменении его исходников в `main`.
+
+Для локального просмотра выполните:
+
+```sh
+npm ci --prefix website
+npm run docs:dev
+```
+
+Откройте [документацию локально](http://127.0.0.1:4321/). Исходники сайта и команды проверки описаны в [website/README.md](website/README.md).
+
 ## Скачать приложение
 
 [**Скачать Collection Studio для Mac · Intel и Apple Silicon**](https://github.com/bolotnikov/collection-studio/releases/latest/download/Collection-Studio-mac-universal.zip)

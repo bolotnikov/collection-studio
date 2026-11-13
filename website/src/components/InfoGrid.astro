@@ -1,0 +1,21 @@
+---
+interface Props {
+  title?: string;
+  items: { title: string; text: string }[];
+  caption?: string;
+}
+const { title, items, caption } = Astro.props;
+---
+
+<figure class="info-figure">
+  {title && <strong class="info-title">{title}</strong>}
+  <div class="info-grid">
+    {items.map((item) => (
+      <div>
+        <strong>{item.title}</strong>
+        <p>{item.text}</p>
+      </div>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

@@ -1,0 +1,34 @@
+---
+import { SitePaths } from '../SitePaths';
+import Search from '@astrojs/starlight/components/Search.astro';
+import ThemeSelect from './ThemeToggle.astro';
+---
+
+<div class="handbook-header">
+  <a
+    class="wordmark"
+    href={SitePaths.public('/')}
+    aria-label="Collection Studio — главная"
+  >
+    <img
+      src={SitePaths.public('/logo.png')}
+      width="40"
+      height="40"
+      alt=""
+      decoding="async"
+    />
+    <span>
+      collection<span class="wordmark-studio">STUDIO</span>
+    </span>
+  </a>
+  <div class="header-center">
+    <span class="header-caption">ДОКУМЕНТАЦИЯ ПРОЕКТА</span>
+    <Search />
+  </div>
+  <div class="header-tools">
+    <span class="locale-label" lang="ru">
+      РУ
+    </span>
+    <ThemeSelect />
+  </div>
+</div>

@@ -1,0 +1,29 @@
+---
+import { SitePaths } from '../SitePaths';
+import { chapters } from '../data/chapters.js';
+const parts = Astro.locals.starlightRoute.entry.id.split('/');
+const chapter = chapters.find((item) => item.slug === parts[0]);
+const index = chapter?.topics.findIndex((item) => item.slug === parts[1]) ?? -1;
+const previous = chapter?.topics[index - 1];
+const next = chapter?.topics[index + 1];
+---
+
+{chapter && index >= 0 && (
+  <nav class="topic-pagination" aria-label="Переход между темами">
+    <a
+      href={SitePaths.public(
+        previous ? `/${chapter.slug}/${previous.slug}/` : `/${chapter.slug}/`,
+      )}
+    >
+      <span>← {previous ? 'Предыдущая тема' : 'К темам раздела'}</span>
+      <strong>{previous?.title ?? chapter.title}</strong>
+    </a>
+    <a
+      class="next-topic"
+      href={SitePaths.public(next ? `/${chapter.slug}/${next.slug}/` : '/')}
+    >
+      <span>{next ? 'Следующая тема' : 'Все разделы'} →</span>
+      <strong>{next?.title ?? 'Продолжить знакомство'}</strong>
+    </a>
+  </nav>
+)}

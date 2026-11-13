@@ -1,0 +1,45 @@
+---
+import { SitePaths } from '../SitePaths';
+import { chapters } from '../data/chapters.js';
+import Cover from './Cover.astro';
+import ProjectLinks from './ProjectLinks.astro';
+interface Props {
+  slug: string;
+}
+const chapter = chapters.find((item) => item.slug === Astro.props.slug);
+if (!chapter) throw new Error('Unknown documentation chapter.');
+---
+
+<div class="chapter-intro">
+  <p>{chapter.description}</p>
+  <span>{chapter.topics.length} тем · Одна мысль на страницу</span>
+</div>
+{(chapter.slug === 'development' || chapter.slug === 'guide') && (
+  <ProjectLinks />
+)}
+<div class="chapter-overview">
+  <div class="chapter-poster">
+    <Cover kind={chapter.cover} />
+    <p>
+      ПРОЙДИТЕ ПО ТЕМАМ ПО ПОРЯДКУ
+      <br />
+      ИЛИ ВЫБЕРИТЕ НУЖНУЮ
+    </p>
+  </div>
+  <ol class="topic-list">
+    {chapter.topics.map((topic, index) => (
+      <li>
+        <a href={SitePaths.public(`/${chapter.slug}/${topic.slug}/`)}>
+          <span class="topic-list-index">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <div>
+            <strong>{topic.title}</strong>
+            <p>{topic.description}</p>
+          </div>
+          <span class="topic-list-arrow">↗</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</div>

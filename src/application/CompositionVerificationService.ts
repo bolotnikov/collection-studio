@@ -28,7 +28,12 @@ export class CompositionVerificationService {
     attempt.reviewPrompt = PromptCatalog.render(
       'review.composition.v1',
       {
-        card: { subject: card.subject, description: card.description, visual: card.visual },
+        card: {
+          subject: card.subject,
+          description: card.description,
+          visual: card.visual,
+          depictedEntities: card.depictedEntities,
+        },
         categoryRules: active.profile.categories[card.category],
         target: target ?? { category: card.category },
       },

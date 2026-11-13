@@ -31,6 +31,9 @@ export class CompositionPlanningPrompts {
         slots,
         correction,
       }) +
+      (profile.entityUniqueness === 'depicted-entities-v1'
+        ? '\n' + new PromptCatalog(slotPrompts, slotPrompts).render('entityUniqueness')
+        : '') +
       (profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
         ? '\n' + new PromptCatalog(slotPrompts, slotPrompts).render('batchUniqueness')
         : '') +

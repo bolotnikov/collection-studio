@@ -1,11 +1,11 @@
 import { Localization } from '../../shared/i18n/Localization';
+import studioLogo from '../../../resources/branding/collection-studio-logo.png';
 import { StyleRulesView } from './StyleRulesView';
 import { CatalogSettings } from './CatalogSettings';
 import { KnowledgeView } from './KnowledgeView';
 import { useLocalization } from './i18n/LocalizationContext';
 import {
   Paintbrush,
-  Layers,
   Plus,
   Library,
   Database,
@@ -49,7 +49,7 @@ export function App({ api }: { api: StudioApi }) {
   if (!data)
     return (
       <div className="loading">
-        <Layers size={36} />
+        <img src={studioLogo} width={64} height={64} alt="" />
         <h2>Collection Studio</h2>
         <p>{notice?.text ?? t('Loading workspace…')}</p>
       </div>
@@ -59,7 +59,7 @@ export function App({ api }: { api: StudioApi }) {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">
-            <Layers size={24} />
+            <img src={studioLogo} width={30} height={30} alt="" />
           </div>
           <div>
             collection<span>STUDIO</span>

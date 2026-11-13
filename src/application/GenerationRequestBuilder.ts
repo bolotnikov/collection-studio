@@ -40,6 +40,16 @@ export class GenerationRequestBuilder {
         : input.prompt;
     const prompt =
       basePrompt +
+      (profile.entityUniqueness === 'depicted-entities-v1' && input.card.depictedEntities
+        ? '\n' +
+          prompts.render('generation.entities.v1', {
+            entities: input.card.depictedEntities,
+            excludedEntities:
+              input.variant?.cards
+                .filter((card) => card.id !== input.card.id)
+                .flatMap((card) => card.depictedEntities ?? []) ?? [],
+          })
+        : '') +
       (input.variant
         ? ManualSlotTagPrompts.render(
             profile,

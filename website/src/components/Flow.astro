@@ -1,0 +1,53 @@
+---
+interface Props {
+  title: string;
+  steps: string[];
+  model?: number[];
+  note?: string;
+  ownership?: boolean;
+}
+const {
+  title,
+  steps,
+  model = [],
+  note,
+  ownership = model.length > 0,
+} = Astro.props;
+---
+
+<figure class="flow-figure">
+  <figcaption>
+    <span class="figure-label">СХЕМА ПРОЦЕССА</span>
+    <strong>{title}</strong>
+  </figcaption>
+  <ol class="flow-steps">
+    {steps.map((step, index) => (
+      <li class:list={{ 'model-step': model.includes(index) }}>
+        <span class="flow-step-number">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <strong>{step}</strong>
+        {ownership && (
+          <span class="flow-owner">
+            {model.includes(index) ? 'РЕШЕНИЕ МОДЕЛИ' : 'ПРАВИЛА ПРОГРАММЫ'}
+          </span>
+        )}
+        {index < steps.length - 1 && (
+          <svg
+            class="flow-arrow"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 12h17m-6-6 6 6-6 6"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+          </svg>
+        )}
+      </li>
+    ))}
+  </ol>
+  {note && <p class="figure-note">{note}</p>}
+</figure>

@@ -1,0 +1,28 @@
+---
+import { SitePaths } from '../SitePaths';
+import examples from '../data/examples.json';
+interface Props {
+  set: keyof typeof examples;
+  limit?: number;
+}
+const { set, limit = 10 } = Astro.props;
+const collection = examples[set];
+---
+
+<figure class="collection-figure">
+  <div class="example-grid">
+    {collection.cards.slice(0, limit).map((card) => (
+      <figure>
+        <img
+          src={SitePaths.public(card.src)}
+          alt={card.title}
+          width="430"
+          height="480"
+          loading="lazy"
+        />
+        <figcaption>{card.title}</figcaption>
+      </figure>
+    ))}
+  </div>
+  <figcaption>{collection.title} · Реальные сохранённые изображения</figcaption>
+</figure>

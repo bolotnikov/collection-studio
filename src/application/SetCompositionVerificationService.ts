@@ -84,6 +84,7 @@ export class SetCompositionVerificationService {
               index: index + 1,
               cardId: card.id,
               subject: card.subject,
+              depictedEntities: card.depictedEntities,
               visual: card.visual,
               target: SetComposition.target(variant, card) ?? { category: card.category },
             })),

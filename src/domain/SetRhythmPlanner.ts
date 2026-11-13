@@ -17,13 +17,19 @@ export class SetRhythmPlanner {
       version: z.literal('set-rhythm-v1'),
       columns: z.literal(5),
       beamWidth: z.number().int().positive().max(1024),
+      variationWeight: z.number().positive(),
       colorFamilies: z.record(z.string(), z.string()),
       forbidRepeatedColorPattern: z.literal(true),
       forbidAdjacentColorFamily: z.literal(true),
       prompt: z.string(),
     })
     .parse(defaults);
-  apply(plan: SlotPlan, catalog: VisualCatalog): SlotPlan {
+  apply(
+    plan: SlotPlan,
+    catalog: VisualCatalog,
+    seed?: string,
+    excludedLayouts: readonly string[] = [],
+  ): SlotPlan {
     const analysis = new CollectionCorpusStatistics(catalog).analyze();
     const ordinary = analysis.cohorts.find((cohort) => cohort.cohort === 'ordinary-only');
     const evidence = ordinary?.setCount ? ordinary : analysis.cohorts[0];
@@ -67,11 +73,19 @@ export class SetRhythmPlanner {
             const adjacentBackdrop = [left, above].filter(
               (neighbor) => neighbor?.slot.target.required.backdrop === slot.target.required.backdrop,
             ).length;
+            if (
+              index === 9 &&
+              excludedLayouts.includes(
+                [...prior.map((choice) => this.family(choice.color)), family].join(','),
+              )
+            )
+              continue;
             next.push({
               choices: [...prior, { slot, color }],
               remaining: state.remaining.filter((item) => item.index !== slot.index),
               score:
                 state.score +
+                this.variation(seed, index, slot, color) +
                 adjacentCategory * 3 +
                 adjacentBackdrop +
                 count * 2 +
@@ -120,6 +134,26 @@ export class SetRhythmPlanner {
   }
   private family(color: string): string {
     return this.config.colorFamilies[color] ?? color;
+  }
+  private variation(seed: string | undefined, index: number, slot: Choice['slot'], color: Color): number {
+    if (seed === undefined) return 0;
+    let hash = 2166136261;
+    for (const character of `${seed}/${index}/${slot.target.category}/${slot.target.required.pattern}/${color}`)
+      hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 0x7feb352d);
+    hash ^= hash >>> 15;
+    hash = Math.imul(hash, 0x846ca68b);
+    return (((hash ^ (hash >>> 16)) >>> 0) / 4294967296) * this.config.variationWeight;
+  }
+  static layoutKey(composition: SlotPlan['composition']): string {
+    return [...composition.targets]
+      .sort((a, b) => a.index - b.index)
+      .map((target) => {
+        const color = target.appearance?.backgroundColor ?? '';
+        return composition.rhythm?.colorFamilies.find((entry) => entry.color === color)?.family ?? color;
+      })
+      .join(',');
   }
   private colors(target: CompositionTarget, catalog: VisualCatalog) {
     const counts = new Map<Color, number>();

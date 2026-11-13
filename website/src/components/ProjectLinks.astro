@@ -1,0 +1,33 @@
+---
+import { project } from '../data/project.js';
+---
+
+<nav class="project-links" aria-label="Приложение и исходники">
+  <a href={project.release}>
+    Скачать приложение <span aria-hidden="true">↗</span>
+  </a>
+  <a href={project.source}>
+    Исходники на GitHub <span aria-hidden="true">↗</span>
+  </a>
+</nav>
+
+<style>
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.3rem;
+    margin-block: 1.25rem;
+  }
+  .project-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--brand-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .project-links a:hover {
+    text-decoration: underline;
+  }
+</style>

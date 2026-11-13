@@ -1,0 +1,102 @@
+---
+import stats from '../data/catalog-statistics.json';
+interface Props {
+  kind: 'sets' | 'confidence' | 'corpus';
+}
+const { kind } = Astro.props;
+const ordinary = stats.setStatistics.ordinary;
+---
+
+{kind === 'corpus' && (
+  <figure class="confidence-figure">
+    <div>
+      <strong>{stats.cards}</strong>
+      <p>
+        Карточек
+        <br />
+        разобрано по признакам
+      </p>
+    </div>
+    <div>
+      <strong>{stats.sets}</strong>
+      <p>
+        Полных наборов
+        <br />
+        изучено по составу и порядку
+      </p>
+    </div>
+    <div>
+      <strong>5</strong>
+      <p>
+        Категорий
+        <br />
+        описано по примерам
+      </p>
+    </div>
+    <figcaption>Эти данные составили основу базы знаний.</figcaption>
+  </figure>
+)}
+{kind === 'sets' && (
+  <figure class="statistics-figure">
+    <div class="figure-heading">
+      <span class="figure-label">
+        ОБЫЧНЫЕ НАБОРЫ · {ordinary.count} ИСТОЧНИКОВ
+      </span>
+      <strong>Среднее число карточек по категориям</strong>
+    </div>
+    <div class="stat-bars">
+      {Object.entries(ordinary.categories)
+        .filter(([category]) => category !== '5')
+        .map(([category, value]) => (
+          <div class="stat-row">
+            <span>Категория {category}</span>
+            <div>
+              <i style={`--size:${(value.mean / 5) * 100}%`}></i>
+            </div>
+            <strong>
+              {value.mean.toLocaleString('ru', { maximumFractionDigits: 2 })}
+            </strong>
+            <small>
+              от {value.min} до {value.max}
+            </small>
+          </div>
+        ))}
+    </div>
+    <figcaption>
+      Среднее рассчитано по обычным наборам из десяти карточек.
+    </figcaption>
+  </figure>
+)}
+{kind === 'confidence' && (
+  <figure class="confidence-figure">
+    <div>
+      <strong>{stats.cards}</strong>
+      <p>
+        Карточек
+        <br />с готовым описанием
+      </p>
+    </div>
+    <div>
+      <strong>{stats.lowConfidence}</strong>
+      <p>
+        Классификаций
+        <br />
+        отмечено для уточнения
+      </p>
+    </div>
+    <div>
+      <strong>
+        {stats.sets}
+        <span>×10</span>
+      </strong>
+      <p>
+        Позиций
+        <br />
+        связано с исходными карточками
+      </p>
+    </div>
+    <figcaption>
+      Для каждого изображения сохранены признаки и обоснование категории.
+    </figcaption>
+  </figure>
+)}

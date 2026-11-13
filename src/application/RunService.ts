@@ -1,4 +1,5 @@
 import { GenerationRepairContracts } from '../shared/GenerationRepairContracts';
+import { SetRhythmPlanner } from '../domain/SetRhythmPlanner';
 import { PromptCatalog } from './prompts/PromptCatalog';
 import { ContextOptimization } from '../shared/ContextOptimization';
 import { CompositionPlanningContracts } from '../shared/CompositionPlanningContracts';
@@ -82,6 +83,20 @@ export class RunService {
       if (brief.variants > 1 && profile.compositionPlanning?.version === 'slots-first-v1')
         profile.subjectUniqueness = 'batch-unique-v1';
       else delete profile.subjectUniqueness;
+      if (profile.compositionPlanning?.version === 'slots-first-v1') {
+        profile.entityUniqueness = 'depicted-entities-v1';
+        if (profile.promptCatalog) {
+          const template = new PromptCatalog().values['generation.entities.v1'];
+          if (!template) throw new Error('Missing entity identity prompt.');
+          profile.promptCatalog['generation.entities.v1'] ??= template;
+        }
+        profile.previousRhythmLayouts = (await this.repository.list()).flatMap((run) =>
+          run.variants.flatMap((variant) => {
+            const composition = variant.artContract?.composition;
+            return composition?.rhythm ? [SetRhythmPlanner.layoutKey(composition)] : [];
+          }),
+        );
+      }
       policy = content.policy;
       if (profile.referenceSelection === 'catalogue-v1' && policy) policy = { ...policy, referenceLimit: 8 };
       const id = randomUUID();

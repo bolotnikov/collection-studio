@@ -222,9 +222,10 @@ li {
   display: flex;
   color: var(--accent);
 }
-.brand-icon svg {
-  width: 19px;
-  height: 19px;
+.brand-icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 .workspace-label,
 .history-heading {

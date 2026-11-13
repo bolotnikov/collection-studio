@@ -1,4 +1,5 @@
 import { AggregateCompositionPlanner } from '../domain/AggregateCompositionPlanner';
+import { SetRhythmPlanner } from '../domain/SetRhythmPlanner';
 import { CompositionPlanCompiler } from '../domain/CompositionPlanCompiler';
 import { SubjectAssignment } from '../domain/SubjectAssignment';
 import {
@@ -35,13 +36,17 @@ export class SlotFirstPlanningService {
       state.compositionDraft = { attempt, slotPlans: state.compositionDraft?.slotPlans };
     const draft = state.compositionDraft;
     if (!draft.slotPlans) {
-      draft.slotPlans = Array.from({ length: brief.variants }, (_, index) =>
-        planner.planSlots(
+      const excluded = [...(profile.previousRhythmLayouts ?? [])];
+      draft.slotPlans = Array.from({ length: brief.variants }, (_, index) => {
+        const plan = planner.planSlots(
           catalog,
           Boolean(brief.includeGold),
           profile.productionRunId ? `${profile.productionRunId}/${index}` : undefined,
-        ),
-      );
+          excluded,
+        );
+        if (plan.composition.rhythm) excluded.push(SetRhythmPlanner.layoutKey(plan.composition));
+        return plan;
+      });
       await checkpoint('Ten composition slots and reference candidates are ready');
       if (draft.slotPlans.some((plan) => plan.composition.rhythm))
         await checkpoint('Background colors, patterns and grid neighbors validated before model design');
@@ -52,9 +57,11 @@ export class SlotFirstPlanningService {
       if (!draft.assignedSubjects) {
         await checkpoint('Designing the concept and subjects for the fixed slots');
         const schema =
-          profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
-            ? CompositionPlanningContracts.batchAssignedSubjects
-            : CompositionPlanningContracts.assignedSubjects;
+          profile.entityUniqueness === 'depicted-entities-v1'
+            ? CompositionPlanningContracts.entityAssignedSubjects
+            : profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
+              ? CompositionPlanningContracts.batchAssignedSubjects
+              : CompositionPlanningContracts.assignedSubjects;
         draft.assignedSubjects = schema.parse(
           await provider.designSlotSet(brief, profile, draft.slotPlans, inputs, correction),
         );

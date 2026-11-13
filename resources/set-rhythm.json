@@ -2,7 +2,8 @@
   "version": "set-rhythm-v1",
   "columns": 5,
   "beamWidth": 256,
-  "colorFamilies": {"cyan": "blue", "blue": "blue"},
+  "variationWeight": 6,
+  "colorFamilies": { "cyan": "blue", "blue": "blue" },
   "forbidRepeatedColorPattern": true,
   "forbidAdjacentColorFamily": true,
   "prompt": "The appearance field is mandatory output direction, chosen by the application before design. Follow its backgroundColor and subjectScale; do not replace them with a shared set palette. Reference images demonstrate the assigned category and pattern; their colors are not permission to override the locked output color. Do not repeat a color-family/pattern pair anywhere in the set, including plain backgrounds. Neighboring cards in the 5-column by 2-row grid must not share a color family, horizontally or vertically. Cyan and blue belong to one family. Resolve foreground subject colors for clear contrast with each locked background."

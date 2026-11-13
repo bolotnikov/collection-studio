@@ -6,6 +6,32 @@ import { AggregateCompositionPlanner } from '../src/domain/AggregateCompositionP
 import { CollectionCorpusStatistics } from '../src/domain/CollectionCorpusStatistics';
 import { SetRhythmPlanner } from '../src/domain/SetRhythmPlanner';
 
+it.each([false, true])(
+  'varies valid layouts across seeds and excludes previously used color positions (gold=%s)',
+  (gold) => {
+    const catalog = VisualCatalogContracts.catalog.parse(source);
+    const weights = CompositionPlanningContracts.defaults.aggregation;
+    if (!weights) throw new Error('Missing weights');
+    const planner = new AggregateCompositionPlanner(weights);
+    const used: string[] = [];
+    for (let index = 0; index < 8; index++) {
+      const plan = planner.planSlots(catalog, gold, `variety/${index}`, used);
+      expect(() => SetRhythmPlanner.validate(plan.composition)).not.toThrow();
+      const key = SetRhythmPlanner.layoutKey(plan.composition);
+      expect(used).not.toContain(key);
+      used.push(key);
+    }
+    const first = planner.planSlots(catalog, gold, 'same-seed');
+    const second = planner.planSlots(catalog, gold, 'same-seed', [
+      SetRhythmPlanner.layoutKey(first.composition),
+    ]);
+    expect(SetRhythmPlanner.layoutKey(second.composition)).not.toBe(
+      SetRhythmPlanner.layoutKey(first.composition),
+    );
+    expect(second.composition.aggregate?.patterns).toEqual(first.composition.aggregate?.patterns);
+  },
+);
+
 it('counts each real source window and separates ordinary, mixed and gold-only populations', () => {
   const stats = new CollectionCorpusStatistics(VisualCatalogContracts.catalog.parse(source)).analyze();
   expect(stats.sourceSetCount).toBe(16);
@@ -36,7 +62,8 @@ it.each([false, true])(
     const plan = planner.planSlots(catalog, includeGold, 'rhythm-reference-shuffle');
     const constraints = (targets: typeof plan.composition.targets) =>
       targets.map((target) => ({ ...target, selectedReferenceIds: undefined }));
-    expect(constraints(plan.composition.targets)).toEqual(constraints(baseline.composition.targets));
+    expect(constraints(plan.composition.targets)).not.toEqual(constraints(baseline.composition.targets));
+    expect(planner.planSlots(catalog, includeGold, 'rhythm-reference-shuffle')).toEqual(plan);
     expect(plan.composition.rhythm).toBeDefined();
     expect(() => SetRhythmPlanner.validate(plan.composition)).not.toThrow();
     expect(plan.slots.map((slot) => slot.index)).toEqual(Array.from({ length: 10 }, (_, i) => i));

@@ -1,0 +1,20 @@
+{
+  "sourceUrl": "https://playrix.com/favicons/favicon.ico",
+  "sourceFrames": [
+    48,
+    32,
+    16
+  ],
+  "sourceLocalFile": "local-sources/research/branding/playrix-favicon.ico",
+  "generatedAt": "2026-11-13",
+  "generator": "Built-in image_gen",
+  "master": "collection-studio-master.png",
+  "actualDimensions": [
+    1254,
+    1254
+  ],
+  "transparentBackground": true,
+  "prompt": "Use case: logo-brand.\nAsset type: finished square application icon and website brand mark for Collection Studio, a collectible image curation application. Deliver one high-resolution 2048×2048 PNG with a genuinely transparent background.\nInput image 1: identity reference, the original 48×48 favicon from https://playrix.com/favicons/favicon.ico. Reconstruct its recognizable green Playrix mascot faithfully at high resolution: a friendly vivid lime-green round creature with a big white oval face/muzzle, two small dark round eyes, tiny green snout dots, small top green tufts/ears and the lower-right pointed green tail. This is the same mascot, not a human, not a generic dinosaur.\nPrimary request: create a polished icon showing this green mascot looking down at a SHORT ribbon of pictures and choosing one image. Keep the mascot large and dominant, about the top two thirds. Below its face, a gently curved dark blue-green ribbon contains exactly three simple thumbnail picture cards, with clean ivory borders: a warm orange shell, a blue flower, a golden star. The mascot's small green hand touches the middle picture; its pupils and pleasant attentive expression look toward that picture. Thumbnails should be simple bold symbols, legible at small sizes, with no text.\nStyle: crisp premium casual-game logo illustration, clean smooth shapes, restrained soft dimensional shading, clean edges, bright green and white mascot as in the reference. Compact unified square silhouette, minimal detail, strongly readable at 32px. Reference anatomy and white face remain recognizable.\nComposition: centered standalone mark, fully visible with comfortable 7% transparent padding on every side; mascot and short three-picture ribbon form one coherent icon. No surrounding app tile, no environment, no large background, no lettering, no wordmark, no watermark, no extra characters, no long filmstrip, no checkered transparency pattern.",
+  "sourceSha256": "c285e9f94a71f085f0da072ab4c831061055706f80939cfd2da4a97cf4b8cd54",
+  "masterSha256": "f2c5360f1d153e5298f6484443033937845835b3e59e7e4a47475d154edcd368"
+}

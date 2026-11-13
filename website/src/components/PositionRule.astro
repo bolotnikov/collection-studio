@@ -1,0 +1,14 @@
+<figure class="position-rule-figure">
+  <span class="figure-label">ПРИМЕР С ДВУМЯ СЮЖЕТНЫМИ КАРТОЧКАМИ</span>
+  <div class="position-rule-grid">
+    {Array.from({ length: 10 }, (_, i) => (
+      <div class:list={{ 'narrative-slot': i >= 8 }}>
+        <span>{String(i + 1).padStart(2, '0')}</span>
+        <strong>{i >= 8 ? 'Категория 5' : 'Категории 1–4'}</strong>
+      </div>
+    ))}
+  </div>
+  <figcaption>
+    Сюжетные карточки занимают завершающие позиции набора.
+  </figcaption>
+</figure>

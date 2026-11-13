@@ -40,6 +40,13 @@ it('enables the batch prompt and required type schema only for explicitly versio
   await expect(provider.designSlotSet(brief, archived, [], [], '')).rejects.toThrow('Offline schema capture');
   expect(request.mock.calls[2]?.[1]).toBe(CompositionPlanningContracts.assignedSubjects);
   expect(request.mock.calls[2]?.[0]).not.toContain('batch-unique-v1');
+  const identities = { ...profile, entityUniqueness: 'depicted-entities-v1' as const };
+  await expect(provider.designSlotSet(single, identities, [], [], '')).rejects.toThrow(
+    'Offline schema capture',
+  );
+  expect(request.mock.calls[3]?.[1]).toBe(CompositionPlanningContracts.entityAssignedSubjects);
+  expect(request.mock.calls[3]?.[0]).toContain('VISIBLE ENTITY UNIQUENESS');
+  expect(request.mock.calls[3]?.[0]).toContain('solo hero');
 });
 it('routes the initial design to Terra while composition verification remains on the review runner', async () => {
   const runner = new CodexRunner('/unused', '/unused', 'gpt-6.1-sol');

@@ -268,7 +268,12 @@ export class AggregateCompositionPlanner {
     }
     return ids.slice(0, 8);
   }
-  planSlots(catalog: VisualCatalog, includeGold: boolean, referenceSeed?: string): SlotPlan {
+  planSlots(
+    catalog: VisualCatalog,
+    includeGold: boolean,
+    referenceSeed?: string,
+    excludedLayouts: readonly string[] = [],
+  ): SlotPlan {
     const profile = this.profile(catalog, includeGold);
     const choice = this.allocations(profile, undefined, includeGold)[0];
     if (!choice) throw new Error('No source-supported ten-slot allocation is available.');
@@ -306,7 +311,7 @@ export class AggregateCompositionPlanner {
       catalog,
     );
     return catalog.cards.every((card) => card.observation.facets.backgroundColor)
-      ? new SetRhythmPlanner().apply(plan, catalog)
+      ? new SetRhythmPlanner().apply(plan, catalog, referenceSeed, excludedLayouts)
       : plan;
   }
   private contract(

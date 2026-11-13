@@ -1,6 +1,6 @@
 {
   "name": "collection-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Reference-guided production of collectible card sets",
   "main": "out/main/index.js",
@@ -22,7 +22,11 @@
     "prepare:clean-sets": "tsx scripts/prepare-clean-sets.ts",
     "kb:analyze-cards": "tsx scripts/sync-knowledge.ts cards",
     "kb:analyze-sets": "tsx scripts/sync-knowledge.ts sets",
-    "kb:sync": "tsx scripts/sync-knowledge.ts sync"
+    "kb:sync": "tsx scripts/sync-knowledge.ts sync",
+    "docs:dev": "npm run dev --prefix website",
+    "docs:build": "npm run build --prefix website",
+    "docs:preview": "npm run preview --prefix website",
+    "docs:check": "npm run check:links --prefix website"
   },
   "build": {
     "appId": "studio.collection.desktop",

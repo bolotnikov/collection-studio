@@ -1,0 +1,180 @@
+---
+import { SitePaths } from '../SitePaths';
+import { showcase } from '../data/showcase.js';
+interface Props {
+  kind: string;
+}
+const { kind } = Astro.props;
+---
+
+<div class:list={['chapter-cover', `cover-${kind}`]} aria-hidden="true">
+  {kind === 'research' && (
+    <>
+      <div class="cover-cross cross-one">+</div>
+      <div class="cover-cross cross-two">+</div>
+      <div class="research-sheet">
+        <span>ИССЛЕДОВАНИЕ / 01</span>
+        <div class="research-lines">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+        <div class="research-circles">
+          <b></b>
+          <b></b>
+          <b></b>
+        </div>
+        <small>НАБЛЮДЕНИЕ → РЕШЕНИЕ</small>
+      </div>
+      <span class="cover-caption">ОТ ВОПРОСА К РЕШЕНИЮ</span>
+    </>
+  )}
+  {kind === 'workspace' && (
+    <>
+      <div class="mini-window">
+        <div class="mini-top">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+        <div class="mini-body">
+          <div class="mini-side">
+            <b></b>
+            <b></b>
+            <b></b>
+          </div>
+          <div class="mini-form">
+            <span></span>
+            <b></b>
+            <b></b>
+            <em>СОЗДАТЬ НАБОР ↗</em>
+          </div>
+        </div>
+      </div>
+      <span class="cover-caption">ВАШЕ РАБОЧЕЕ ПРОСТРАНСТВО</span>
+    </>
+  )}
+  {kind === 'knowledge' && (
+    <>
+      <svg class="knowledge-graph" viewBox="0 0 400 220" fill="none">
+        <path
+          d="M200 110 84 48m116 62L82 174m118-64 118-65m-118 65 119 64M84 48l-2 126m236-129 1 129"
+          stroke="currentColor"
+          stroke-width="1"
+          opacity=".5"
+        />
+        <circle
+          cx="200"
+          cy="110"
+          r="37"
+          fill="var(--cover-center)"
+          stroke="var(--cover-accent)"
+        />
+        <circle cx="84" cy="48" r="23" stroke="currentColor" />
+        <circle cx="82" cy="174" r="23" stroke="currentColor" />
+        <circle cx="318" cy="45" r="23" stroke="currentColor" />
+        <circle cx="319" cy="174" r="23" stroke="currentColor" />
+        <text
+          x="200"
+          y="117"
+          fill="var(--cover-accent)"
+          text-anchor="middle"
+          font-size="21"
+          font-family="sans-serif"
+        >
+          160
+        </text>
+        <path
+          d="M73 48h22m-11-11v22m222-12h24M72 170l10 10 10-10m217 0h20"
+          stroke="currentColor"
+          stroke-width="1.5"
+        />
+      </svg>
+      <span class="cover-caption">КАРТОЧКИ · КАТЕГОРИИ · СВЯЗИ</span>
+    </>
+  )}
+  {kind === 'algorithm' && (
+    <>
+      <svg class="algorithm-graph" viewBox="0 0 400 220" fill="none">
+        <path
+          d="M65 110h66m68 0h66m-100 35v40h166V110h-10"
+          stroke="currentColor"
+          stroke-width="1.5"
+          opacity=".65"
+        />
+        <path
+          d="m123 104 8 6-8 6m134-12 8 6-8 6"
+          stroke="currentColor"
+          stroke-width="1.5"
+        />
+        <rect
+          x="13"
+          y="79"
+          width="66"
+          height="62"
+          rx="8"
+          fill="var(--cover-center)"
+          stroke="var(--cover-accent)"
+        />
+        <path
+          d="m165 69 41 41-41 41-41-41 41-41Z"
+          fill="var(--cover-center)"
+          stroke="var(--cover-accent)"
+        />
+        <rect
+          x="264"
+          y="79"
+          width="66"
+          height="62"
+          rx="8"
+          fill="var(--cover-center)"
+          stroke="var(--cover-accent)"
+        />
+        <text
+          x="46"
+          y="116"
+          text-anchor="middle"
+          fill="var(--cover-accent)"
+          font-size="16"
+        >
+          01
+        </text>
+        <text
+          x="165"
+          y="116"
+          text-anchor="middle"
+          fill="var(--cover-accent)"
+          font-size="16"
+        >
+          02
+        </text>
+        <text
+          x="297"
+          y="116"
+          text-anchor="middle"
+          fill="var(--cover-accent)"
+          font-size="16"
+        >
+          03
+        </text>
+      </svg>
+      <span class="cover-caption">ПРАВИЛА → МОДЕЛЬ → РЕЗУЛЬТАТ</span>
+    </>
+  )}
+  {kind === 'examples' && (
+    <>
+      <div class="cover-card-fan">
+        {showcase.map((card) => (
+          <img
+            src={SitePaths.public(card.src)}
+            alt=""
+            width="140"
+            height="156"
+            loading="lazy"
+          />
+        ))}
+      </div>
+      <span class="cover-caption">РЕАЛЬНЫЕ НАБОРЫ И ИСТОРИИ</span>
+    </>
+  )}
+</div>

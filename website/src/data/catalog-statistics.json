@@ -1,0 +1,243 @@
+{
+  "cards": 160,
+  "sets": 16,
+  "categories": {
+    "1": 33,
+    "2": 18,
+    "3": 27,
+    "4": 52,
+    "5": 30
+  },
+  "lowConfidence": 5,
+  "confidenceThreshold": 0.8,
+  "axes": {
+    "support": {
+      "none": 38,
+      "material-surface": 35,
+      "environment": 69,
+      "simple-plane": 18
+    },
+    "backdrop": {
+      "pattern": 57,
+      "environment": 81,
+      "gradient": 14,
+      "surface-continuation": 8
+    },
+    "pattern": {
+      "circles": 13,
+      "none": 103,
+      "repeated-motifs": 4,
+      "stripes": 11,
+      "rays": 18,
+      "waves": 6,
+      "checker": 2,
+      "geometric": 3
+    },
+    "backgroundColor": {
+      "cyan": 38,
+      "purple": 16,
+      "red": 5,
+      "yellow": 12,
+      "orange": 14,
+      "blue": 30,
+      "green": 31,
+      "pink": 6,
+      "multicolor": 3,
+      "brown": 4,
+      "cream": 1
+    },
+    "depth": {
+      "shallow": 70,
+      "spatial": 89,
+      "flat": 1
+    },
+    "contextDensity": {
+      "none": 36,
+      "contextual": 72,
+      "minimal": 52
+    },
+    "camera": {
+      "three-quarter": 124,
+      "front": 24,
+      "top": 4,
+      "low": 8
+    },
+    "subjectScale": {
+      "large": 160
+    },
+    "subjectPosition": {
+      "center": 151,
+      "right": 2,
+      "lower": 4,
+      "left": 3
+    },
+    "characterCount": {
+      "0": 129,
+      "1": 21,
+      "2": 10
+    }
+  },
+  "positions": [
+    {
+      "1": 5,
+      "2": 2,
+      "3": 1,
+      "4": 7,
+      "5": 1
+    },
+    {
+      "1": 2,
+      "2": 3,
+      "3": 1,
+      "4": 9,
+      "5": 1
+    },
+    {
+      "1": 4,
+      "2": 1,
+      "3": 4,
+      "4": 6,
+      "5": 1
+    },
+    {
+      "1": 3,
+      "2": 3,
+      "3": 3,
+      "4": 6,
+      "5": 1
+    },
+    {
+      "1": 4,
+      "2": 1,
+      "3": 6,
+      "4": 4,
+      "5": 1
+    },
+    {
+      "1": 4,
+      "2": 2,
+      "3": 3,
+      "4": 6,
+      "5": 1
+    },
+    {
+      "1": 5,
+      "2": 3,
+      "4": 6,
+      "5": 2
+    },
+    {
+      "1": 3,
+      "2": 2,
+      "3": 4,
+      "4": 3,
+      "5": 4
+    },
+    {
+      "1": 2,
+      "3": 3,
+      "4": 3,
+      "5": 8
+    },
+    {
+      "1": 1,
+      "2": 1,
+      "3": 2,
+      "4": 2,
+      "5": 10
+    }
+  ],
+  "setStatistics": {
+    "all": {
+      "count": 16,
+      "categories": {
+        "1": {
+          "min": 0,
+          "max": 4,
+          "mean": 2.0625
+        },
+        "2": {
+          "min": 0,
+          "max": 2,
+          "mean": 1.125
+        },
+        "3": {
+          "min": 0,
+          "max": 4,
+          "mean": 1.6875
+        },
+        "4": {
+          "min": 0,
+          "max": 6,
+          "mean": 3.25
+        },
+        "5": {
+          "min": 0,
+          "max": 10,
+          "mean": 1.875
+        }
+      }
+    },
+    "ordinary": {
+      "count": 6,
+      "categories": {
+        "1": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.1666666666666665
+        },
+        "2": {
+          "min": 1,
+          "max": 2,
+          "mean": 1.3333333333333333
+        },
+        "3": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.5
+        },
+        "4": {
+          "min": 3,
+          "max": 6,
+          "mean": 4
+        },
+        "5": {
+          "min": 0,
+          "max": 0,
+          "mean": 0
+        }
+      }
+    },
+    "mixed": {
+      "count": 9,
+      "categories": {
+        "1": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.2222222222222223
+        },
+        "2": {
+          "min": 0,
+          "max": 2,
+          "mean": 1.1111111111111112
+        },
+        "3": {
+          "min": 0,
+          "max": 4,
+          "mean": 1.3333333333333333
+        },
+        "4": {
+          "min": 2,
+          "max": 5,
+          "mean": 3.111111111111111
+        },
+        "5": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.2222222222222223
+        }
+      }
+    }
+  },
+  "source": "Prepared visual-catalog-v1 publication; aggregate counts only, no original artwork."
+}

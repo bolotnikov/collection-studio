@@ -13,6 +13,7 @@ export class PromptCatalog {
         !value &&
         [
           'generation.context.v1',
+          'generation.entities.v1',
           'reference.coverage.v1',
           'review.composition.v1',
           'review.environment.v1',

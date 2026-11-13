@@ -15,6 +15,7 @@ import { SetReviewService } from './SetReviewService';
 import { CompositionRepairRules } from '../domain/CompositionRepairRules';
 import { SetCompositionVerificationService } from './SetCompositionVerificationService';
 import { BatchSubjectRules } from '../domain/BatchSubjectRules';
+import { DepictedEntityRules } from '../domain/DepictedEntityRules';
 
 export class ProductionWorkflow {
   private readonly cards: CardProductionService;
@@ -109,6 +110,8 @@ export class ProductionWorkflow {
       run.selectedVariantId = run.variants[0]?.id ?? null;
       await this.context.publish(run, 'Set plans validated');
     }
+    if (active.profile.entityUniqueness === 'depicted-entities-v1')
+      DepictedEntityRules.validate({ variants: run.variants });
     if (active.profile.subjectUniqueness === 'batch-unique-v1' && run.brief.variants > 1)
       BatchSubjectRules.validate({ variants: run.variants });
     if (active.preparation) {

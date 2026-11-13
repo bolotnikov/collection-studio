@@ -1,0 +1,39 @@
+---
+import { SitePaths } from '../SitePaths';
+import { chapters } from '../data/chapters.js';
+const entry = Astro.locals.starlightRoute.entry;
+const parts = entry.id.split('/');
+const chapter = chapters.find((item) => item.slug === parts[0]);
+const index = chapter?.topics.findIndex((item) => item.slug === parts[1]) ?? -1;
+const topic = chapter?.topics[index];
+---
+
+{chapter && (
+  <div class="topic-kicker">
+    <a href={SitePaths.public(`/${chapter.slug}/`)}>
+      {chapter.number} / {chapter.title}
+    </a>
+    <span>
+      {topic
+        ? `ТЕМА ${String(index + 1).padStart(2, '0')} ИЗ ${chapter.topics.length}`
+        : 'О РАЗДЕЛЕ'}
+    </span>
+  </div>
+)}
+{(chapter || entry.id === '404') && <h1 id="_top">{entry.data.title}</h1>}
+{topic && <p class="topic-description">{topic.description}</p>}
+{topic && (
+  <div
+    class="topic-progress"
+    aria-label={`Тема ${index + 1} из ${chapter?.topics.length}`}
+  >
+    {chapter?.topics.map((item, i) => (
+      <a
+        class:list={{ done: i < index, current: i === index }}
+        href={SitePaths.public(`/${chapter.slug}/${item.slug}/`)}
+        aria-label={item.title}
+        aria-current={i === index ? 'page' : undefined}
+      ></a>
+    ))}
+  </div>
+)}

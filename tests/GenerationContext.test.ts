@@ -61,6 +61,46 @@ function fixture() {
   });
   return { profile, brief, card, variant };
 }
+it('binds each card to its own visible people and excludes the identities reserved for other cards', () => {
+  const f = fixture();
+  f.profile.entityUniqueness = 'depicted-entities-v1';
+  f.card.depictedEntities = [
+    {
+      identity: 'geologist',
+      kind: 'character',
+      appearance: 'Пожилая женщина с серебристой косой и зелёным пальто',
+    },
+  ];
+  f.variant.cards = [
+    f.card,
+    {
+      ...f.card,
+      id: 'other',
+      depictedEntities: [
+        {
+          identity: 'station_agent',
+          kind: 'character',
+          appearance: 'Молодой высокий мужчина с тёмными волосами и красным жилетом',
+        },
+      ],
+    },
+  ];
+  const request = new GenerationRequestBuilder().build({
+    ...f,
+    prompt: 'Approved scene',
+    instruction: '',
+    references: [],
+  });
+  expect(request.prompt).toContain(JSON.stringify(f.card.depictedEntities));
+  expect(request.prompt).toContain('Entities reserved for OTHER cards');
+  expect(request.prompt).toContain('station_agent');
+  expect(request.prompt).toContain('серебристой косой');
+  delete f.profile.entityUniqueness;
+  expect(
+    new GenerationRequestBuilder().build({ ...f, prompt: 'Archived scene', instruction: '', references: [] })
+      .prompt,
+  ).not.toContain('VISIBLE SUBJECT IDENTITY CONTRACT');
+});
 it('carries the canonical requirements without a knowledge corpus through planning, generation and reviews', () => {
   const f = fixture();
   const prompts = [
@@ -219,6 +259,7 @@ it.each([false, true])(
     };
     const context = new ProductionContext(
       {
+        list: async () => [],
         directory: () => '/run',
         save: async () => {},
         get: async () => run,

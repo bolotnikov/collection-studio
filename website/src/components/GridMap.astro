@@ -1,0 +1,38 @@
+---
+import stats from '../data/catalog-statistics.json';
+---
+
+<figure class="position-figure">
+  <div class="figure-heading">
+    <span class="figure-label">16 ИСХОДНЫХ НАБОРОВ</span>
+    <strong>Категории по позициям сетки</strong>
+  </div>
+  <div class="position-map">
+    {stats.positions.map((counts, index) => (
+      <div class="position-cell">
+        <div class="position-heading">
+          <span>ПОЗИЦИЯ {String(index + 1).padStart(2, '0')}</span>
+          <b>{index < 5 ? 'ВЕРХ' : 'НИЗ'}</b>
+        </div>
+        <div class="position-stack">
+          {Object.entries(counts)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([category, count]) => (
+              <div
+                class={`position-bar category-color-${category}`}
+                style={`--size:${(count / 16) * 100}%`}
+                title={`Категория ${category}: ${count} из 16 наборов`}
+              >
+                <span>К{category}</span>
+                <strong>{count}</strong>
+              </div>
+            ))}
+        </div>
+      </div>
+    ))}
+  </div>
+  <figcaption>
+    Числа показывают, в скольких наборах категория занимает это место. Для
+    каждой позиции рассмотрены все 16 исходных наборов.
+  </figcaption>
+</figure>
