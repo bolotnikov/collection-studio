@@ -681,5 +681,6 @@
   "Background placement": "Background placement",
   "No separate objects": "No separate objects",
   "Describe environment background": "Describe environment background",
-  "Remove background description": "Remove background description"
+  "Remove background description": "Remove background description",
+  "Set {number}": "Set {number}"
 }

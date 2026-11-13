@@ -33,14 +33,34 @@ export function useRunViewModel(
     };
   }, [api, run.id]);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
-  const [tab, setTab] = useState<string | null>(null);
+  const [tab, setTabIndex] = useState<number | null>(null);
   const [cardId, setCardId] = useState<string | null>(null);
   const [instruction, setInstruction] = useState('');
   const [budget, setBudget] = useState(run.brief.maxImageCalls);
-  const variant =
-    run.variants.find((v) => v.id === tab) ??
-    run.variants.find((v) => v.id === run.selectedVariantId) ??
-    run.variants[0];
+  const tabs = Array.from({ length: run.brief.variants }, (_, index) => ({
+    index,
+    title:
+      run.variants[index]?.title ??
+      run.compositionDraft?.blueprints?.[index]?.title ??
+      run.compositionDraft?.assignedSubjects?.variants.find((entry) => entry.variantIndex === index)?.title,
+    selectedForDelivery: run.variants[index]?.id === run.selectedVariantId,
+  }));
+  const selectedIndex =
+    tab !== null && tabs[tab]
+      ? tab
+      : Math.max(
+          0,
+          run.variants.findIndex((v) => v.id === run.selectedVariantId),
+        );
+  const variant = run.variants[selectedIndex];
+  const blueprint = run.compositionDraft?.blueprints?.[selectedIndex];
+  const slotPlan = run.compositionDraft?.slotPlans?.[selectedIndex];
+  const setTab = (index: number) => {
+    if (!tabs[index]) return;
+    setTabIndex(index);
+    setCardId(null);
+    setInstruction('');
+  };
   const card = variant?.cards.find((c) => c.id === cardId);
   const evidence = card ? Assets.selected(card)?.evidence : undefined;
   const target = card && variant ? SetComposition.target(variant, card) : undefined;
@@ -66,7 +86,10 @@ export function useRunViewModel(
     setDiagnosticsOpen,
     exportDiagnostics: () => action(() => api.exportDiagnostics(run.id)),
     exportExecutionLog: () => action(() => api.exportExecutionLog(run.id)),
-    tab,
+    tabs,
+    selectedIndex,
+    blueprint,
+    slotPlan,
     setTab,
     cardId,
     setCardId,

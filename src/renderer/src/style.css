@@ -811,6 +811,7 @@ li {
   overflow: auto;
 }
 .variant-tabs button {
+  flex-shrink: 0;
   border: 0;
   border-right: 1px solid var(--line);
   border-radius: 0;
@@ -826,8 +827,17 @@ li {
   color: var(--strong);
 }
 .variant-tabs button span {
-  color: var(--subtle);
+  color: var(--muted);
   font-size: 9px;
+}
+.variant-tabs button.selected span {
+  color: var(--strong);
+}
+.variant-tabs button strong {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
 }
 .variant-heading {
   display: flex;

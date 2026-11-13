@@ -47,6 +47,10 @@ export function RunView({ run, profile: initialProfile, busy, perform, onLibrary
     setDiagnosticsOpen,
     exportDiagnostics,
     exportExecutionLog,
+    tabs,
+    selectedIndex,
+    blueprint,
+    slotPlan,
     setTab,
     setCardId,
     instruction,
@@ -106,89 +110,113 @@ export function RunView({ run, profile: initialProfile, busy, perform, onLibrary
         </div>
       </div>
       <section className="generation-workspace">
-        <RunProgressView run={run} />
-        {variant ? (
-          <>
-            {run.variants.length > 1 && (
-              <div className="variant-tabs">
-                {run.variants.map((v, i) => (
+        {tabs.length > 1 && (
+          <div className="variant-tabs" role="tablist" aria-label={t('Set variants')}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.index}
+                id={`set-tab-${run.id}-${tab.index}`}
+                role="tab"
+                aria-selected={selectedIndex === tab.index}
+                aria-controls={`set-panel-${run.id}`}
+                tabIndex={selectedIndex === tab.index ? 0 : -1}
+                onClick={() => setTab(tab.index)}
+                onKeyDown={(event) => {
+                  const next =
+                    event.key === 'ArrowRight'
+                      ? (tab.index + 1) % tabs.length
+                      : event.key === 'ArrowLeft'
+                        ? (tab.index + tabs.length - 1) % tabs.length
+                        : event.key === 'Home'
+                          ? 0
+                          : event.key === 'End'
+                            ? tabs.length - 1
+                            : null;
+                  if (next === null) return;
+                  event.preventDefault();
+                  setTab(next);
+                  event.currentTarget.parentElement?.querySelectorAll('button')[next]?.focus();
+                }}
+                className={selectedIndex === tab.index ? 'selected' : ''}
+              >
+                <span>{t('Set {number}', { number: tab.index + 1 })}</span>
+                {tab.title && <strong>{tab.title}</strong>}
+                {tab.selectedForDelivery && <Check size={14} aria-label={t('Selected for delivery')} />}
+              </button>
+            ))}
+          </div>
+        )}
+        <div
+          id={`set-panel-${run.id}`}
+          role={tabs.length > 1 ? 'tabpanel' : undefined}
+          aria-labelledby={tabs.length > 1 ? `set-tab-${run.id}-${selectedIndex}` : undefined}
+          tabIndex={tabs.length > 1 ? 0 : undefined}
+        >
+          <RunProgressView run={run} />
+          {variant ? (
+            <>
+              <div className="variant-heading">
+                <div>
+                  <h2>{variant.title}</h2>
+                </div>
+                {run.variants.length > 1 && (
                   <button
-                    key={v.id}
-                    onClick={() => {
-                      setTab(v.id);
-                      setCardId(null);
-                    }}
-                    className={variant.id === v.id ? 'selected' : ''}
+                    disabled={busy || active || variant.id === run.selectedVariantId}
+                    onClick={selectVariant}
                   >
-                    <span>0{i + 1}</span>
-                    {v.title}
-                    {v.id === run.selectedVariantId && <Check size={14} />}
+                    {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
+                    {variant.id === run.selectedVariantId
+                      ? t('Selected for delivery')
+                      : t('Select for delivery')}
                   </button>
+                )}
+              </div>
+              <div className="cards-grid">
+                {variant.cards.map((c, i) => (
+                  <CardTile
+                    key={c.id}
+                    card={c}
+                    run={run}
+                    index={i}
+                    onClick={() => {
+                      setCardId(c.id);
+                      setInstruction('');
+                    }}
+                  />
                 ))}
               </div>
-            )}
-            <div className="variant-heading">
-              <div>
-                <h2>{variant.title}</h2>
-              </div>
-              {run.variants.length > 1 && (
-                <button
-                  disabled={busy || active || variant.id === run.selectedVariantId}
-                  onClick={selectVariant}
-                >
-                  {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
-                  {variant.id === run.selectedVariantId
-                    ? t('Selected for delivery')
-                    : t('Select for delivery')}
-                </button>
+              {complete && !active && (
+                <DeliveryGallery key={variant.id} api={api} run={run} variant={variant} />
               )}
+            </>
+          ) : !active &&
+            !run.compositionDraft?.slotPlans?.length &&
+            !run.compositionDraft?.blueprints?.length ? (
+            <div className="planning-empty">
+              {run.status === 'failed' ? <CircleAlert size={30} /> : <Pause size={30} />}
+              <h2>{t(run.status === 'failed' ? 'Planning failed' : 'Planning paused')}</h2>
+              <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>
             </div>
-            <div className="cards-grid">
-              {variant.cards.map((c, i) => (
-                <CardTile
-                  key={c.id}
-                  card={c}
-                  run={run}
-                  index={i}
-                  onClick={() => {
-                    setCardId(c.id);
-                    setInstruction('');
-                  }}
-                />
-              ))}
-            </div>
-            {complete && !active && <DeliveryGallery api={api} run={run} variant={variant} />}
-          </>
-        ) : !active &&
-          !run.compositionDraft?.slotPlans?.length &&
-          !run.compositionDraft?.blueprints?.length ? (
-          <div className="planning-empty">
-            {run.status === 'failed' ? <CircleAlert size={30} /> : <Pause size={30} />}
-            <h2>{t(run.status === 'failed' ? 'Planning failed' : 'Planning paused')}</h2>
-            <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>
-          </div>
-        ) : null}
-        {!variant &&
-          !run.compositionDraft?.blueprints?.length &&
-          run.compositionDraft?.slotPlans?.map((plan, index) => (
+          ) : null}
+          {!variant && !blueprint && slotPlan && (
             <SetBlueprintView
-              key={`slots-${index}`}
-              composition={plan.composition}
-              subjects={plan.slots.map(() => t('Subject being selected'))}
+              key={`slots-${selectedIndex}`}
+              composition={slotPlan.composition}
+              subjects={slotPlan.slots.map(() => t('Subject being selected'))}
               profile={profile}
               proposed
             />
-          ))}
-        {!variant &&
-          run.compositionDraft?.blueprints?.map((blueprint, index) => (
+          )}
+          {!variant && blueprint && (
             <SetBlueprintView
-              key={`${run.compositionDraft?.attempt}-${index}`}
+              key={`${run.compositionDraft?.attempt}-${selectedIndex}`}
               composition={blueprint.composition}
               subjects={blueprint.slots.map((slot) => slot.subject.subject)}
               profile={profile}
               proposed
             />
-          ))}
+          )}
+        </div>
       </section>
       {diagnosticsOpen && (
         <RunDiagnostics

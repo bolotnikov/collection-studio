@@ -681,5 +681,6 @@
   "Background placement": "Расположение фона",
   "No separate objects": "Отдельных объектов нет",
   "Describe environment background": "Описать фон окружения",
-  "Remove background description": "Убрать описание фона"
+  "Remove background description": "Убрать описание фона",
+  "Set {number}": "Набор {number}"
 }
