@@ -73,7 +73,7 @@ export const chapters = [
         slug: 'setup',
         title: 'Подготовить рабочее место',
         description:
-          'Для генерации нужны подключённый Codex CLI и готовая библиотека.',
+          'Требования к Mac, проверенная среда и подключение Codex CLI.',
       },
       {
         slug: 'appearance',
