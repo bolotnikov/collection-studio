@@ -4,6 +4,7 @@ import { CompositionPlanCompiler } from '../domain/CompositionPlanCompiler';
 import type { Brief, Plan, Profile, Run } from '../shared/Contracts';
 import { CompositionPlanningContracts } from '../shared/CompositionPlanningContracts';
 import type { CompositionPlanningPort } from './CompositionPlanningPort';
+import { SlotFirstPlanningService } from './SlotFirstPlanningService';
 
 /** Checkpoint each expensive semantic phase; transport retries reuse the exact assignment. */
 export class CompositionPlanningService {
@@ -17,9 +18,25 @@ export class CompositionPlanningService {
     state: Pick<Run, 'compositionDraft'>,
     checkpoint: (message?: string) => Promise<void>,
     stopped: () => boolean,
+    referenceRoot?: string,
+    finalDesignAttempt = false,
   ): Promise<{ plan: Plan; errors: string[] } | null> {
     if (!profile.visualCatalog || !profile.compositionPlanning)
       throw new Error('Prepared composition planning is unavailable.');
+    if (profile.compositionPlanning.version === 'slots-first-v1')
+      return new SlotFirstPlanningService().propose(
+        provider,
+        brief,
+        profile,
+        references,
+        correction,
+        attempt,
+        state,
+        checkpoint,
+        stopped,
+        referenceRoot,
+        finalDesignAttempt,
+      );
     const originalIds = profile.library
       ?.filter((item) => item.origin === 'anchor' && item.approved)
       .map((item) => item.id);
@@ -54,7 +71,12 @@ export class CompositionPlanningService {
           throw new Error('Semantic proposal does not match the requested set count.');
         draft.blueprints =
           planner instanceof AggregateCompositionPlanner
-            ? planner.select(draft.concepts.variants, profile.visualCatalog, Boolean(brief.includeGold))
+            ? planner.select(
+                draft.concepts.variants,
+                profile.visualCatalog,
+                Boolean(brief.includeGold),
+                Boolean(profile.allowQualityWarnings),
+              )
             : planner.select(
                 draft.concepts.variants,
                 profile.visualCatalog,

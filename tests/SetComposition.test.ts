@@ -31,18 +31,10 @@ it('does not use a semantically closer plain category-3 card as a patterned comp
     items.map((item) => item.id),
     4,
     '3',
-    ['reference-0', 'reference-1'],
     ids,
   );
-  expect(selected.map((item) => item.id)).toEqual([
-    'reference-0',
-    'reference-1',
-    'reference-4',
-    'reference-5',
-  ]);
-  expect(() =>
-    new ReferenceRetriever().select(items, [], 4, '3', ['reference-0', 'reference-1'], []),
-  ).toThrow('two original');
+  expect(selected.map((item) => item.id)).toEqual(['reference-4', 'reference-5']);
+  expect(() => new ReferenceRetriever().select(items, [], 4, '3', [])).toThrow('two original');
 });
 it('derives actual counts from selected accepted attempts and replaces observations on version selection', () => {
   const { variant } = CompositionFixture.create();

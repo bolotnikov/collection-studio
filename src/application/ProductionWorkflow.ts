@@ -12,6 +12,8 @@ import productionDefaults from '../../resources/production-config.json';
 import { SetPlanningService } from './SetPlanningService';
 import { CardProductionService } from './CardProductionService';
 import { SetReviewService } from './SetReviewService';
+import { CompositionRepairRules } from '../domain/CompositionRepairRules';
+import { SetCompositionVerificationService } from './SetCompositionVerificationService';
 
 export class ProductionWorkflow {
   private readonly cards: CardProductionService;
@@ -26,9 +28,12 @@ export class ProductionWorkflow {
     singleCard?: { card: Card; variant: Variant; instruction: string },
   ): Promise<void> {
     const run = active.run;
+    const allowWarnings = ProductionRules.allowsWarnings(run.planningPolicy);
     if (run.variants.length === 0) {
       run.status = 'planning';
-      const aggregate = active.profile.compositionPlanning?.version === 'aggregate-pattern-v1';
+      const aggregate = ['aggregate-pattern-v1', 'slots-first-v1'].includes(
+        active.profile.compositionPlanning?.version ?? '',
+      );
       await this.context.publish(
         run,
         aggregate ? 'Loading aggregate composition statistics' : 'Choosing source sets',
@@ -47,7 +52,7 @@ export class ProductionWorkflow {
         ...(context?.referencePaths ?? []),
       ];
       const planned = run.workflowVersion
-        ? await new SetPlanningService().plan(
+        ? await new SetPlanningService(this.context.referenceRoot).plan(
             provider,
             run.brief,
             context?.profile ?? this.context.reviewProfile(active),
@@ -67,13 +72,23 @@ export class ProductionWorkflow {
             reviews: [],
           };
       if (!planned) {
-        run.status = 'paused';
-        await this.context.publish(run, 'Set plan needs revision. No images generated.');
+        run.status = active.stop ? 'paused' : 'failed';
+        await this.context.publish(
+          run,
+          active.stop
+            ? 'Planning paused'
+            : 'Automatic planning could not resolve the validation errors. No images generated.',
+        );
         return;
       }
       const { plan, reviews } = planned;
+      if ('warnings' in planned && planned.warnings?.length) {
+        run.qualityWarnings = planned.warnings;
+        await this.context.publish(run, 'Continuing with the strongest plan and recorded quality warnings');
+      }
       SetRules.validatePlan(plan, run.brief.variants, Boolean(run.brief.includeGold));
       run.variants = plan.variants.map((v, index) => ({
+        planValidation: 'validation' in planned ? planned.validation : undefined,
         planReview: reviews[index],
         planSignature: ProductionRules.signature(v),
         ...v,
@@ -119,61 +134,37 @@ export class ProductionWorkflow {
         ProductionRules.validatePlan({ variants: [variant] }, 1, Boolean(run.brief.includeGold));
         if (
           !ProductionRules.planMatches(variant) ||
-          !ProductionRules.acceptsPlan(variant.planReview, run.planningPolicy?.minimumPlanScore)
+          (!allowWarnings &&
+            variant.planValidation !== 'deterministic-slots-first-v1' &&
+            !ProductionRules.acceptsPlan(variant.planReview, run.planningPolicy?.minimumPlanScore))
         )
           throw new Error('Set plan has not passed independent review.');
-        const pilot = ProductionRules.pilot(variant);
-        const minimum = run.productionPolicy?.styleThreshold ?? 4;
-        if (singleCard && singleCard.card.id !== pilot.id && !ProductionRules.pilotAccepted(variant, minimum))
-          throw new Error('Verify the pilot before generating another card.');
-        if (!singleCard && !ProductionRules.pilotAccepted(variant, minimum)) {
-          if (
-            !pilot.locked &&
-            (SetRules.needsCardReview(this.context.images.selected(pilot)) ||
-              pilot.attempts.length < 1 + (run.productionPolicy?.maxRepairsPerCard ?? 1))
-          ) {
-            await this.context.publish(run, 'Generating and verifying the pilot card');
-            try {
-              await this.cards.produce(active, provider, variant, pilot);
-            } catch (error) {
-              pilot.status = 'failed';
-              pilot.error = this.context.errorMessage(error);
-              active.stop = true;
-              await this.context.publish(run, pilot.error);
-            }
-          }
-          if (active.stop || !ProductionRules.pilotAccepted(variant, minimum)) {
-            delete variant.pilotAttemptId;
-            run.status = 'paused';
-            await this.context.publish(run, 'Pilot needs revision. Remaining cards are blocked.');
-            return;
-          }
-        }
-        if (ProductionRules.pilotAccepted(variant, minimum)) {
-          variant.pilotAttemptId = pilot.selectedAttemptId ?? undefined;
-          await this.context.publish(run, 'Pilot verified. Producing the remaining cards.');
-        }
       }
+
       if (singleCard) {
-        await this.cards.produce(active, provider, variant, singleCard.card, singleCard.instruction);
-        if (run.workflowVersion) {
-          if (ProductionRules.pilotAccepted(variant, run.productionPolicy?.styleThreshold ?? 4))
-            variant.pilotAttemptId = ProductionRules.pilot(variant).selectedAttemptId ?? undefined;
-          else delete variant.pilotAttemptId;
-        }
+        await this.cards.produce(active, provider, variant, singleCard.card, singleCard.instruction, {
+          manual: true,
+        });
       } else {
         const jobs = variant.cards.filter(
           (card) =>
             !card.locked &&
-            (SetRules.needsCardReview(this.context.images.selected(card)) ||
-              card.status !== 'done' ||
-              (run.productionPolicy &&
-                (!SetRules.acceptsReview(
-                  this.context.images.selected(card)?.review,
-                  run.productionPolicy.styleThreshold,
-                ) ||
-                  Boolean(this.context.images.selected(card)?.reviewError)) &&
-                card.attempts.length < 1 + run.productionPolicy.maxRepairsPerCard)),
+            (run.reviewProtocol === 'composition-v1'
+              ? !this.context.images.selected(card) ||
+                CompositionRepairRules.needsCardRepair(run, variant, card) ||
+                (card.status !== 'done' &&
+                  !this.context.images.selected(card)?.compositionCheck &&
+                  !this.context.images.selected(card)?.compositionCheckSkipped &&
+                  !this.context.images.selected(card)?.compositionCheckError)
+              : SetRules.needsCardReview(this.context.images.selected(card)) ||
+                card.status !== 'done' ||
+                (run.productionPolicy &&
+                  (!SetRules.acceptsReview(
+                    this.context.images.selected(card)?.review,
+                    run.productionPolicy.styleThreshold,
+                  ) ||
+                    Boolean(this.context.images.selected(card)?.reviewError)) &&
+                  card.attempts.length < 1 + run.productionPolicy.maxRepairsPerCard)),
         );
         let next = 0;
         const worker = async () => {
@@ -194,8 +185,11 @@ export class ProductionWorkflow {
       }
     }
     if (active.stop) {
-      run.status = 'paused';
-      await this.context.publish(run, 'Paused. Finished cards are saved.');
+      const failed = run.variants
+        .flatMap((variant) => variant.cards)
+        .find((card) => card.status === 'failed');
+      run.status = failed ? 'failed' : 'paused';
+      await this.context.publish(run, failed?.error || 'Paused. Finished cards are saved.');
       return;
     }
     if (run.variants.some((v) => v.cards.some((c) => !this.context.images.selected(c)))) {
@@ -204,6 +198,28 @@ export class ProductionWorkflow {
         run,
         'The collection is incomplete. Resume to generate the remaining cards.',
       );
+      return;
+    }
+    if (run.reviewProtocol === 'composition-v1') {
+      if (run.repairPolicy)
+        for (const variant of variantsToProduce) {
+          if (active.stop) break;
+          await new SetCompositionVerificationService(this.context, this.cards).execute(
+            active,
+            provider,
+            variant,
+          );
+        }
+      if (active.stop) {
+        const failed = run.variants
+          .flatMap((variant) => variant.cards)
+          .find((card) => card.status === 'failed');
+        run.status = failed ? 'failed' : 'paused';
+        await this.context.publish(run, failed?.error || 'Paused. Finished cards are saved.');
+        return;
+      }
+      run.status = 'completed';
+      await this.context.publish(run, 'Generation complete');
       return;
     }
     run.status = 'reviewing';
@@ -231,20 +247,8 @@ export class ProductionWorkflow {
             const correction =
               variant.review?.findings.join('; ') ??
               PromptCatalog.render('correction.setFallback', {}, active.profile.promptCatalog);
-            if (run.workflowVersion)
-              targets.sort(
-                (a, b) =>
-                  Number(b.id === ProductionRules.pilot(variant).id) -
-                  Number(a.id === ProductionRules.pilot(variant).id),
-              );
             for (const target of targets) {
               if (active.stop || run.imageCalls >= run.brief.maxImageCalls) break;
-              if (
-                run.workflowVersion &&
-                target.id !== ProductionRules.pilot(variant).id &&
-                !ProductionRules.pilotAccepted(variant, run.productionPolicy?.styleThreshold ?? 4)
-              )
-                break;
               await this.cards.produce(
                 active,
                 provider,
@@ -255,15 +259,8 @@ export class ProductionWorkflow {
                       .parse(variant.review)
                       .corrections.find((c) => c.cardId === target.id)?.instruction
                   : undefined) ?? correction,
+                { automaticRevision: true },
               );
-            }
-            if (run.workflowVersion) {
-              if (ProductionRules.pilotAccepted(variant, run.productionPolicy?.styleThreshold ?? 4))
-                variant.pilotAttemptId = ProductionRules.pilot(variant).selectedAttemptId ?? undefined;
-              else {
-                delete variant.pilotAttemptId;
-                active.stop = true;
-              }
             }
             await this.reviews.review(active, provider, variant);
           }
@@ -297,14 +294,17 @@ export class ProductionWorkflow {
             ) || Boolean(this.context.images.selected(c)?.reviewError),
         ),
     );
-    if (needsReview) run.status = 'paused';
+    if (allowWarnings) run.qualityWarnings = ProductionRules.warnings(run, true);
+    if (needsReview && !allowWarnings) run.status = 'paused';
     await this.context.publish(
       run,
       active.stop
         ? 'Review paused'
-        : needsReview
-          ? 'Generation complete · needs art review'
-          : 'Generation complete · automated checks passed',
+        : allowWarnings && Boolean(run.qualityWarnings?.length)
+          ? 'Generation complete · completed with quality warnings'
+          : needsReview
+            ? 'Generation complete · needs art review'
+            : 'Generation complete · automated checks passed',
     );
   }
 }

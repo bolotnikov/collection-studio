@@ -18,6 +18,7 @@ import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import prompts from '../../resources/prompts/knowledge-editor.json';
 import { CatalogPolicy } from '../shared/CatalogPolicy';
 import { VisualPatterns } from '../domain/VisualPatterns';
+import { EnvironmentBackdrops } from '../domain/EnvironmentBackdrops';
 import { SetSheetComposer } from './SetSheetComposer';
 import { SetSheetLayout } from '../shared/SetSheetLayout';
 
@@ -48,9 +49,10 @@ export class KnowledgeWorkspace {
   async snapshot(): Promise<KnowledgeSnapshot> {
     const base = await this.base();
     const catalog = structuredClone(base);
+    EnvironmentBackdrops.apply(catalog);
     catalog.baseDependencyHash = base.dependencyHash;
     catalog.dependencyHash = createHash('sha256')
-      .update(JSON.stringify([base.dependencyHash, this.state]))
+      .update(JSON.stringify([base.dependencyHash, EnvironmentBackdrops.review, this.state]))
       .digest('hex');
     catalog.images.push(...this.state.images);
     catalog.categoryExamples.push(...this.state.images.filter((image) => image.role === 'category-example'));

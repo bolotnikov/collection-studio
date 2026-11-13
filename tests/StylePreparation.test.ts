@@ -173,7 +173,7 @@ it('uses analyzed categories and reruns visual retrieval when correction require
   ).toBeGreaterThanOrEqual(2);
   expect(
     first.evidence.references.filter((reference) => reference.purposes?.includes('shared-style')),
-  ).toHaveLength(2);
+  ).toHaveLength(0);
   // The fixture's catalog spans four categories; the visual analyzer identifies every image as category 1.
   expect(first.evidence.references.every((reference) => reference.category === '1')).toBe(true);
   const revised = await f.preparation.prepare(
@@ -278,4 +278,89 @@ it('reuses the accepted brief without an analyst call while preserving the visua
   const before = prompts.length;
   await f.preparation.prepare(f.brief, f.card, f.variant, profile);
   expect(vi.mocked(f.runner.run).mock.calls).toHaveLength(before);
+});
+
+it('uses labelled catalogue evidence when visual reference assessment fails in automatic delivery mode', async () => {
+  const f = await prepareFixture('missing');
+  const result = await f.preparation.prepare(f.brief, f.card, f.variant, {
+    ...f.profile,
+    allowQualityWarnings: true,
+  });
+  expect(result.references.length).toBeGreaterThanOrEqual(2);
+  expect(result.evidence.model).toBe('deterministic:catalogue-fallback-v1');
+  expect(result.evidence.warnings?.join(' ')).toContain('without fresh visual confirmation');
+  expect(
+    result.evidence.analysis.selections.every((selection) => selection.compositionMatches === false),
+  ).toBe(true);
+});
+
+it('reuses persisted visual observations with zero model calls in catalogue-only selection', async () => {
+  const f = await prepareFixture('complete');
+  const { CompositionFixture } = await import('./fixtures/CompositionFixture');
+  const { ContextOptimization } = await import('../src/shared/ContextOptimization');
+  const fixture = CompositionFixture.create();
+  const sample = fixture.catalog.cards[0];
+  if (!sample) throw new Error('Missing fixture observation');
+  for (const item of f.library) {
+    item.observation = structuredClone(sample.observation);
+    item.category = '1';
+  }
+  f.variant.artContract = fixture.variant.artContract;
+  if (!f.variant.artContract) throw new Error('Missing fixture contract');
+  delete f.variant.artContract.composition;
+  const result = await f.preparation.prepare(f.brief, f.card, f.variant, {
+    ...f.profile,
+    referenceSelection: 'catalogue-v1',
+    contextOptimization: ContextOptimization.defaults,
+    allowQualityWarnings: true,
+  });
+  expect(f.runner.run).not.toHaveBeenCalled();
+  expect(result.evidence.model).toBe('deterministic:prepared-catalogue-v1');
+  expect(result.references.length).toBeGreaterThanOrEqual(2);
+  expect(result.references.length).toBeLessThan(8);
+});
+
+it('attaches only exact slot matches and never prepends the first two profile references', async () => {
+  const f = await prepareFixture('complete');
+  const { CompositionFixture } = await import('./fixtures/CompositionFixture');
+  const fixture = CompositionFixture.create();
+  const matching = fixture.catalog.cards[0]?.observation;
+  const unrelated = fixture.catalog.cards[8]?.observation;
+  if (!matching || !unrelated) throw new Error('Missing fixture observations');
+  f.library.forEach((item, index) => {
+    item.observation = structuredClone(index < 2 ? unrelated : matching);
+    item.category = item.observation.category;
+  });
+  f.variant.artContract = fixture.variant.artContract;
+  const target = f.variant.artContract?.composition?.targets[0];
+  if (!target) throw new Error('Missing slot target');
+  target.referenceIds = f.library.slice(2).map((item) => item.id);
+  target.selectedReferenceIds = ['2', '3'];
+  const profile = {
+    ...f.profile,
+    referenceSelection: 'catalogue-v1' as const,
+    contextOptimization: (await import('../src/shared/ContextOptimization')).ContextOptimization.defaults,
+    allowQualityWarnings: true,
+  };
+  const result = await f.preparation.prepare(f.brief, f.card, f.variant, profile);
+  expect(f.runner.run).not.toHaveBeenCalled();
+  expect(result.evidence.references.map((item) => item.id)).toEqual(['2', '3']);
+  expect(result.references.every((file) => !['0.png', '1.png'].includes(path.basename(file)))).toBe(true);
+  expect(result.evidence.references.every((item) => item.purposes?.includes('category'))).toBe(true);
+  f.card.visual = {
+    materials: ['glass'],
+    silhouette: 'Rounded shape',
+    paletteRole: 'Bright contrast',
+    composition: 'Same assigned composition',
+  };
+  const revised = await f.preparation.prepare(
+    f.brief,
+    f.card,
+    f.variant,
+    profile,
+    'Correct the material while preserving the original slot',
+  );
+  expect(revised.references).toEqual(result.references);
+  expect(revised.evidence.warnings?.join(' ')).toContain('glass');
+  expect(f.runner.run).not.toHaveBeenCalled();
 });

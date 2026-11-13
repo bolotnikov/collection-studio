@@ -9,9 +9,10 @@ export class ReferenceCoverageSelector {
     assessments: Assessment[],
     limit: number,
     category: string,
-    sharedIds: string[],
     compositionIds: string[] | undefined,
     materials: string[],
+    warn?: (message: string) => void,
+    retainMatching = false,
   ): LibraryItem[] {
     if (!Number.isInteger(limit) || limit < 2)
       throw new Error('Reference budget cannot cover composition evidence.');
@@ -39,14 +40,6 @@ export class ReferenceCoverageSelector {
         return;
       selected.push(entry);
     };
-    if (sharedIds.length !== 2 || new Set(sharedIds).size !== 2)
-      throw new Error('Two shared original style anchors are required.');
-    for (const id of sharedIds) {
-      const entry = usable.find((e) => e.item.id === id && e.item.origin === 'anchor');
-      if (!entry) throw new Error('Shared style anchor failed visual compatibility review.');
-      add(entry);
-    }
-    if (selected.length !== 2) throw new Error('Shared style anchors must have distinct image content.');
     const matches = (entry: (typeof entries)[number]) =>
       entry.item.origin === 'anchor' &&
       entry.item.category === category &&
@@ -54,11 +47,36 @@ export class ReferenceCoverageSelector {
         ? compositionIds.includes(entry.item.id) && entry.assessment.compositionMatches === true
         : true);
     for (const entry of usable.filter(matches)) {
-      if (selected.filter(matches).length >= CatalogPolicy.values.minimumCompositionReferences) break;
+      if (
+        selected.filter(matches).length >=
+        (retainMatching
+          ? Math.min(limit, usable.filter(matches).length)
+          : CatalogPolicy.values.minimumCompositionReferences)
+      )
+        break;
       add(entry);
     }
-    if (selected.filter(matches).length < CatalogPolicy.values.minimumCompositionReferences)
-      throw new Error('Insufficient visually confirmed original composition references.');
+    if (selected.filter(matches).length < CatalogPolicy.values.minimumCompositionReferences) {
+      if (!warn) throw new Error('Insufficient visually confirmed original composition references.');
+      warn(
+        'Insufficient visually confirmed composition references; using catalog-matched originals with unconfirmed visual compatibility.',
+      );
+      for (const entry of entries.filter(
+        (e) =>
+          e.item.approved &&
+          e.item.origin === 'anchor' &&
+          e.item.category === category &&
+          (!compositionIds || compositionIds.includes(e.item.id)),
+      )) {
+        if (
+          selected.length >= limit ||
+          selected.filter((e) => e.item.category === category).length >=
+            CatalogPolicy.values.minimumCompositionReferences
+        )
+          break;
+        add(entry);
+      }
+    }
     const normalize = (value: string) => value.trim().toLowerCase();
     const requiredMaterials = [...new Set(materials.map(normalize))];
     const missing = () => [
@@ -91,7 +109,15 @@ export class ReferenceCoverageSelector {
             Number(b.entry.item.origin === 'anchor') - Number(a.entry.item.origin === 'anchor') ||
             a.index - b.index,
         )[0];
-      if (!next) throw new Error('Missing reference coverage: ' + needs.join(', '));
+      if (!next || selected.length >= limit) {
+        const message =
+          (selected.length >= limit
+            ? 'Reference coverage exceeds the attachment budget: '
+            : 'Missing reference coverage: ') + needs.join(', ');
+        if (!warn) throw new Error(message);
+        warn(message);
+        break;
+      }
       add(next.entry);
     }
     return selected.map((entry) => entry.item);

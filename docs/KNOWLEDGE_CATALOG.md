@@ -29,6 +29,8 @@ Per-card semantic keys include original identity/hash, model, rules, category-sh
 
 The backdrop taxonomy distinguishes a plain field, gradient, decorative pattern, continuation of the supporting material across the field, and recognizable environmental scenery. Support, depth and context density remain independent; a football on a marked field is environmental category 4 even with few props, and category 4 can have material support or no support at all.
 
+The [environmental background audit](ENVIRONMENT_BACKGROUNDS.md) screens all 160 originals and adds hash-bound observations for 84 environmental/architectural cards. The working database exposes setting, background structure, detail and secondary-object filters, with per-card spatial evidence. Source detail remains observational; the canonical production policy separately requests calm major masses and an explicit, minimal background inventory. Existing classifications and historical run snapshots are preserved.
+
 ## Runtime composition
 
 A new plan records ten indexed targets in `artContract.composition`, bound to the catalog dependency hash and selected source-set IDs. Each target separates required facets from preferences. Required support/backdrop/depth, pattern subtype and original-reference coverage are checked before images are requested. The plan and pilot still require independent verification.

@@ -96,7 +96,7 @@ export class ReferenceLibrary implements ReferenceLibraryPort {
   }
   async approve(run: Run, card: Card, runFolder: string): Promise<void> {
     const attempt = card.attempts.find((a) => a.id === card.selectedAttemptId);
-    if (!attempt?.review?.passed || attempt.reviewError || attempt.review.style < this.policy.styleThreshold)
+    if (!attempt || (run.reviewProtocol !== 'composition-v1' && (!attempt.review?.passed || attempt.reviewError || attempt.review.style < this.policy.styleThreshold)))
       throw new Error('Only reviewed and accepted images can enter the user library.');
     const bytes = await fs.readFile(path.join(runFolder, attempt.preview));
     await this.mutate(async () => {

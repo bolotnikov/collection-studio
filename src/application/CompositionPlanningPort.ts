@@ -3,9 +3,18 @@ import type {
   CompositionBlueprint,
   CompositionDetails,
   SemanticProposal,
+  SlotPlan,
+  AssignedSubjects,
 } from '../shared/CompositionPlanningContracts';
 
 export interface CompositionPlanningPort {
+  designSlotSet(
+    brief: Brief,
+    profile: Profile,
+    slots: SlotPlan[],
+    references: string[],
+    correction: string,
+  ): Promise<AssignedSubjects>;
   proposeSubjects(
     brief: Brief,
     profile: Profile,

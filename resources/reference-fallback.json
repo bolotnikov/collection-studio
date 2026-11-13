@@ -1,0 +1,7 @@
+{
+  "warning": "Visual reference assessment was unavailable or invalid. Using prepared catalogue evidence without fresh visual confirmation.",
+  "reason": "Selected from the prepared catalogue; fresh visual compatibility is unconfirmed.",
+  "role": "catalogue rendering evidence",
+  "take": "Use only the canonical rendering and material cues recorded in the catalogue.",
+  "ignore": "Do not copy source subjects or assume an unconfirmed composition match."
+}

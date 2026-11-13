@@ -67,6 +67,7 @@ export class StyleContracts {
     pitfalls: z.array(z.string()),
   });
   static readonly evidence = z.object({
+    warnings: z.array(z.string()).optional(),
     version: z.literal('style-v2'),
     query: z.string(),
     policy: StyleContracts.policy,

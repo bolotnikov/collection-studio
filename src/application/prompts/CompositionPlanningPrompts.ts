@@ -7,8 +7,34 @@ import {
   type CompositionBlueprint,
 } from '../../shared/CompositionPlanningContracts';
 import { SourceCompositionPlanner } from '../../domain/SourceCompositionPlanner';
+import protocol from '../../../resources/planning-protocol.json';
+import slotPrompts from '../../../resources/slot-first-prompts.json';
+import rhythm from '../../../resources/set-rhythm.json';
+import positions from '../../../resources/position-planning.json';
+import type { SlotPlan } from '../../shared/CompositionPlanningContracts';
 
 export class CompositionPlanningPrompts {
+  static design(
+    brief: Brief,
+    profile: Profile,
+    slots: SlotPlan[],
+    correction: string,
+    references: string[],
+  ): string {
+    return (
+      new PromptCatalog(slotPrompts, slotPrompts).render('design', {
+        sourceContext: PromptBuilder.sourceContext(PromptBuilder.planningContext(profile, references)),
+        setCount: brief.variants,
+        rules: profile.rules,
+        categories: profile.categories,
+        brief,
+        slots,
+        correction,
+      }) +
+      (slots.some((plan) => plan.composition.rhythm) ? '\n' + rhythm.prompt : '') +
+      (slots.some((plan) => plan.composition.positionPolicy) ? '\n' + positions.prompt : '')
+    );
+  }
   static subjects(brief: Brief, profile: Profile, correction: string): string {
     if (!profile.compositionPlanning || !profile.visualCatalog)
       throw new Error('Prepared composition context missing.');
@@ -33,15 +59,19 @@ export class CompositionPlanningPrompts {
                 required: slot.target.required,
               })),
             }));
-    return this.catalog(profile).render('subjects', {
-      sourceContext: PromptBuilder.sourceContext(profile),
-      setCount: brief.variants,
-      rules: profile.rules,
-      categories: profile.categories,
-      brief,
-      correction,
-      prototypes,
-    });
+    return (
+      this.catalog(profile).render('subjects', {
+        sourceContext: PromptBuilder.sourceContext(profile),
+        setCount: brief.variants,
+        rules: profile.rules,
+        categories: profile.categories,
+        brief,
+        correction,
+        prototypes,
+      }) +
+      '\n' +
+      protocol.subjects
+    );
   }
   static details(
     brief: Brief,
@@ -49,14 +79,18 @@ export class CompositionPlanningPrompts {
     blueprints: CompositionBlueprint[],
     correction: string,
   ): string {
-    return this.catalog(profile).render('details', {
-      sourceContext: PromptBuilder.sourceContext(profile),
-      rules: profile.rules,
-      categories: profile.categories,
-      brief,
-      blueprints,
-      correction,
-    });
+    return (
+      this.catalog(profile).render('details', {
+        sourceContext: PromptBuilder.sourceContext(profile),
+        rules: profile.rules,
+        categories: profile.categories,
+        brief,
+        blueprints,
+        correction,
+      }) +
+      '\n' +
+      protocol.details
+    );
   }
   private static catalog(profile: Profile): PromptCatalog {
     if (!profile.compositionPlanning) throw new Error('Composition planner configuration missing.');

@@ -1,3 +1,5 @@
+> Current production protocol: [Composition-only workflow](COMPOSITION_ONLY_WORKFLOW.md). Scored card/set review and automatic image repair sections below describe archived protocols.
+
 # Collection Studio application architecture
 
 This application applies the general rules in AGENTS.md and the reusable `application-architecture` skill. Game-engine scene/component conventions do not apply.
@@ -17,22 +19,16 @@ Interfaces are narrow where responsibilities differ (`PlanReviewPort`, `RunStore
 
 ## New production protocol
 
-New runs persist `workflowVersion=planned-pilot-v1`; historical runs keep their existing protocol.
+New runs use `workflowVersion=planned-set-v2`. Slot-first generation is documented in [aggregate composition planning](AGGREGATE_COMPOSITION_PLANNING.md).
 
-1. Select original set-level context and propose the requested number of ten-card sets.
-2. Persist a shared art contract: connected story, exact category allocation, rendering/light/material rules, palette/composition rhythm, exclusions, representative pilot index and rationale. Each card has explicit material, silhouette, palette-role and composition requirements.
-3. Validate the structured proposal and exact category counts. Independently review semantics, variety, style fidelity, wishes and category interpretation. Allow only the configured number of plan revisions; a rejected or unavailable review never permits image production. Persist each proposal/review. Resume partial plan review without creating a new proposal unnecessarily.
-4. Index/reuse original-card analyses. Effective categories come from visual analysis. Retrieve category candidates, material/form candidates and overall relevance; keep two common original anchors and at least two original examples of the target category. Final selection includes at least four originals, at most 25% approved user examples, no duplicated image hashes and no excluded art. Inspect actual candidate images before final selection. Record roles, take/ignore instructions and source hashes. Corrections trigger fresh selection rather than reusing an unrelated cached selection.
-5. Generate the pilot and verify it against originals. Failed/unknown verification pauses the set before other cards. Repairs remain bounded by per-card limits and the total image budget. Accepted pilot identity is persisted. Original references remain authoritative; the pilot is an early quality gate, not an automatically promoted library reference.
-6. Produce remaining cards (default concurrency two, after the pilot gate). The accepted common contract and all planned subjects accompany each card prompt. Each card is checked; the complete ten-card contact sheet receives separate visual review and bounded targeted repairs.
-7. Export requires exact-plan approval, current pilot approval, accepted card reviews and a matching whole-set review. Manual selection invalidates affected approvals and pauses a completed run for re-review.
+Code allocates ten source-supported joint patterns and freezes matching original references before one structured design request. It validates the model's returned metadata, requests bounded subject corrections when necessary, and never changes slots to accommodate incompatible subjects. All cards share one worker queue, with default concurrency two. Each generated image and the assembled ten-card sheet receive separate visual checks and bounded corrections. Complete automatic-mode sets remain deliverable with explicit quality warnings.
 
-A pilot cannot prove all four categories or guarantee whole-set quality. Whole-set evaluation remains mandatory. Separate model calls are bounded specialist roles, not necessarily separate underlying models.
+Historical project fields are decoded for evidence and signature compatibility, without reactivating removed first-card orchestration. Exact source IDs/hashes, selected image versions, input manifests and artistic findings remain preserved. No unconditional general-reference pair or minimum of four originals is inserted into a card request.
 
 ## Editable configuration
 
 - `resources/prompts/production.json`: all model instructions, including planner, plan reviewer, source/index analysts, visual selector, card/set reviewer, generation transport wrappers and correction defaults. Named `{{placeholders}}` are substituted once; template text is never executed. Missing keys or changed placeholder contracts fail before generation. Codex and API share planning and review descriptions.
-- `resources/production-config.json`: plan-revision bound, minimum plan score and post-pilot concurrency.
+- `resources/production-config.json`: plan-revision bound, minimum plan score and image worker concurrency.
 - `resources/retrieval-config.json`: lexical field weights and category/original-source boosts.
 - `resources/production-rules.json`: default authored production-policy rules; persisted/user-edited production policy takes precedence.
 - `resources/style-profile.json`: canonical art rules, category descriptions and curated anchors.
@@ -44,7 +40,7 @@ Analyzer cache identity includes prompt wording, model and source hash; source-s
 
 ## Verification and remaining evidence
 
-Tests cover dependency direction, transport-free views, configuration substitution, effective categories and reference roles, bounded plan revision, partial-review resume, pilot blocking, selection invalidation, export gating, subscription cleanup, historical protocols and existing storage/provider adapters. Mocked providers exercise orchestration, not artistic quality. No live image generation was performed for this refactor. A fresh real ten-card run and human comparison with the employer's originals are still required to establish end-to-end quality.
+Tests cover dependency direction, transport-free views, configuration substitution, effective categories and reference roles, bounded plan revision, partial-review resume, concurrent card scheduling, selection invalidation, export gating, subscription cleanup, historical protocols and existing storage/provider adapters. Mocked providers exercise orchestration, not artistic quality. No live image generation was performed for this refactor. A fresh real ten-card run and human comparison with the employer's originals are still required to establish end-to-end quality.
 
 ## Knowledge image organization
 

@@ -1,4 +1,4 @@
-import { LoaderCircle, Maximize2 } from 'lucide-react';
+import { Download, LoaderCircle, Maximize2 } from 'lucide-react';
 import type { Run, StudioApi, Variant } from '../../shared/Contracts';
 import { Assets } from './Assets';
 import { Modal } from './Modal';
@@ -7,7 +7,18 @@ import { useDeliveryViewModel } from './viewmodels/useDeliveryViewModel';
 
 export function DeliveryGallery({ api, run, variant }: { api: StudioApi; run: Run; variant: Variant }) {
   const { t, text } = useLocalization();
-  const { previews, loading, error, retry, expanded, setExpanded } = useDeliveryViewModel(
+  const {
+    previews,
+    loading,
+    error,
+    retry,
+    expanded,
+    setExpanded,
+    saving,
+    exportError,
+    savedPath,
+    exportPreview,
+  } = useDeliveryViewModel(
     api,
     run.id,
     variant.id,
@@ -36,20 +47,35 @@ export function DeliveryGallery({ api, run, variant }: { api: StudioApi; run: Ru
       )}
       <div className="delivery-grid">
         {previews.map((preview) => (
-          <button
-            className="delivery-preview"
-            key={preview.id}
-            onClick={() => setExpanded(preview)}
-            aria-label={t(names[preview.id])}
-          >
-            <img src={Assets.image(run, preview.filename)} alt={t(names[preview.id])} />
-            <span>
-              {t(names[preview.id])}
-              <Maximize2 size={14} />
-            </span>
-          </button>
+          <article className="delivery-preview" key={preview.id}>
+            <button
+              className="preview-open"
+              onClick={() => setExpanded(preview)}
+              aria-label={t(names[preview.id])}
+            >
+              <img src={Assets.image(run, preview.filename)} alt={t(names[preview.id])} />
+            </button>
+            <div className="preview-actions">
+              <span>{t(names[preview.id])}</span>
+              <div className="actions">
+                <button disabled={saving} onClick={() => void exportPreview(preview)}>
+                  <Download size={14} />
+                  {t('Export PNG')}
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label={t(names[preview.id])}
+                  onClick={() => setExpanded(preview)}
+                >
+                  <Maximize2 size={14} />
+                </button>
+              </div>
+            </div>
+          </article>
         ))}
       </div>
+      {exportError && <p className="inline-error">{text(exportError)}</p>}
+      {savedPath && <p role="status">{t('Saved: {path}', { path: savedPath })}</p>}
       {previews.length > 0 && (
         <p className="form-note">
           {t(
@@ -59,6 +85,14 @@ export function DeliveryGallery({ api, run, variant }: { api: StudioApi; run: Ru
       )}
       {expanded && (
         <Modal title={t(names[expanded.id])} onClose={() => setExpanded(null)}>
+          <div className="actions">
+            <button disabled={saving} onClick={() => void exportPreview(expanded)}>
+              <Download size={16} />
+              {t('Export window as PNG')}
+            </button>
+          </div>
+          {exportError && <p className="inline-error">{text(exportError)}</p>}
+          {savedPath && <p role="status">{t('Saved: {path}', { path: savedPath })}</p>}
           <img
             className="delivery-expanded"
             src={Assets.image(run, expanded.filename)}

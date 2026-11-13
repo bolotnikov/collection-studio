@@ -9,7 +9,7 @@ export function useBriefViewModel(data: Bootstrap, onStart: (brief: Brief) => Pr
     return () => model.dispose();
   }, [model]);
   const state = useSyncExternalStore(model.subscribe, model.snapshot);
-  const textReady = data.settings.provider === 'codex' ? data.codexReady : data.hasKey;
+  const textReady = data.codexReady;
   const ready = data.codexReady && textReady && data.referenceCount > 0 && data.catalogReady !== false;
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -18,10 +18,10 @@ export function useBriefViewModel(data: Bootstrap, onStart: (brief: Brief) => Pr
       theme: state.theme,
       wishes: state.wishes,
       variants: state.variants,
-      quality: 'low',
-      autoRepair: true,
+      quality: 'high',
+      autoRepair: false,
       includeGold: state.includeGold,
-      maxImageCalls: Math.min(150, state.variants * 10 * (1 + data.productionPolicy.maxRepairsPerCard)),
+      maxImageCalls: Math.min(150, state.variants * 30),
     });
   };
   return {

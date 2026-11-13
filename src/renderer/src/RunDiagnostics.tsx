@@ -29,14 +29,69 @@ export function RunDiagnostics({
   return (
     <Modal title={t('Diagnostics')} onClose={onClose}>
       <div className="diagnostics-toolbar">
-        <p>
-          {t('Internal checks and production history. Scores are model judgments, not quality guarantees.')}
-        </p>
+        <p>{t('Technical details of composition checks and production history.')}</p>
         <button disabled={busy} onClick={onDownload}>
           {t('Download diagnostics')}
         </button>
       </div>
-      {variant && (
+      {Boolean(run.qualityWarnings?.length) && (
+        <section>
+          <h3>{t('Quality warnings')}</h3>
+          <ul>
+            {run.qualityWarnings?.map((warning, index) => (
+              <li key={index}>{warning}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {run.reviewProtocol === 'composition-v1' && variant && (
+        <section>
+          <h3>{t('Composition checks')}</h3>
+          {variant.cards.map((card, index) => {
+            const attempt = card.attempts.find((item) => item.id === card.selectedAttemptId);
+            return (
+              <details key={card.id}>
+                <summary>
+                  {index + 1}. {card.subject}
+                </summary>
+                <pre>
+                  {JSON.stringify(
+                    attempt?.compositionCheck ?? {
+                      skipped: attempt?.compositionCheckSkipped,
+                      error: attempt?.compositionCheckError,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+                {Boolean(card.repairRequests?.length) && (
+                  <details>
+                    <summary>{t('Repair history')}</summary>
+                    <pre>{JSON.stringify(card.repairRequests, null, 2)}</pre>
+                  </details>
+                )}
+              </details>
+            );
+          })}
+          {Boolean(variant.gridReviewHistory?.length) && (
+            <details>
+              <summary>{t('Set composition review history')}</summary>
+              <pre>
+                {JSON.stringify(
+                  {
+                    policy: run.repairPolicy,
+                    reviews: variant.gridReviewHistory,
+                    rounds: variant.gridRepairRounds,
+                  },
+                  null,
+                  2,
+                )}
+              </pre>
+            </details>
+          )}
+        </section>
+      )}
+      {run.reviewProtocol !== 'composition-v1' && variant && (
         <section>
           <h3>{t('SET REVIEW')}</h3>
           <ul>

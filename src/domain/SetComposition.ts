@@ -1,3 +1,4 @@
+import { SetRhythmPlanner } from './SetRhythmPlanner';
 import { CatalogPolicy } from '../shared/CatalogPolicy';
 import type { Card, Plan, Variant } from '../shared/Contracts';
 import type { CompositionRequirements, CompositionTarget } from '../shared/CompositionContract';
@@ -105,6 +106,7 @@ export class SetComposition {
         composition.sourceSetIds.some((id) => !catalog.sets.some((set) => set.id === id))
       )
         throw new Error('Invalid composition slot coverage or source-set evidence.');
+      SetRhythmPlanner.validate(composition);
       const selection = composition.selection;
       const aggregate = composition.aggregate;
       if (aggregate) {
@@ -195,6 +197,18 @@ export class SetComposition {
             target.required.pattern !== 'none')
         )
           throw new Error('Pattern requirements contradict the planned backdrop.');
+        if (
+          composition.rhythm &&
+          target.appearance &&
+          !catalog.cards.some(
+            (card) =>
+              card.observation.category === target.category &&
+              card.observation.facets.backdrop === target.required.backdrop &&
+              card.observation.facets.pattern === target.required.pattern &&
+              card.observation.facets.backgroundColor === target.appearance?.backgroundColor,
+          )
+        )
+          throw new Error('Locked output color lacks category/backdrop/pattern evidence.');
         const support = target.required.support;
         if (
           (target.category === '1' && support !== 'none') ||
@@ -224,6 +238,18 @@ export class SetComposition {
           throw new Error(
             `Reference coverage gap in slot ${target.index + 1}: two matching original compositions are required.`,
           );
+        if (target.selectedReferenceIds) {
+          const selected = target.selectedReferenceIds.map((id) => matches.find((card) => card.id === id));
+          if (
+            selected.some((card) => !card) ||
+            new Set(selected.map((card) => card?.sha256)).size !== selected.length ||
+            selected.length < CatalogPolicy.values.minimumCompositionReferences ||
+            target.selectedReferenceIds.some((id) => !target.referenceIds?.includes(id))
+          )
+            throw new Error(
+              'Frozen slot references must be distinct matching originals from the candidate pool.',
+            );
+        }
       }
     }
   }
@@ -231,13 +257,19 @@ export class SetComposition {
     const slots = variant.cards.map((card, index) => {
       const selected = card.attempts.find((attempt) => attempt.id === card.selectedAttemptId);
       const target = this.target(variant, card);
-      const verified =
-        selected &&
-        !selected.reviewError &&
-        SetRules.acceptsReview(selected.review, minimumStyle) &&
-        (!target ||
-          (selected.review?.compositionMatch === true &&
-            this.matches(selected.review.observedComposition, target.required)));
+      const observed =
+        selected?.compositionCheck?.observedComposition ?? selected?.review?.observedComposition;
+      const verified = selected?.compositionCheck
+        ? !selected.compositionCheckError &&
+          selected.compositionCheck.matches &&
+          (!target ||
+            (this.matches(observed, target.required) &&
+              (!target.appearance || this.matches(observed, target.appearance))))
+        : selected &&
+          !selected.reviewError &&
+          SetRules.acceptsReview(selected.review, minimumStyle) &&
+          (!target ||
+            (selected.review?.compositionMatch === true && this.matches(observed, target.required)));
       return {
         index,
         id: card.id,
@@ -245,8 +277,8 @@ export class SetComposition {
         target,
         verified: Boolean(verified),
         status: inFlight.has(card.id) ? 'in-flight' : verified ? 'accepted' : 'remaining',
-        selectedAttemptId: verified ? selected.id : null,
-        observed: verified ? selected.review?.observedComposition : null,
+        selectedAttemptId: verified ? (selected?.id ?? null) : null,
+        observed: verified ? observed : null,
       };
     });
     const accepted = slots.filter((slot) => slot.verified);
@@ -281,10 +313,16 @@ export class SetComposition {
         }),
       );
     return {
-      targetFacetCounts: summarize(slots.map((slot) => slot.target?.required)),
+      targetFacetCounts: summarize(
+        slots.map((slot) =>
+          slot.target ? { ...slot.target.required, ...slot.target.appearance } : undefined,
+        ),
+      ),
       acceptedFacetCounts: summarize(accepted.map((slot) => slot.observed)),
       remainingFacetCounts: summarize(
-        slots.filter((slot) => !slot.verified).map((slot) => slot.target?.required),
+        slots
+          .filter((slot) => !slot.verified)
+          .map((slot) => (slot.target ? { ...slot.target.required, ...slot.target.appearance } : undefined)),
       ),
       slots,
       accepted: accepted.length,

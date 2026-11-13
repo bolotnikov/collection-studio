@@ -112,16 +112,8 @@ export function App({ api }: { api: StudioApi }) {
             <div>
               <strong>{t('Local workspace')}</strong>
               <small>
-                <span
-                  className={`tiny-dot ${(data.settings.provider === 'codex' ? data.codexReady : data.hasKey) ? '' : 'offline'}`}
-                />
-                {data.settings.provider === 'codex'
-                  ? data.codexReady
-                    ? 'Codex · ChatGPT'
-                    : t('Codex not connected')
-                  : data.hasKey
-                    ? t('OpenAI API connected')
-                    : t('API not configured')}
+                <span className={`tiny-dot ${data.codexReady ? '' : 'offline'}`} />
+                {data.codexReady ? 'Codex · ChatGPT' : t('Codex not connected')}
               </small>
             </div>
           </div>

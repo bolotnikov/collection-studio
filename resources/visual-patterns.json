@@ -256,5 +256,97 @@
         "label": "Разноцветный"
       }
     ]
+  },
+  {
+    "key": "environmentKind",
+    "label": "Тип среды",
+    "values": [
+      {
+        "value": "sky",
+        "label": "Небо"
+      },
+      {
+        "value": "landscape",
+        "label": "Ландшафт"
+      },
+      {
+        "value": "waterside",
+        "label": "Вода и побережье"
+      },
+      {
+        "value": "underwater",
+        "label": "Под водой"
+      },
+      {
+        "value": "interior",
+        "label": "Интерьер"
+      },
+      {
+        "value": "stage",
+        "label": "Сцена"
+      },
+      {
+        "value": "architecture",
+        "label": "Архитектурная среда"
+      }
+    ]
+  },
+  {
+    "key": "backgroundLayout",
+    "label": "Построение окружения",
+    "values": [
+      {
+        "value": "open-field",
+        "label": "Открытое поле фона"
+      },
+      {
+        "value": "layered-bands",
+        "label": "Крупные планы и полосы"
+      },
+      {
+        "value": "side-framing",
+        "label": "Обрамление по краям"
+      },
+      {
+        "value": "enclosing-surfaces",
+        "label": "Стены и замыкающие плоскости"
+      }
+    ]
+  },
+  {
+    "key": "backgroundDetail",
+    "label": "Детали фона",
+    "values": [
+      {
+        "value": "broad-masses",
+        "label": "Крупные спокойные массы"
+      },
+      {
+        "value": "local-accents",
+        "label": "Локальные мелкие акценты"
+      },
+      {
+        "value": "repeated-detail",
+        "label": "Повторяющиеся мелкие детали"
+      }
+    ]
+  },
+  {
+    "key": "backgroundProps",
+    "label": "Отдельные фоновые объекты",
+    "values": [
+      {
+        "value": "none",
+        "label": "Без отдельных фоновых объектов"
+      },
+      {
+        "value": "one-or-two",
+        "label": "Один-два объекта или группы"
+      },
+      {
+        "value": "several",
+        "label": "Несколько объектов или групп"
+      }
+    ]
   }
 ]

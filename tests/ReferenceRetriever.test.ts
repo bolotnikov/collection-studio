@@ -151,7 +151,7 @@ describe('ReferenceRetriever', () => {
   });
 });
 
-it('reserves shared originals and matching-category originals even when visual ranking prefers another category', () => {
+it('prioritizes matching-category originals without reserving unrelated shared originals', () => {
   const originals = Array.from({ length: 8 }, (_, index) =>
     StyleContracts.libraryItem.parse({
       id: `ref-${index}`,
@@ -167,10 +167,9 @@ it('reserves shared originals and matching-category originals even when visual r
     originals.map((item) => item.id).reverse(),
     4,
     '3',
-    ['ref-0', 'ref-1'],
   );
-  expect(result.map((item) => item.id)).toEqual(expect.arrayContaining(['ref-0', 'ref-1']));
-  expect(result.filter((item) => item.category === '3')).toHaveLength(2);
+  expect(result.slice(0, 2).map((item) => item.id)).toEqual(['ref-2', 'ref-3']);
+  expect(result.every((item) => item.category === '3')).toBe(true);
   expect(() => new ReferenceRetriever().select(originals.slice(0, 3), [], 4, '3')).toThrow(
     'two original category',
   );

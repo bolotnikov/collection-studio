@@ -19,6 +19,7 @@ const api: StudioApi = {
   removeReference: (id) => ipcRenderer.invoke('studio:removeReference', id),
   setAppearance: (theme) => ipcRenderer.invoke('studio:setAppearance', theme),
   bootstrap: () => ipcRenderer.invoke('studio:bootstrap'),
+  getRunProfile: (run) => ipcRenderer.invoke('studio:getRunProfile', run),
   start: (brief) => ipcRenderer.invoke('studio:start', brief),
   pause: (id) => ipcRenderer.invoke('studio:pause', id),
   deleteRun: (id) => ipcRenderer.invoke('studio:deleteRun', id),
@@ -29,10 +30,12 @@ const api: StudioApi = {
   selectVariant: (run, variant) => ipcRenderer.invoke('studio:selectVariant', run, variant),
   setBudget: (run, maximum) => ipcRenderer.invoke('studio:setBudget', run, maximum),
   previewDelivery: (run, variant) => ipcRenderer.invoke('studio:previewDelivery', run, variant),
+  exportDeliveryPreview: (run, variant, preview) =>
+    ipcRenderer.invoke('studio:exportDeliveryPreview', run, variant, preview),
   exportDiagnostics: (run) => ipcRenderer.invoke('studio:exportDiagnostics', run),
   exportExecutionLog: (run) => ipcRenderer.invoke('studio:exportExecutionLog', run),
   exportRun: (run, variant) => ipcRenderer.invoke('studio:export', run, variant),
-  saveSettings: (settings, key) => ipcRenderer.invoke('studio:saveSettings', settings, key),
+  saveSettings: (settings) => ipcRenderer.invoke('studio:saveSettings', settings),
   checkConnection: () => ipcRenderer.invoke('studio:checkConnection'),
   onRun: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, run: Run) => callback(run);

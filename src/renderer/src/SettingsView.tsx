@@ -1,4 +1,4 @@
-import { CircleCheck, KeyRound } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 import type { Bootstrap, StudioApi } from '../../shared/Contracts';
 import { Localization } from '../../shared/i18n/Localization';
 import { useLocalization } from './i18n/LocalizationContext';
@@ -22,20 +22,8 @@ export function SettingsView({
   refresh: () => Promise<void>;
 }) {
   const { t, text, preference, setPreference } = useLocalization();
-  const {
-    key,
-    setKey,
-    settings,
-    setSettings,
-    policy,
-    setPolicy,
-    policySaved,
-    policyBusy,
-    connection,
-    savePolicy,
-    saveSettings,
-    checkConnection,
-  } = useSettingsViewModel(data, busy, api, perform, refresh);
+  const { settings, setSettings, setRepairLimit, connection, saveSettings, checkConnection } =
+    useSettingsViewModel(data, api, perform, refresh);
   return (
     <div className="settings-page">
       <div className="eyebrow">{t('PREFERENCES')}</div>
@@ -64,141 +52,104 @@ export function SettingsView({
         </select>
         <p>{t('Language and appearance changes apply immediately.')}</p>
       </section>
-      <section className="settings-card">
-        <h2>{t('Generation limits')}</h2>
-        <p>{t('Every card is verified. Failed checks trigger revisions within these limits.')}</p>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            void savePolicy();
-          }}
-        >
-          <div>
-            <div>
-              <label htmlFor="repair-limit">{t('Revisions per card')}</label>
-              <input
-                id="repair-limit"
-                type="number"
-                min={0}
-                max={4}
-                required
-                value={policy.maxRepairsPerCard}
-                onChange={(e) => setPolicy({ ...policy, maxRepairsPerCard: Number(e.target.value) })}
-              />
-            </div>
-          </div>
-          <div className="actions">
-            <button type="submit" className="primary" disabled={policyBusy}>
-              {t('Save production settings')}
-            </button>
-          </div>
-          {policySaved && (
-            <p role="status" className="green">
-              {t('Settings saved.')}
-            </p>
-          )}
-          <p className="form-note">{t('Applied to new runs. Existing runs retain their saved policy.')}</p>
-        </form>
-      </section>
-      <details className="settings-card provider-settings">
-        <summary>
-          <KeyRound size={18} />
-          {t('Generation provider')}
-        </summary>
-        <h2>
-          <KeyRound size={20} /> {t('Generation provider')}{' '}
-        </h2>
-        <label htmlFor="provider">{t('Provider')}</label>
-        <select
-          id="provider"
-          value={settings.provider}
-          onChange={(e) => {
-            const provider = e.target.value;
-            if (provider === 'codex' || provider === 'openai') setSettings((s) => ({ ...s, provider }));
-          }}
-        >
-          <option value="codex">{t('Codex CLI · ChatGPT subscription')}</option>
-          <option value="openai">{t('OpenAI API · separate billing')}</option>
-        </select>
-        {settings.provider === 'codex' && (
-          <p>
-            {' '}
-            {t(
-              'Runs your installed Codex CLI signed in with ChatGPT. Images, planning and review use Codex limits. No API key is passed.',
-            )}{' '}
-          </p>
-        )}
-        <p>
-          {data.hasKey
-            ? t('An API key is already configured. Leave blank to retain it.')
-            : t('Add an API key to use the OpenAI API provider.')}{' '}
-          {t('Keys entered here use system encryption.')}{' '}
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void saveSettings();
-          }}
-        >
-          <label htmlFor="api-key">{t('API key (OpenAI API only)')}</label>
-          <input
-            id="api-key"
-            type="password"
-            autoComplete="off"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder={data.hasKey ? t('•••••••• · key configured') : 'sk-…'}
-          />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void saveSettings();
+        }}
+      >
+        <section className="settings-card">
+          <h2>Codex CLI · ChatGPT</h2>
+          <label htmlFor="codex-model">{t('Codex model · images & composition checks')}</label>
+          <select
+            id="codex-model"
+            value={settings.codexModel}
+            onChange={(event) => {
+              const model = event.target.value;
+              if (model === 'gpt-6.1-sol' || model === 'gpt-6.1-terra')
+                setSettings((value) => ({ ...value, codexModel: model }));
+            }}
+          >
+            <option value="gpt-6.1-terra">GPT-6.1 Terra</option>
+            <option value="gpt-6.1-sol">GPT-6.1 Sol</option>
+          </select>
+          <label htmlFor="planning-model">{t('Collection planning model')}</label>
+          <select
+            id="planning-model"
+            value={settings.planningModel ?? ''}
+            onChange={(event) => {
+              const model = event.target.value;
+              if (model === '' || model === 'gpt-6.1-sol' || model === 'gpt-6.1-terra')
+                setSettings((value) => ({ ...value, planningModel: model || undefined }));
+            }}
+          >
+            <option value="">{t('Use Codex model')}</option>
+            <option value="gpt-6.1-terra">GPT-6.1 Terra</option>
+            <option value="gpt-6.1-sol">GPT-6.1 Sol</option>
+          </select>
           <details className="advanced">
-            <summary>{t('Models and Codex executable')}</summary>
+            <summary>{t('Codex executable')}</summary>
             <label htmlFor="codex-path">{t('Codex executable (blank = auto-detect)')}</label>
             <input
               id="codex-path"
               value={settings.codexPath}
-              onChange={(e) => setSettings((s) => ({ ...s, codexPath: e.target.value }))}
-            />
-            <label htmlFor="codex-model">{t('Codex model · planning & review')}</label>
-            <input
-              id="codex-model"
-              value={settings.codexModel}
-              onChange={(e) => setSettings((s) => ({ ...s, codexModel: e.target.value }))}
-            />
-            <p>{t('Native ImageGen selects its image model automatically.')}</p>
-            <label htmlFor="image-model">{t('API image model')}</label>
-            <input
-              id="image-model"
-              required
-              value={settings.imageModel}
-              onChange={(e) => setSettings((s) => ({ ...s, imageModel: e.target.value }))}
-            />
-            <label htmlFor="text-model">{t('API planning & review model')}</label>
-            <input
-              id="text-model"
-              required
-              value={settings.textModel}
-              onChange={(e) => setSettings((s) => ({ ...s, textModel: e.target.value }))}
+              onChange={(event) => setSettings((value) => ({ ...value, codexPath: event.target.value }))}
             />
           </details>
-          <div className="actions">
-            <button type="submit" className="primary" disabled={busy}>
-              {' '}
-              {t('Save settings')}{' '}
-            </button>
-            <button type="button" disabled={busy} onClick={() => void checkConnection()}>
-              <CircleCheck size={16} /> {t('Test connection')}{' '}
-            </button>
-          </div>
-        </form>
+          <button type="button" disabled={busy} onClick={() => void checkConnection()}>
+            <CircleCheck size={16} /> {t('Test connection')}
+          </button>
+        </section>
+        <section className="settings-card">
+          <h2>{t('Automatic image corrections')}</h2>
+          <label htmlFor="card-regenerations">{t('Maximum corrections per card')}</label>
+          <input
+            id="card-regenerations"
+            type="number"
+            min={0}
+            max={150}
+            step={1}
+            required
+            value={settings.maxCardRegenerations}
+            onChange={(event) => setRepairLimit('maxCardRegenerations', event.target.valueAsNumber)}
+          />
+          <p>
+            {t(
+              'Only clear subject, silhouette, character, category or background violations trigger a card correction.',
+            )}
+          </p>
+          <label htmlFor="set-regeneration-rounds">{t('Maximum correction rounds after set review')}</label>
+          <input
+            id="set-regeneration-rounds"
+            type="number"
+            min={0}
+            max={150}
+            step={1}
+            required
+            value={settings.maxSetRegenerationRounds}
+            onChange={(event) => setRepairLimit('maxSetRegenerationRounds', event.target.valueAsNumber)}
+          />
+          <p>
+            {t(
+              'Each round corrects all flagged cards, then checks the complete set again. When enabled, the initial set check runs once.',
+            )}
+          </p>
+          <p>
+            {t(
+              '0 disables verification and automatic corrections at that stage. Defaults: 0 and 0. Original versions are preserved. The image request budget still applies.',
+            )}
+          </p>
+          <p className="form-note">{t('Applied to new runs. Existing runs retain their saved policy.')}</p>
+        </section>
+        <button type="submit" className="primary" disabled={busy}>
+          {t('Save settings')}
+        </button>
         {connection && (
-          <p className={`connection-result ${connection.ok ? 'green' : 'red'}`}>{text(connection.message)}</p>
+          <p role="status" className={`connection-result ${connection.ok ? 'green' : 'red'}`}>
+            {text(connection.message)}
+          </p>
         )}
-        <p className="form-note">
-          {' '}
-          {t(
-            'Checks saved settings without generating an image. For Codex, sign in with ChatGPT using codex login. API mode requires separate credits.',
-          )}{' '}
-        </p>
-      </details>
+      </form>
     </div>
   );
 }

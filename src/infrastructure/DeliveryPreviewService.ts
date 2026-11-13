@@ -15,6 +15,27 @@ export class DeliveryPreviewService {
     private readonly knowledgeRoot: string,
   ) {}
 
+  async export(
+    run: Run,
+    variantId: string,
+    folder: string,
+    expected: DeliveryPreview,
+    destination: string,
+  ): Promise<void> {
+    const previews = await this.create(run, variantId, folder);
+    const preview = previews.find(
+      (preview) =>
+        preview.id === expected.id &&
+        preview.sha256 === expected.sha256 &&
+        preview.templateSha256 === expected.templateSha256,
+    );
+    if (!preview) throw new Error('The window preview has changed. Reopen the preview before exporting.');
+    const bytes = await fs.readFile(path.join(folder, preview.filename));
+    if (createHash('sha256').update(bytes).digest('hex') !== preview.sha256)
+      throw new Error('Window preview integrity mismatch.');
+    await fs.writeFile(destination, bytes);
+  }
+
   async create(run: Run, variantId: string, folder: string): Promise<DeliveryPreview[]> {
     const variant = run.variants.find((item) => item.id === variantId);
     if (!variant || !DeliveryReadiness.accepts(run, variant))

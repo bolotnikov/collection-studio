@@ -13,7 +13,6 @@
     "lint": "eslint src tests scripts/*.ts",
     "test": "vitest run",
     "prepare:references": "tsx scripts/prepare-references.ts",
-    "smoke:api": "tsx scripts/smoke-api.ts",
     "package:mac": "npm run build && electron-builder --mac --dir",
     "format": "prettier --write src tests scripts/*.ts docs/*.md README.md",
     "calibrate:codex": "tsx scripts/calibrate-codex.ts",
@@ -85,9 +84,7 @@
   },
   "dependencies": {
     "adm-zip": "^0.6.1",
-    "dotenv": "^18.0.10",
     "lucide-react": "^1.72.0",
-    "openai": "^7.55.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sharp": "^0.35.5",

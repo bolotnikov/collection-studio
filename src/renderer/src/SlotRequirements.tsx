@@ -6,9 +6,11 @@ import { useLocalization } from './i18n/LocalizationContext';
 export function SlotRequirements({
   target,
   observed,
+  showObserved = true,
 }: {
   target?: CompositionTarget;
   observed?: CompositionRequirements;
+  showObserved?: boolean;
 }) {
   const { t } = useLocalization();
   return (
@@ -19,7 +21,7 @@ export function SlotRequirements({
           <p>
             {t('Category')} {target.category}
           </p>
-          <PatternChips facets={target.required} />
+          <PatternChips facets={{ ...target.required, ...target.appearance }} />
           {target.required.characterCount !== undefined && (
             <p>{t('Acting characters: {count}', { count: target.required.characterCount })}</p>
           )}
@@ -33,25 +35,29 @@ export function SlotRequirements({
       ) : (
         <p className="muted">{t('This historical run has no slot tag contract.')}</p>
       )}
-      <h3>{t('Detected in selected image')}</h3>
-      {observed ? (
+      {showObserved && (
         <>
-          <PatternChips facets={observed} />
-          {observed.characterCount !== undefined && (
-            <p>{t('Acting characters: {count}', { count: observed.characterCount })}</p>
-          )}
-          {target && (
-            <p className={SetComposition.matches(observed, target.required) ? 'green' : 'amber'}>
-              {t(
-                SetComposition.matches(observed, target.required)
-                  ? 'Required tags match'
-                  : 'Required tags differ',
+          <h3>{t('Detected in selected image')}</h3>
+          {observed ? (
+            <>
+              <PatternChips facets={observed} />
+              {observed.characterCount !== undefined && (
+                <p>{t('Acting characters: {count}', { count: observed.characterCount })}</p>
               )}
-            </p>
+              {target && (
+                <p className={SetComposition.matches(observed, target.required) ? 'green' : 'amber'}>
+                  {t(
+                    SetComposition.matches(observed, target.required)
+                      ? 'Required tags match'
+                      : 'Required tags differ',
+                  )}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="muted">{t('Visual tags appear after this image is verified.')}</p>
           )}
         </>
-      ) : (
-        <p className="muted">{t('Visual tags appear after this image is verified.')}</p>
       )}
     </section>
   );

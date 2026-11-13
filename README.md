@@ -20,32 +20,30 @@ The local macOS bundle is produced by `npm run package:mac` at `release/mac-arm6
 
 Keep only this current bundle under `release`; temporary packaging belongs outside that directory. The project list offers a Trash button with confirmation. Deletion moves the complete project folder to the system Trash and removes it from history. Library references and separately exported files remain. Pause generation and wait for in-flight requests to finish before deleting a project.
 
-## Generation providers
+## Generation through Codex CLI
 
-### Codex CLI / ChatGPT — default
+### Codex CLI / ChatGPT
 
 1. Install Codex CLI and sign in using `codex login` → **Sign in with ChatGPT**.
-2. Open **Settings**, select **Codex CLI · ChatGPT subscription**, and click **Test connection**.
-3. If auto-detection fails, set the absolute executable path under **Models and Codex executable**.
+2. Open **Settings**, choose a Codex model (Terra by default), and click **Test connection**.
+3. If auto-detection fails, set the absolute executable path under **Codex executable**.
 
 The main process launches `codex exec` without a shell, in an isolated per-request job directory. The CLI reuses its own login. API-key environment variables are removed; the application does not read, copy or exchange ChatGPT tokens. Images use native `image_gen`; planning and visual review use structured CLI responses. Each task uses `workspace-write` sandboxing. Unrelated app connectors and agent delegation are disabled.
 
 This mode uses Codex subscription limits. Image generation consumes included usage more quickly than ordinary text turns. **Quality is a prompt preference in this mode**, not a guaranteed low/medium/high API parameter. Actual underlying image model and billing details remain controlled by Codex. Compatibility was verified with CLI `0.167.0-alpha.4.1`; other versions require a connection and image calibration check.
 
-### OpenAI Images API — optional
+Settings expose two independent verification/correction limits, both **0 by default**: per-card mandatory corrections and whole-set correction rounds. Zero skips that model verification entirely; a positive value enables verification and bounds automatic corrections. The whole-set stage uses one initial check plus one check after each correction round. Policies are frozen per run; originals and all intermediate versions are retained. See [bounded composition workflow](docs/COMPOSITION_ONLY_WORKFLOW.md).
 
-Choose **OpenAI API · separate billing** and enter an API key in Settings. The key is encrypted using Electron safeStorage and stays in the main process. During development an ignored project `.env` can supply `OPENAI_API_KEY`; it takes precedence over a previously saved key and is imported into encrypted local storage. `.env` is never packaged.
-
-The API adapter uses `images.edit`, explicit PNG MIME types, reference images, structured planning and visual reviews. SDK retries are disabled. Default models: `gpt-image-2` and `gpt-4.1-mini`. A successful connection check validates model access, not available credit. The supplied account returned `429 no credits remaining` during the live API image test; the Codex path was verified separately.
+Technical image failures always trigger retries independently of those verification settings, until an image is saved, the user pauses, or the image-request budget is exhausted. Invalid image bytes also trigger this recovery. Each failed request consumes the budget and is persisted in card diagnostics. Native Codex image artifacts are collected directly from the exact CLI thread, with their source and hash recorded; truncated tool output or a worker's failed save does not discard an available image. Worker shell tools are disabled, so image payloads never need to fit in command-line arguments. Historical run data and original artifacts remain untouched.
 
 ## Producer workflow
 
 1. Open **New set** and enter the theme and free-form art direction.
-2. Choose the number of ten-card variants (1–5, default one). The main screen contains theme, optional art direction and the set count. Settings control the reference budget, style threshold and bounded automatic repairs.
+2. Choose the number of ten-card variants (1–5, default one). The main screen contains theme, optional art direction and the set count. Settings select Codex/planning models and independent card/set correction limits.
 3. Start generation. The planner validates ten distinct subjects and all four composition categories in each variant before image generation begins.
 4. Open a card to compare its selected image with a category reference, inspect review findings, compare versions, regenerate or lock the selection.
 5. Use **Pause** to stop scheduling. Two already-running requests may finish. **Resume** retains finished images. After an interruption, unfinished requests are marked uncertain and never silently replayed.
-6. Use **Select for delivery**, then **Export set**. Export requires all ten selected cards and the complete set to pass review. Model approval still requires a final human art judgment.
+6. Use **Select for delivery**, then **Export set**. New runs export all ten selected images. Optional bounded composition corrections retain their findings in diagnostics; no artistic score or human approval gate is applied. Historical strict-mode runs retain their original gates unless resumed under the current automatic policy.
 
 The **Production log & limits** panel can raise the image-request cap while a run is idle. The cap counts application image requests, including failed attempts; it is not a dollar limit or a precise measure of native Codex tool retries. Planning and review also consume provider usage.
 
@@ -99,7 +97,7 @@ npm run build
 
 Offline integration tests cover structural invariants, call caps, pause/resume, concurrent starts, interrupted requests, review failures and ten-card exports. Synthetic test rasters are disposable fixtures and are never presented as generated art.
 
-`npm run calibrate:codex` performs one real reference-guided image generation and visual review using subscription usage. `npm run smoke:api` performs one real paid API image request. Neither runs during ordinary automated tests.
+`npm run calibrate:codex` performs one real reference-guided image generation and visual review using subscription usage. It never runs during ordinary automated tests.
 
 See [current implementation plan](docs/STYLE_PIPELINE_IMPLEMENTATION_PLAN.md), [art and research notes](docs/ART_AND_RESEARCH.md), and [validation record](docs/VALIDATION.md). Final cinema sets, a calibrated multi-model benchmark, Miro placement and a GitHub publication must be reported separately from application implementation.
 
@@ -125,11 +123,11 @@ The reference librarian analyzes source images in batches of eight (two concurre
 
 Every reference pack retains original category anchors, uses 4–12 images (default eight), and allows at most 25% explicitly approved user examples. Context, source hashes, policy, role manifests and final prompts are recorded per attempt. Existing runs retain their production-policy snapshot. Rules in the assignment/profile remain mandatory; editable policy guidance supplements them.
 
-The default style threshold is **5/5**, with at most two corrective generations per card. Settings can explicitly lower the threshold to 4 or change the repair cap. A lower threshold allows minor visible rendering deviations; it is not an exact-match claim. The native Codex tool in the tested installation rejects more than five reference file paths. Larger packs are transported as up to five sheets containing two or three complete unscaled references each. Original PNGs, the positional map and SHA-256 hashes remain in the job; no reference is silently dropped.
+Archived protocols used a **5/5** style threshold and at most two corrective generations per card. Current production uses [composition-only verification and manual revisions](docs/COMPOSITION_ONLY_WORKFLOW.md). Archived snapshots retain their saved thresholds and limits. A lower threshold allows minor visible rendering deviations; it is not an exact-match claim. The native Codex tool in the tested installation rejects more than five reference file paths. Larger packs are transported as up to five sheets containing two or three complete unscaled references each. Original PNGs, the positional map and SHA-256 hashes remain in the job; no reference is silently dropped.
 
 Card review compares the exported crop to the chosen references and original brief. Set review receives original references as well as the generated sheet. Failed reviews trigger finite corrective attempts, including set outliers, within both per-card and total image budgets. Missing reviews and exhausted retries do not constitute approval. Export validates approval; image preparation checks resolution and opacity, creates sRGB PNG outputs and retains original masters.
 
-The professional preparation service currently requires the installed, ChatGPT-authenticated Codex CLI even when the OpenAI API image adapter is selected. Both image adapters accept the prepared reference pack. The API account's exhausted balance still prevents a real API-generation validation. Cold library indexing consumes subscription usage and can take several minutes; subsequent runs reuse its cache.
+The preparation service and generation use the installed, ChatGPT-authenticated Codex CLI with the prepared reference pack. Cold library indexing consumes subscription usage and can take several minutes; subsequent runs reuse its cache.
 
 Import the complete toolbar export with `SOURCE_EXPORT_DIR="Art Sources" npm run prepare:library` (or `REFERENCE_EXPORT_DIR=/absolute/path/to/export`). With no environment overrides, `npm run prepare:library` also prefers the local `Art Sources/Файлы.json` export when present. This verifies `Файлы.json`, reads frame provenance from `Разделы.json`, preserves existing source IDs by hash, and imports individual cards only. New cards retain unknown composition categories until visual analysis; filename numbers are recorded as tags without inventing unverified set names.
 
@@ -143,13 +141,13 @@ Use `--index-only` to prepare the library without generating images. `--repair` 
 
 Run `npm run prepare:knowledge` after importing the complete `Art Sources` export. It prepares seven original documents and all 25 non-card images under the ignored `resources/knowledge/` folder. This private corpus is packaged locally and deliberately omitted from the source-only archive. New runs use operational production requirements and active canonical Russian style rules. Original documents remain archived for provenance; reference inventories and delivery material remain separately identified.
 
-Sixteen complete set sheets and five composition figures are analyzed once and cached. Semantic selection chooses relevant original sets. Planning and whole-set review receive actual set images and category figures; card generation receives derived set principles and the applicable composition figure. Category 5 is an exclusion example, and result templates never become positive style references. The Library's **Set references** and **Generation rules** views explain their operative roles.
+Sixteen complete set sheets and five composition figures are analyzed once and cached. New plans use aggregate statistics from all applicable sets; comparison sheets are selected after the slot plan is fixed. Card generation receives its frozen matching originals and applicable composition figure. Category 5 is enabled only by the gold-card option; delivery templates never become style references. The Library's **Set references** and **Generation rules** views explain their operative roles.
 
-Set verification evaluates style compatibility, thematic cohesion, silhouette/material diversity, palette/composition balance, category coverage and duplicate subjects. Corrections identify actual card IDs. Every review is saved with the selected image-version IDs; export requires a current passing review. Existing runs keep historical source snapshots; the new complete context applies to new runs.
+Optional whole-set composition verification checks the actual selected grid against the shared contract and records relationship findings and targeted corrections by actual card ID. Every observation is bound to the selected image-version IDs; unresolved findings remain in diagnostics and do not gate export. Existing runs keep historical source snapshots; the new complete context applies to new runs.
 
 `npx tsx scripts/probe-source-context.ts RUN_ID` analyzes source context and reviews an existing complete set without generating new images. See [production readiness audit](docs/PRODUCTION_REVIEW.md) for remaining acceptance evidence and the reasoning about workflows and vector retrieval.
 
-The application now uses MVVM presentation and a reviewed-plan/pilot production protocol. New runs require an independently accepted structured art contract before any image generation, then a verified pilot before the other nine cards. Prompt text is editable in `resources/prompts/production.json`. See [application architecture](docs/APPLICATION_ARCHITECTURE.md) for configuration, persistence, reference roles and legacy-run behavior.
+The application uses MVVM presentation and a slots-first production protocol. Code allocates ten source-supported patterns and freezes matching original references before one structured concept/subject request. All cards share one worker queue; generated cards and the assembled set receive visual checks and bounded corrections. See [aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md) and [application architecture](docs/APPLICATION_ARCHITECTURE.md).
 
 Clean whole-set references are prepared automatically by `npm run prepare:knowledge` (or `npm run prepare:clean-sets` separately). Fifteen source sets are reconstructed from original card PNGs with verified slot membership; six complete ordinary sets are primary references for the no-gold task. New final reviews compare candidate and reference sheets in the same neutral 5×2 layout, with original game windows as secondary context. See [clean whole-set review](docs/APPLICATION_ARCHITECTURE.md#clean-whole-set-review-set-v3).
 
@@ -165,6 +163,10 @@ Use **Cards**, **Sets**, and **Categories** to inspect and maintain the working 
 
 New-set composition is fitted to joint-pattern statistics across the full prepared source corpus, with original-reference coverage per slot. No single source layout is selected for new runs. See [aggregate planning](docs/AGGREGATE_COMPOSITION_PLANNING.md); existing runs keep their frozen planning protocol.
 
-The header language selector and Settings share the same language preference. Production settings expose revisions per card only. New work uses 5/5 style acceptance and a maximum of eight selected card references, chosen by required role/material coverage rather than by filling the limit. Historical run policies remain frozen.
+The header language selector and Settings share the same language preference. Settings expose a separate Sol/Terra planning-model selector. Current production disables automatic revisions and artistic scoring, with at most eight frozen structurally matching card references. Historical run policies remain frozen.
 
 The sidebar keeps **New set** and project history separate from the collapsible **Knowledge base** administration group (Cards, Sets, Categories, Style). Inactive projects offer **Download execution log**; production ZIPs also include the Markdown journal. See [Execution log](docs/EXECUTION_LOG.md) for captured evidence, historical-run limitations and credential/image redaction.
+
+Current new-run workflow: deterministic category/pattern, color and 5×2 grid planning → one LLM request for the complete set concept and ten Russian slot briefs → image generation → composition-only observations. There are no automatic redraws, artistic scores or whole-set grading. New versions are requested manually from a card. Source-reference analysis is reused; it is not repeated per project. See [aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md) for protocol compatibility and quality-warning delivery.
+
+See [composition-only production, whole-grid rhythm, Russian journals and individual preview export](docs/COMPOSITION_ONLY_WORKFLOW.md) for the current protocol; earlier review sections describe archived execution.

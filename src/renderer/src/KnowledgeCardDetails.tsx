@@ -79,6 +79,18 @@ export function KnowledgeCardDetails({
               <dd>{initial.facets.rendering}</dd>
               <dt>{t('Lighting')}</dt>
               <dd>{initial.facets.lighting}</dd>
+              {initial.environment && (
+                <>
+                  <dt>{t('Major background shapes')}</dt>
+                  <dd>{initial.environment.majorShapes.join('; ')}</dd>
+                  <dt>{t('Secondary background objects')}</dt>
+                  <dd>{initial.environment.secondaryObjects.join('; ') || t('No separate objects')}</dd>
+                  <dt>{t('Small background details')}</dt>
+                  <dd>{initial.environment.smallDetails.join('; ') || '—'}</dd>
+                  <dt>{t('Background placement')}</dt>
+                  <dd>{initial.environment.layout}</dd>
+                </>
+              )}
             </dl>
             {initial.uncertainties.length > 0 && (
               <details>
@@ -157,6 +169,62 @@ export function KnowledgeCardDetails({
                 );
               })}
             </div>
+            {draft.environment ? (
+              <fieldset>
+                <legend>{t('Background observations')}</legend>
+                {(['majorShapes', 'secondaryObjects', 'smallDetails'] as const).map((key) => (
+                  <label key={key}>
+                    {t(
+                      (
+                        {
+                          majorShapes: 'Major background shapes',
+                          secondaryObjects: 'Secondary background objects',
+                          smallDetails: 'Small background details',
+                        } as const
+                      )[key],
+                    )}
+                    <textarea
+                      value={draft.environment?.[key].join('\n')}
+                      onChange={(e) => {
+                        if (draft.environment)
+                          setDraft({
+                            ...draft,
+                            environment: {
+                              ...draft.environment,
+                              [key]: e.target.value.split('\n').filter(Boolean),
+                            },
+                          });
+                      }}
+                    />
+                  </label>
+                ))}
+                <label>
+                  {t('Background placement')}
+                  <textarea
+                    value={draft.environment.layout}
+                    onChange={(e) => {
+                      if (draft.environment)
+                        setDraft({ ...draft, environment: { ...draft.environment, layout: e.target.value } });
+                    }}
+                  />
+                </label>
+                <button type="button" onClick={() => setDraft({ ...draft, environment: undefined })}>
+                  {t('Remove background description')}
+                </button>
+              </fieldset>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    environment: { majorShapes: [], secondaryObjects: [], smallDetails: [], layout: '' },
+                  })
+                }
+              >
+                {t('Describe environment background')}
+              </button>
+            )}
             <label>
               {t('Character count')}
               <input

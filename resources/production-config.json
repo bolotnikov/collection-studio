@@ -1,5 +1,6 @@
 {
-  "maxPlanRepairs": 1,
+  "maxPlanRepairs": 3,
   "minimumPlanScore": 4,
-  "productionConcurrency": 2
+  "productionConcurrency": 2,
+  "qualityMode": "best-effort-v1"
 }

@@ -8,6 +8,8 @@ import { CodexRunner } from '../src/infrastructure/CodexRunner';
 import { ExecutionJournal } from '../src/infrastructure/ExecutionJournal';
 import { randomUUID } from 'node:crypto';
 import { PromptCatalog } from '../src/application/prompts/PromptCatalog';
+import { CodexProvider } from '../src/infrastructure/CodexProvider';
+import { CodexImageArtifacts } from '../src/infrastructure/CodexImageArtifacts';
 
 const folders: string[] = [];
 afterEach(async () => {
@@ -58,6 +60,7 @@ const fs=require('node:fs');let input='';process.stdin.on('data',c=>input+=c);pr
   expect(observed.input).toContain(injection);
   expect(observed.args).toContain('--output-schema');
   expect(observed.args).toContain('workspace-write');
+  expect(observed.args).toContain('shell_tool');
   expect(await fs.readFile(path.join(result.folder, 'input-1.png'))).toEqual(await fs.readFile(source));
   expect(result.value.answer).toBe('verified');
   expect(result.threadId).toBe('fixture-thread');
@@ -75,6 +78,60 @@ const fs=require('node:fs');let input='';process.stdin.on('data',c=>input+=c);pr
   expect(log).toContain('verified');
   expect(log).not.toContain('fixture-secret');
   await expect(fs.access(path.join(root, 'SHOULD_NOT_EXIST'))).rejects.toThrow();
+});
+
+it.each(['truncated tool output', 'Argument list too long'])(
+  'collects the native image even when the worker reports %s, without shell or base64 transfer',
+  async (message) => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-cli-artifact-'));
+    folders.push(root);
+    vi.stubEnv('CODEX_HOME', root);
+    const threadId = randomUUID();
+    const directory = path.join(root, 'generated_images', threadId);
+    await fs.mkdir(directory, { recursive: true });
+    const source = path.join(directory, `exec-${randomUUID()}.png`);
+    await sharp({ create: { width: 512, height: 512, channels: 3, background: '#ab6721' } })
+      .png()
+      .toFile(source);
+    const executable = path.join(root, 'fake-codex');
+    await fs.writeFile(
+      executable,
+      `#!/usr/bin/env node
+const fs = require('node:fs'); process.stdin.resume(); process.stdin.on('end', () => {
+ const args = process.argv.slice(2);
+ if (!args.some((arg, index) => arg === '--disable' && args[index + 1] === 'shell_tool')) process.exit(2);
+ fs.writeFileSync(args[args.indexOf('-o') + 1], JSON.stringify({success:false, tool:'image_gen', message:${JSON.stringify(message)}}));
+ console.log(JSON.stringify({type:'thread.started', thread_id:${JSON.stringify(threadId)}}));
+ console.log(JSON.stringify({type:'turn.completed'}));
+});`,
+      { mode: 0o700 },
+    );
+    const runner = new CodexRunner(executable, path.join(root, 'jobs'), 'fixture');
+    const result = await new CodexProvider(runner).image('Generate a card', [], 'high');
+    expect(result.bytes).toEqual(await fs.readFile(source));
+    expect(result.requestId).toBe(threadId);
+    expect(result.usage).toHaveProperty('imageArtifact.source', source);
+    expect(result.usage).toHaveProperty('imageArtifact.sha256', expect.any(String));
+    expect(await fs.readFile(source)).toEqual(result.bytes);
+  },
+);
+
+it('never substitutes another thread image or an ambiguous or invalid artifact', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-cli-artifact-'));
+  folders.push(root);
+  const collector = new CodexImageArtifacts(root);
+  const threadId = randomUUID();
+  const directory = path.join(root, 'generated_images', threadId);
+  await fs.mkdir(directory, { recursive: true });
+  const image = path.join(directory, `exec-${randomUUID()}.png`);
+  await fs.writeFile(image, 'not a PNG');
+  expect(await collector.collect(root, randomUUID())).toBeNull();
+  expect(await collector.collect(root, '../escape')).toBeNull();
+  expect(await collector.collect(root, null)).toBeNull();
+  await expect(collector.collect(root, threadId)).rejects.toThrow();
+  await fs.writeFile(path.join(directory, `exec-${randomUUID()}.png`), 'second candidate');
+  await expect(collector.collect(root, threadId)).rejects.toThrow('multiple image artifacts');
+  await expect(fs.access(path.join(root, 'image.png'))).rejects.toThrow();
 });
 
 it('preserves diagnostic output when the CLI process fails', async () => {

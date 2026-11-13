@@ -29,13 +29,7 @@ export function SetPlanDetails({ run, variant }: { run: Run; variant?: Variant }
             <dd>{contract.paletteRhythm}</dd>
             <dt>{t('Composition')}</dt>
             <dd>{contract.compositionRhythm}</dd>
-            <dt>{t('Pilot card')}</dt>
-            <dd>
-              {variant?.cards[contract.pilotIndex]?.subject} ·{' '}
-              {variant?.pilotAttemptId ? t('Verified') : t('Awaiting verification')}
-            </dd>
           </dl>
-          <p>{contract.pilotRationale}</p>
           <ol>
             {variant?.cards.map((card) => (
               <li key={card.id}>

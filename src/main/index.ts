@@ -1,3 +1,4 @@
+import { DeliveryContracts } from '../shared/DeliveryContracts';
 import { VisualCatalogStore } from '../infrastructure/VisualCatalogStore';
 import { KnowledgeWorkspace } from '../infrastructure/KnowledgeWorkspace';
 import { KnowledgeEditorContracts } from '../shared/KnowledgeEditorContracts';
@@ -33,7 +34,6 @@ import { z } from 'zod';
 import { Contracts, type Run } from '../shared/Contracts';
 import { RunRepository } from '../infrastructure/RunRepository';
 import { ImageFiles } from '../infrastructure/ImageFiles';
-import { OpenAiProvider } from '../infrastructure/OpenAiProvider';
 import { RunService } from '../application/RunService';
 import { DeliveryPreviewService } from '../infrastructure/DeliveryPreviewService';
 import { ExportService } from '../infrastructure/ExportService';
@@ -43,7 +43,6 @@ import { CodexRunner } from '../infrastructure/CodexRunner';
 import { CodexProvider } from '../infrastructure/CodexProvider';
 import { ExecutionJournal } from '../infrastructure/ExecutionJournal';
 import { ExecutionLogExporter } from '../infrastructure/ExecutionLogExporter';
-import { AuditedFetch } from '../infrastructure/AuditedFetch';
 
 class DesktopApplication {
   private translator = new Localization('en');
@@ -62,7 +61,7 @@ class DesktopApplication {
     const resources = app.isPackaged ? process.resourcesPath : path.resolve('resources');
     const runsRoot = process.env.COLLECTION_STUDIO_DATA || path.join(app.getPath('userData'), 'runs');
     const settings = new SettingsStore(app.getPath('userData'));
-    await settings.init(app.isPackaged ? undefined : process.cwd());
+    await settings.init();
     let codexExecutable = '',
       codexReady = false;
     const refreshCodex = async () => {
@@ -144,28 +143,25 @@ class DesktopApplication {
       );
     const makeProvider = (s: Settings, sourceProfile: Profile) => {
       const templates = new PromptCatalog(sourceProfile.promptCatalog);
-      if (s.provider === 'codex') {
-        if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
-        return new CodexProvider(
-          new CodexRunner(
-            codexExecutable,
-            jobsRoot(sourceProfile),
-            s.codexModel,
-            templates,
-            runAudit(sourceProfile),
-          ),
+      if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
+      return new CodexProvider(
+        new CodexRunner(
+          codexExecutable,
+          jobsRoot(sourceProfile),
+          s.codexModel,
           templates,
-        );
-      }
-      const auditedFetch = sourceProfile.productionRunId
-        ? new AuditedFetch(journal, sourceProfile.productionRunId)
-        : null;
-      return new OpenAiProvider(
-        settings.credential(),
-        s.imageModel,
-        s.textModel,
+          runAudit(sourceProfile),
+        ),
         templates,
-        auditedFetch?.transport(),
+        s.planningModel
+          ? new CodexRunner(
+              codexExecutable,
+              jobsRoot(sourceProfile),
+              s.planningModel,
+              templates,
+              runAudit(sourceProfile),
+            )
+          : undefined,
       );
     };
     const direction = new ArtDirectionService(
@@ -310,7 +306,8 @@ class DesktopApplication {
       makeProvider,
       (r) => this.publish(r),
       (policy, sourceProfile) => {
-        if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
+        if (!codexReady && !sourceProfile.visualCatalog)
+          throw new Error('Connect Codex with ChatGPT for reference analysis.');
         return prepareStyle(policy, sourceProfile);
       },
       (sourceProfile) =>
@@ -390,7 +387,6 @@ class DesktopApplication {
         runs: await repository.list(),
         profile,
         settings: settings.settings,
-        hasKey: settings.hasKey,
         codexReady,
         referenceCount,
         dataPath: runsRoot,
@@ -398,6 +394,7 @@ class DesktopApplication {
         library: catalog,
       };
     });
+    this.handle('getRunProfile', z.tuple([Contracts.id]), ([id]) => repository.getProfile(id));
     this.handle('start', z.tuple([Contracts.brief]), async ([brief]) => {
       if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
       if (referenceCount !== profile.references.length || referenceCount < 4)
@@ -441,12 +438,13 @@ class DesktopApplication {
     this.handle('pause', z.tuple([Contracts.id]), ([id]) => service.pause(id));
     this.handle('deleteRun', z.tuple([Contracts.id]), ([id]) => service.remove(id));
     this.handle('resume', z.tuple([Contracts.id]), ([id]) =>
-      service.resume(id, structuredClone(library.policy)),
+      service.resume(id, structuredClone(library.policy), settings.settings),
     );
     this.handle(
       'retry',
       z.tuple([Contracts.id, Contracts.id, z.string().max(2000)]),
-      ([id, card, instruction]) => service.retry(id, card, instruction, structuredClone(library.policy)),
+      ([id, card, instruction]) =>
+        service.retry(id, card, instruction, structuredClone(library.policy), settings.settings),
     );
     this.handle('selectAttempt', z.tuple([Contracts.id, Contracts.id, Contracts.id]), ([id, card, attempt]) =>
       service.selectAttempt(id, card, attempt),
@@ -464,6 +462,23 @@ class DesktopApplication {
         throw new Error('Wait for generation to finish.');
       return delivery.create(run, variantId, repository.directory(id));
     });
+    this.handle(
+      'exportDeliveryPreview',
+      z.tuple([Contracts.id, z.string(), DeliveryContracts.preview]),
+      async ([id, variantId, preview]) => {
+        const run = await repository.get(id);
+        if (['planning', 'generating', 'reviewing'].includes(run.status))
+          throw new Error('Wait for generation to finish.');
+        const result = await dialog.showSaveDialog({
+          title: this.translator.t('Export window as PNG'),
+          defaultPath: `window-${preview.id}-${id.slice(0, 8)}.png`,
+          filters: [{ name: 'PNG', extensions: ['png'] }],
+        });
+        if (result.canceled || !result.filePath) return null;
+        await delivery.export(run, variantId, repository.directory(id), preview, result.filePath);
+        return result.filePath;
+      },
+    );
     this.handle('exportDiagnostics', z.tuple([Contracts.id]), async ([id]) => {
       const run = await repository.get(id);
       const result = await dialog.showSaveDialog({
@@ -472,14 +487,17 @@ class DesktopApplication {
         filters: [{ name: 'JSON', extensions: ['json'] }],
       });
       if (result.canceled || !result.filePath) return null;
-      await fs.writeFile(result.filePath, JSON.stringify(run, null, 2));
+      await fs.writeFile(
+        result.filePath,
+        await new ExecutionLogExporter(journal).diagnostics(run, await repository.getProfile(id)),
+      );
       return result.filePath;
     });
     this.handle('exportExecutionLog', z.tuple([Contracts.id]), async ([id]) => {
       const run = await repository.get(id);
       const result = await dialog.showSaveDialog({
         title: this.translator.t('Download execution log'),
-        defaultPath: `execution-${id.slice(0, 8)}.md`,
+        defaultPath: `journal-${id.slice(0, 8)}.md`,
         filters: [{ name: 'Markdown', extensions: ['md'] }],
       });
       if (result.canceled || !result.filePath) return null;
@@ -503,8 +521,8 @@ class DesktopApplication {
       );
       return result.filePath;
     });
-    this.handle('saveSettings', z.tuple([Contracts.settings, z.string().max(512)]), async ([value, key]) => {
-      await settings.save(value, key);
+    this.handle('saveSettings', z.tuple([Contracts.settings]), async ([value]) => {
+      await settings.save(value);
       await refreshCodex();
       void catalogWorkspace
         .ensure()
@@ -513,23 +531,13 @@ class DesktopApplication {
     });
     this.handle('checkConnection', z.tuple([]), async () => {
       try {
-        if (settings.settings.provider === 'codex') {
-          await refreshCodex();
-          const message = await CodexRunner.check(codexExecutable);
-          void catalogWorkspace
-            .ensure()
-            .then(() => knowledgeWorkspace.ensureCards())
-            .catch(() => {});
-          return { ok: true, message };
-        }
-        return {
-          ok: true,
-          message: await new OpenAiProvider(
-            settings.credential(),
-            settings.settings.imageModel,
-            settings.settings.textModel,
-          ).check(),
-        };
+        await refreshCodex();
+        const message = await CodexRunner.check(codexExecutable);
+        void catalogWorkspace
+          .ensure()
+          .then(() => knowledgeWorkspace.ensureCards())
+          .catch(() => {});
+        return { ok: true, message };
       } catch (error) {
         return { ok: false, message: this.message(error) };
       }

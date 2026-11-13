@@ -95,20 +95,22 @@ export class ReferenceRetriever {
     selectedIds: string[],
     limit: number,
     category?: string,
-    anchorIds: string[] = [],
     compositionIds?: string[],
   ): LibraryItem[] {
     this.validateLimit(limit);
-    if (limit < 4) throw new Error('Reference selection requires room for four original anchors.');
     const unique = this.unique(ranked);
     const byId = new Map(unique.map((item) => [item.id, item]));
-    const eligible = unique.filter((item) => this.eligible(item, category === '5'));
+    const eligible = unique.filter(
+      (item) =>
+        this.eligible(item, category === '5') && (!compositionIds || compositionIds.includes(item.id)),
+    );
     const selected: LibraryItem[] = [];
     const usedHashes = new Set<string>();
     const add = (item: LibraryItem | undefined) => {
       if (
         !item ||
         !this.eligible(item, category === '5') ||
+        (compositionIds && !compositionIds.includes(item.id)) ||
         usedHashes.has(item.sha256) ||
         selected.length >= limit
       )
@@ -121,7 +123,6 @@ export class ReferenceRetriever {
       selected.push(item);
       usedHashes.add(item.sha256);
     };
-    for (const id of anchorIds) add(eligible.find((item) => item.id === id && item.origin === 'anchor'));
     if (category) {
       const minimum = compositionIds ? CatalogPolicy.values.minimumCompositionReferences : 2;
       const matching = eligible.filter(
@@ -142,10 +143,6 @@ export class ReferenceRetriever {
         throw new Error(
           `At least ${minimum === 2 ? 'two' : minimum} original category ${category} references are required.`,
         );
-      for (const item of eligible.filter((item) => item.origin === 'anchor')) {
-        if (selected.filter((r) => r.origin === 'anchor').length >= 4) break;
-        add(item);
-      }
     } else {
       for (const category of ['1', '2', '3', '4'])
         add(eligible.find((item) => item.origin === 'anchor' && item.category === category));
@@ -156,8 +153,6 @@ export class ReferenceRetriever {
       add(item);
     }
     for (const item of eligible) add(item);
-    if (selected.filter((item) => item.origin === 'anchor').length < 4)
-      throw new Error('At least four distinct original anchors are required.');
     return selected;
   }
 

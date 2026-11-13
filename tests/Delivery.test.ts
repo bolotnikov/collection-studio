@@ -167,3 +167,21 @@ it('fails fast for incomplete card arrays or mismatched template dimensions', as
     ),
   ).rejects.toThrow('dimensions');
 });
+
+it('exports the exact selected window bytes and rejects stale preview identity', async () => {
+  const { folder, images, run } = await fixture();
+  const service = new DeliveryPreviewService(images, path.resolve('resources/knowledge'));
+  const previews = await service.create(run, 'variant', folder);
+  const selected = previews[0];
+  if (!selected) throw new Error('Missing preview');
+  const destination = path.join(folder, 'individual-window.png');
+  await service.export(run, 'variant', folder, selected, destination);
+  expect(
+    createHash('sha256')
+      .update(await fs.readFile(destination))
+      .digest('hex'),
+  ).toBe(selected.sha256);
+  await expect(
+    service.export(run, 'variant', folder, { ...selected, sha256: '0'.repeat(64) }, destination),
+  ).rejects.toThrow('preview has changed');
+});

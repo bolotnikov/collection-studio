@@ -7,6 +7,7 @@ import { SetComposition } from '../domain/SetComposition';
 
 /** Persist each proposal and review before advancing; resume partially reviewed proposals. */
 export class SetPlanningService {
+  constructor(private readonly referenceRoot?: string) {}
   async plan(
     provider: GenerationPort,
     brief: Brief,
@@ -16,15 +17,24 @@ export class SetPlanningService {
     history: NonNullable<Run['planHistory']>,
     checkpoint: (message?: string) => Promise<void>,
     stopped: () => boolean,
-    state: Pick<Run, 'compositionDraft'> = {},
-  ): Promise<{ plan: Plan; reviews: PlanReview[] } | null> {
+    state: Pick<Run, 'compositionDraft' | 'planningSessionStart'> = {},
+  ): Promise<{
+    plan: Plan;
+    reviews: PlanReview[];
+    warnings?: string[];
+    validation?: 'deterministic-slots-first-v1';
+  } | null> {
     while (!stopped()) {
-      let entry = history.at(-1);
+      let entry = history.length > (state.planningSessionStart ?? 0) ? history.at(-1) : undefined;
       if (entry && this.accepted(entry, policy)) return { plan: entry.plan, reviews: entry.reviews };
       const partial = entry && !entry.errors.length && entry.reviews.length < entry.plan.variants.length;
       if (!partial) {
-        if (history.length >= 1 + policy.maxPlanRepairs) return null;
-        const correction = entry ? JSON.stringify({ errors: entry.errors, reviews: entry.reviews }) : '';
+        if (history.length - (state.planningSessionStart ?? 0) >= 1 + policy.maxPlanRepairs)
+          return this.fallback(history, policy);
+        const previous = entry ?? history.at(-1);
+        const correction = previous
+          ? JSON.stringify({ errors: previous.errors, reviews: previous.reviews })
+          : '';
         const result = profile.compositionPlanning
           ? await new CompositionPlanningService().propose(
               provider,
@@ -36,6 +46,8 @@ export class SetPlanningService {
               state,
               checkpoint,
               stopped,
+              this.referenceRoot,
+              history.length - (state.planningSessionStart ?? 0) >= policy.maxPlanRepairs,
             )
           : { plan: await provider.plan(brief, profile, references, correction), errors: [] };
         if (!result) return null;
@@ -45,6 +57,9 @@ export class SetPlanningService {
           plan,
           reviews: [],
           errors,
+          ...(profile.compositionPlanning?.version === 'slots-first-v1'
+            ? { validation: 'deterministic-slots-first-v1' as const }
+            : {}),
           ...(profile.compositionPlanning
             ? { compositionDraft: structuredClone(state.compositionDraft) }
             : {}),
@@ -72,6 +87,8 @@ export class SetPlanningService {
       }
       if (!entry) throw new Error('Plan proposal was not persisted.');
       if (entry.errors.length) continue;
+      if (entry.validation === 'deterministic-slots-first-v1')
+        return { plan: entry.plan, reviews: entry.reviews, validation: entry.validation };
       for (let index = entry.reviews.length; index < entry.plan.variants.length; index++) {
         if (stopped()) return null;
         const variant = entry.plan.variants[index];
@@ -83,12 +100,40 @@ export class SetPlanningService {
         } catch (error) {
           entry.reviewError = error instanceof Error ? error.message : 'Plan review unavailable';
           await checkpoint();
+          if (ProductionRules.allowsWarnings(policy)) return this.fallback(history, policy);
           throw error;
         }
         await checkpoint();
       }
     }
     return null;
+  }
+  private fallback(history: NonNullable<Run['planHistory']>, policy: PlanningPolicy) {
+    if (!ProductionRules.allowsWarnings(policy)) return null;
+    const entry = history
+      .filter((entry) => !entry.errors.length && entry.plan.variants.length)
+      .map((entry, index) => ({
+        entry,
+        index,
+        score:
+          entry.reviews.reduce(
+            (sum, review) =>
+              sum + review.thematicCohesion + review.visualDiversity + review.styleFaithfulness,
+            0,
+          ) / entry.plan.variants.length,
+      }))
+      .sort((a, b) => b.score - a.score || b.index - a.index)[0]?.entry;
+    if (!entry) return null;
+    return {
+      plan: entry.plan,
+      reviews: entry.reviews,
+      validation: entry.validation,
+      warnings: [
+        entry.reviewError ||
+          entry.reviews.flatMap((review) => review.findings).join('; ') ||
+          'Independent plan review did not pass. Continuing with the strongest structurally valid plan.',
+      ],
+    };
   }
   private accepted(entry: NonNullable<Run['planHistory']>[number], policy: PlanningPolicy): boolean {
     return (

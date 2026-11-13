@@ -9,11 +9,28 @@ export class PromptCatalog {
     for (const [key, template] of Object.entries(required)) {
       const value = values[key];
       // This additive protocol is absent in historical snapshots; never inject it into them.
-      if (!value && ['generation.context.v1', 'reference.coverage.v1'].includes(key) && input !== defaults)
+      if (
+        !value &&
+        [
+          'generation.context.v1',
+          'reference.coverage.v1',
+          'review.composition.v1',
+          'review.environment.v1',
+          'generation.appearance.v1',
+          'review.mandatoryViolations.v1',
+          'correction.mandatory.v1',
+          'review.grid.v1',
+          'correction.grid.v1',
+        ].includes(key) &&
+        input !== defaults
+      )
         continue;
       if (!value) throw new Error(`Missing prompt template: ${key}`);
       const slots = (text: string) => [...new Set(text.match(/\{\{\w+\}\}/g) ?? [])].sort().join(',');
-      if (slots(value) !== slots(template)) throw new Error(`Invalid prompt placeholders: ${key}`);
+      // Archived Codex prompts retain their former quality-intent placeholder verbatim.
+      const historicalQuality = key === 'CodexProvider.image' && slots(value) === '{{prompt}},{{quality}}';
+      if (slots(value) !== slots(template) && !historicalQuality)
+        throw new Error(`Invalid prompt placeholders: ${key}`);
     }
     this.values = Object.freeze(values);
   }

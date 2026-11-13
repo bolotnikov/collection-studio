@@ -41,7 +41,6 @@ it('retains live updates but never resurrects deleted projects from late events 
     runs: [],
     profile: Contracts.profile.parse(profile),
     settings: Contracts.settings.parse({ imageModel: 'fixture', textModel: 'fixture' }),
-    hasKey: false,
     codexReady: false,
     referenceCount: 8,
     dataPath: '/fixture',

@@ -53,6 +53,16 @@ export class RunRepository implements RunStore {
   }
   async saveProfile(id: string, profile: Profile): Promise<void> {
     const file = path.join(this.directory(id), 'style-profile.json');
+    try {
+      await fs.copyFile(
+        file,
+        path.join(this.directory(id), 'style-profile.initial.json'),
+        fs.constants.COPYFILE_EXCL,
+      );
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && ['ENOENT', 'EEXIST'].includes(String(error.code))))
+        throw error;
+    }
     await fs.writeFile(file + '.tmp', JSON.stringify(profile, null, 2));
     await fs.rename(file + '.tmp', file);
   }

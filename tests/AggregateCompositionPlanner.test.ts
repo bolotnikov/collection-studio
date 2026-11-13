@@ -137,3 +137,80 @@ it('uses all sources even if individual sources omit a mandatory category, and f
   });
   expect(() => planner.select([bad], catalog, false)).toThrow('No subject assignment');
 });
+
+it('records an approximation instead of stopping best-effort production when semantic compatibility is too narrow', () => {
+  const { catalog, concept, planner } = AggregateFixture.create();
+  concept.candidates.forEach((candidate) => {
+    candidate.compatibleCategories = ['1'];
+  });
+  expect(() => planner.select([concept], catalog, false)).toThrow('No subject assignment');
+  const [fallback] = planner.select([concept], catalog, false, true);
+  expect(fallback?.slots).toHaveLength(10);
+  expect(new Set(fallback?.slots.map((slot) => slot.target.category)).size).toBe(4);
+  expect(fallback?.warnings?.join(' ')).toContain('approximated');
+  expect(concept.candidates.every((candidate) => candidate.compatibleCategories.length === 1)).toBe(true);
+});
+
+it('varies exact-match reference selection and priority by seed while preserving every composition constraint', () => {
+  const { catalog, planner } = AggregateFixture.create();
+  const original = catalog.cards[0];
+  if (!original) throw new Error('Missing reference fixture');
+  catalog.cards.push(
+    ...Array.from({ length: 12 }, (_, index) => ({
+      ...structuredClone(original),
+      id: `additional-${index}`,
+      sha256: String(index + 100).padStart(64, '0'),
+    })),
+    {
+      ...structuredClone(original),
+      id: 'low-confidence',
+      observation: { ...original.observation, confidence: 0.1 },
+    },
+  );
+  const baseline = planner.planSlots(catalog, false);
+  const first = planner.planSlots(catalog, false, 'run-a/0');
+  const second = planner.planSlots(catalog, false, 'run-b/0');
+  const otherVariant = planner.planSlots(catalog, false, 'run-a/1');
+  const withoutSelections = (plan: typeof first) => {
+    const copy = structuredClone(plan);
+    for (const target of [...copy.composition.targets, ...copy.slots.map((slot) => slot.target)])
+      delete target.selectedReferenceIds;
+    return copy;
+  };
+  expect(withoutSelections(first)).toEqual(withoutSelections(baseline));
+  expect(withoutSelections(second)).toEqual(withoutSelections(baseline));
+  expect(first).toEqual(planner.planSlots(catalog, false, 'run-a/0'));
+  expect(first).toEqual(
+    planner.planSlots(
+      { ...catalog, cards: [...catalog.cards].reverse(), sets: [...catalog.sets].reverse() },
+      false,
+      'run-a/0',
+    ),
+  );
+  expect(first).not.toEqual(second);
+  expect(first).not.toEqual(otherVariant);
+  for (const slot of first.slots) {
+    const selected = slot.target.selectedReferenceIds ?? [];
+    const candidates = slot.target.referenceIds ?? [];
+    expect(selected).toHaveLength(Math.min(8, candidates.length));
+    expect(new Set(selected).size).toBe(selected.length);
+    expect(selected.every((id) => candidates.includes(id) && id !== 'low-confidence')).toBe(true);
+    if (candidates.length <= 8) expect([...selected].sort()).toEqual([...candidates].sort());
+    else expect(selected.some((id) => !candidates.slice(0, 8).includes(id))).toBe(true);
+    for (const id of selected) {
+      const reference = catalog.cards.find((card) => card.id === id);
+      expect(reference?.observation.category).toBe(slot.target.category);
+      expect(SetComposition.matches(reference?.observation.facets, slot.target.required)).toBe(true);
+    }
+  }
+  const plan = CompositionFixture.create().plan;
+  const variant = plan.variants[0];
+  if (!variant?.artContract) throw new Error('Missing validation fixture');
+  variant.artContract.composition = first.composition;
+  variant.cards.forEach((card, index) => {
+    const target = first.composition.targets[index];
+    if (!target) throw new Error('Missing slot');
+    card.category = target.category;
+  });
+  expect(() => SetComposition.validate(plan, catalog)).not.toThrow();
+});

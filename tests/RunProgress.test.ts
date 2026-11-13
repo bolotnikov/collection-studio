@@ -118,6 +118,23 @@ it('shows both current operations and retries, but hides stale activity on pause
   expect(renderToStaticMarkup(createElement(RunProgressView, { run }))).not.toContain('Projector');
 });
 
+it('groups parallel cards under one stage explanation and keeps card numbers in grid order', () => {
+  const run = ProgressFixture.run();
+  run.activities = [
+    { key: 'second', kind: 'generation', subject: 'Cowboy belt', index: 2, total: 10 },
+    { key: 'first', kind: 'generation', subject: 'Mail stagecoach', index: 1, total: 10 },
+  ];
+  const html = renderToStaticMarkup(createElement(RunProgressView, { run }));
+  const t = new Localization('ru').t;
+  expect(html.split(t('Waiting for images from the model.'))).toHaveLength(2);
+  expect(html.split(t('Generating images'))).toHaveLength(2);
+  expect(html.indexOf('Mail stagecoach')).toBeLessThan(html.indexOf('Cowboy belt'));
+  expect(html).toContain(t('Card {number}', { number: 1 }));
+  expect(html).toContain(t('Card {number}', { number: 2 }));
+  expect(html).toContain(t('Overall progress'));
+  expect(html).toContain(t('Currently working on'));
+});
+
 it('keeps planned and observed patterns distinct and exposes discrepancies', () => {
   const target = CompositionFixture.create().variant.artContract?.composition?.targets[0];
   if (!target) throw new Error('Fixture');
@@ -144,4 +161,32 @@ it('shows an indeterminate planning phase and elapsed time instead of a frozen z
   expect(html).toContain('1:05');
   expect(html).not.toContain('0%');
   expect(html).not.toContain('value="0"');
+});
+
+it('finishes progress at 100 percent with warnings without presenting rejected checks as passed', () => {
+  const run = ProgressFixture.run();
+  run.planningPolicy = {
+    qualityMode: 'best-effort-v1',
+    maxPlanRepairs: 1,
+    minimumPlanScore: 4,
+    productionConcurrency: 2,
+  };
+  ProgressFixture.approveCards(run);
+  const variant = run.variants[0];
+  if (!variant) throw new Error('Missing fixture');
+  for (const card of variant.cards) {
+    const attempt = card.attempts[0];
+    if (!attempt?.review) throw new Error('Missing fixture review');
+    attempt.review.passed = false;
+    attempt.review.compositionMatch = false;
+  }
+  variant.review = {
+    passed: false,
+    coherence: 3,
+    findings: ['Unresolved palette mismatch'],
+    outlierCardIds: [],
+  };
+  run.status = 'completed';
+  run.qualityWarnings = ['Unresolved palette mismatch'];
+  expect(RunProgress.snapshot(run)).toMatchObject({ percent: 100, verified: 0 });
 });

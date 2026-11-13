@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import type { Card, Profile, Run, StudioApi } from '../../shared/Contracts';
 import { Assets } from './Assets';
+import { ReferenceImages } from './ReferenceImages';
 
 type Props = {
   api: StudioApi;
@@ -32,9 +33,16 @@ type Props = {
   perform: (action: () => Promise<unknown>) => Promise<void>;
   onLibraryChanged: () => Promise<void>;
 };
-export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: Props) {
+export function RunView({ run, profile: initialProfile, busy, perform, onLibraryChanged, api }: Props) {
   const { t, text, locale } = useLocalization();
   const {
+    profile,
+    referencesReady,
+    referenceError,
+    usedReferences,
+    plannedReferences,
+    referenceCandidates,
+    comparisonReference,
     diagnosticsOpen,
     setDiagnosticsOpen,
     exportDiagnostics,
@@ -60,7 +68,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
     approve,
     toggleLock,
     retry,
-  } = useRunViewModel(run, api, perform, onLibraryChanged);
+  } = useRunViewModel(run, api, perform, onLibraryChanged, initialProfile);
   return (
     <div className="run-view">
       <div className="eyebrow">
@@ -70,12 +78,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
         <div>
           <h1>{run.brief.theme}</h1>
           <p>
-            {run.brief.variants} {t('variants ·')} {total} {t('cards ·')}{' '}
-            {run.brief.quality === 'low'
-              ? t('Draft quality')
-              : run.brief.quality === 'medium'
-                ? t('Standard quality')
-                : t('High quality')}
+            {run.brief.variants} {t('variants ·')} {total} {t('cards')}
           </p>
         </div>
         <div className="actions">
@@ -102,102 +105,91 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
           </button>
         </div>
       </div>
-      <RunProgressView run={run} />
-      {variant ? (
-        <>
-          <div className="variant-tabs">
-            {run.variants.map((v, i) => (
-              <button
-                key={v.id}
-                onClick={() => {
-                  setTab(v.id);
-                  setCardId(null);
-                }}
-                className={variant.id === v.id ? 'selected' : ''}
-              >
-                <span>0{i + 1}</span>
-                {v.title}
-                {v.id === run.selectedVariantId && <Check size={14} />}
-              </button>
-            ))}
-          </div>
-          <div className="variant-heading">
-            <div>
-              <h2>{variant.title}</h2>
+      <section className="generation-workspace">
+        <RunProgressView run={run} />
+        {variant ? (
+          <>
+            {run.variants.length > 1 && (
+              <div className="variant-tabs">
+                {run.variants.map((v, i) => (
+                  <button
+                    key={v.id}
+                    onClick={() => {
+                      setTab(v.id);
+                      setCardId(null);
+                    }}
+                    className={variant.id === v.id ? 'selected' : ''}
+                  >
+                    <span>0{i + 1}</span>
+                    {v.title}
+                    {v.id === run.selectedVariantId && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="variant-heading">
+              <div>
+                <h2>{variant.title}</h2>
+              </div>
+              {run.variants.length > 1 && (
+                <button
+                  disabled={busy || active || variant.id === run.selectedVariantId}
+                  onClick={selectVariant}
+                >
+                  {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
+                  {variant.id === run.selectedVariantId
+                    ? t('Selected for delivery')
+                    : t('Select for delivery')}
+                </button>
+              )}
             </div>
-            <button disabled={busy || active || variant.id === run.selectedVariantId} onClick={selectVariant}>
-              {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
-              {variant.id === run.selectedVariantId ? t('Selected for delivery') : t('Select for delivery')}
-            </button>
+            <div className="cards-grid">
+              {variant.cards.map((c, i) => (
+                <CardTile
+                  key={c.id}
+                  card={c}
+                  run={run}
+                  index={i}
+                  onClick={() => {
+                    setCardId(c.id);
+                    setInstruction('');
+                  }}
+                />
+              ))}
+            </div>
+            {complete && !active && <DeliveryGallery api={api} run={run} variant={variant} />}
+          </>
+        ) : !active &&
+          !run.compositionDraft?.slotPlans?.length &&
+          !run.compositionDraft?.blueprints?.length ? (
+          <div className="planning-empty">
+            {run.status === 'failed' ? <CircleAlert size={30} /> : <Pause size={30} />}
+            <h2>{t(run.status === 'failed' ? 'Planning failed' : 'Planning paused')}</h2>
+            <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>
           </div>
-          <SetBlueprintView
-            composition={variant.artContract?.composition}
-            subjects={variant.cards.map((card) => card.subject)}
-            profile={profile}
-          />
-          <div className="cards-grid">
-            {variant.cards.map((c, i) => (
-              <CardTile
-                key={c.id}
-                card={c}
-                run={run}
-                index={i}
-                onClick={() => {
-                  setCardId(c.id);
-                  setInstruction('');
-                }}
-              />
-            ))}
-          </div>
-          <div className={`set-status ${complete ? 'green' : 'amber'}`} role="status">
-            {complete ? <CheckCircle2 size={16} /> : <CircleAlert size={16} />}
-            <span>
-              {complete
-                ? t('Ready for delivery')
-                : active
-                  ? t('Review follows generation')
-                  : t('Needs attention')}
-            </span>
-            {!complete && !active && <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>}
-          </div>
-          {complete && !active && <DeliveryGallery api={api} run={run} variant={variant} />}
-        </>
-      ) : (
-        <div className="planning-empty">
-          {active ? (
-            <>
-              <LoaderCircle className="spin" size={30} />
-              <h2>{t('Planning the collection')}</h2>
-              <p>
-                {t(
-                  run.brief.includeGold
-                    ? 'Selecting subjects and composition categories 1–5, including gold cards'
-                    : 'Selecting subjects and composition categories 1–4',
-                )}{' '}
-                <br />
-                {t('and a distinct concept for each variant.')}
-              </p>
-            </>
-          ) : (
-            <>
-              {run.status === 'failed' ? <CircleAlert size={30} /> : <Pause size={30} />}
-              <h2>{t(run.status === 'failed' ? 'Planning failed' : 'Planning paused')}</h2>
-              <p>{text(run.stage)}</p>
-              <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>
-            </>
-          )}
-        </div>
-      )}
-      {!variant &&
-        run.compositionDraft?.blueprints?.map((blueprint, index) => (
-          <SetBlueprintView
-            key={`${run.compositionDraft?.attempt}-${index}`}
-            composition={blueprint.composition}
-            subjects={blueprint.slots.map((slot) => slot.subject.subject)}
-            profile={profile}
-            proposed
-          />
-        ))}
+        ) : null}
+        {!variant &&
+          !run.compositionDraft?.blueprints?.length &&
+          run.compositionDraft?.slotPlans?.map((plan, index) => (
+            <SetBlueprintView
+              key={`slots-${index}`}
+              composition={plan.composition}
+              subjects={plan.slots.map(() => t('Subject being selected'))}
+              profile={profile}
+              proposed
+            />
+          ))}
+        {!variant &&
+          run.compositionDraft?.blueprints?.map((blueprint, index) => (
+            <SetBlueprintView
+              key={`${run.compositionDraft?.attempt}-${index}`}
+              composition={blueprint.composition}
+              subjects={blueprint.slots.map((slot) => slot.subject.subject)}
+              profile={profile}
+              proposed
+            />
+          ))}
+      </section>
       {diagnosticsOpen && (
         <RunDiagnostics
           run={run}
@@ -226,7 +218,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
             <p>{card.role}</p>
             <SlotRequirements
               target={variant ? SetComposition.target(variant, card) : undefined}
-              observed={Assets.selected(card)?.review?.observedComposition}
+              showObserved={false}
             />
             <div className="comparison">
               <div>
@@ -240,81 +232,28 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
                 <small>{t('Selected version')}</small>
               </div>
               <div>
-                {profile.references
-                  .filter((r) => r.category === card.category)
-                  .slice(0, 1)
-                  .map((r) => (
-                    <img
-                      src={Assets.reference(r.filename)}
-                      key={r.id}
-                      alt={t('Reference: {title}', { title: text(r.title) })}
-                    />
-                  ))}
+                {comparisonReference && <img src={comparisonReference.src} alt={comparisonReference.title} />}
                 <small>
-                  {t('Category reference')} {card.category}
+                  {comparisonReference ? text(comparisonReference.role) : t('Reference selection')}
                 </small>
               </div>
             </div>
-            <p className="category-description">{profile.categories[card.category]}</p>
-            {Assets.selected(card)?.review && (
-              <details className="card-review">
-                <summary>{t('Review details')}</summary>
-                <strong>
-                  {Assets.selected(card)?.review?.passed
-                    ? t('Automated review passed')
-                    : t('Needs art review')}
-                </strong>
-                <div className="score-row">
-                  <span>
-                    {' '}
-                    {t('Style')} <b>{Assets.selected(card)?.review?.style}/5</b>
-                  </span>
-                  <span>
-                    {' '}
-                    {t('Readability')} <b>{Assets.selected(card)?.review?.readability}/5</b>
-                  </span>
-                  <span>
-                    {' '}
-                    {t('Subject')} <b>{Assets.selected(card)?.review?.subjectMatch}/5</b>
-                  </span>
-                </div>
-                <ul>
-                  {Assets.selected(card)?.review?.findings.map((f, i) => (
-                    <li key={i}>{f}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-            {(card.error || Assets.selected(card)?.reviewError) && (
-              <p className="inline-error">{text(card.error || Assets.selected(card)?.reviewError || '')}</p>
-            )}
-            <h3>
-              {' '}
-              {t('Version history')} <span className="muted">{card.attempts.length}</span>
-            </h3>
-            <div className="attempts">
-              {card.attempts.map((a, i) => (
-                <button
-                  disabled={busy || active || card.locked}
-                  className={card.selectedAttemptId === a.id ? 'selected' : ''}
-                  key={a.id}
-                  onClick={() => selectAttempt(a.id)}
-                >
-                  <img src={Assets.image(run, a.preview)} alt={t('Version {number}', { number: i + 1 })} />
-                  <span>
-                    {' '}
-                    {t('Version')} {i + 1} {card.selectedAttemptId === a.id ? '✓' : ''}
-                  </span>
-                </button>
-              ))}
-            </div>
             <div className="drawer-controls">
-              <button disabled={busy || active || !Assets.selected(card)?.review?.passed} onClick={approve}>
+              <button
+                disabled={
+                  busy ||
+                  active ||
+                  (run.reviewProtocol === 'composition-v1'
+                    ? !Assets.selected(card)
+                    : !Assets.selected(card)?.review?.passed)
+                }
+                onClick={approve}
+              >
                 {t('Approve and save to library')}
               </button>
               <small>
                 {t(
-                  'The verified image is added to your reference art library. You can edit its category and description there.',
+                  'The selected image is added to your reference art library. You can edit its category and description there.',
                 )}
               </small>
 
@@ -336,9 +275,58 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
                 disabled={busy || active || card.locked || run.imageCalls >= run.brief.maxImageCalls}
                 onClick={retry}
               >
-                <RefreshCw size={16} /> {t('Generate revision')}{' '}
+                <RefreshCw size={16} /> {t('Regenerate image')}{' '}
               </button>
-              <small>{t('One image call + review. Previous versions are retained.')}</small>
+              <small>{t('One new image. Previous versions are retained. Instructions are optional.')}</small>
+            </div>
+            <p className="category-description">{profile.categories[card.category]}</p>
+            {referenceError && <p className="inline-error">{t('Project references could not be loaded.')}</p>}
+            {!referencesReady && !referenceError && (
+              <p className="muted">{t('Loading project references…')}</p>
+            )}
+            {usedReferences.length > 0 ? (
+              <section>
+                <h3>
+                  {t('References used for this version')} · {usedReferences.length}
+                </h3>
+                <ReferenceImages references={usedReferences} />
+              </section>
+            ) : (
+              plannedReferences.length > 0 && (
+                <section>
+                  <h3>{t('Planning references')}</h3>
+                  <ReferenceImages references={plannedReferences} />
+                </section>
+              )
+            )}
+            {referenceCandidates.length > 0 && (
+              <details>
+                <summary>
+                  {t('Matching candidates')} · {referenceCandidates.length}
+                </summary>
+                <ReferenceImages references={referenceCandidates} />
+              </details>
+            )}
+            {card.error && <p className="inline-error">{text(card.error)}</p>}
+            <h3>
+              {' '}
+              {t('Version history')} <span className="muted">{card.attempts.length}</span>
+            </h3>
+            <div className="attempts">
+              {card.attempts.map((a, i) => (
+                <button
+                  disabled={busy || active || card.locked}
+                  className={card.selectedAttemptId === a.id ? 'selected' : ''}
+                  key={a.id}
+                  onClick={() => selectAttempt(a.id)}
+                >
+                  <img src={Assets.image(run, a.preview)} alt={t('Version {number}', { number: i + 1 })} />
+                  <span>
+                    {' '}
+                    {t('Version')} {i + 1} {card.selectedAttemptId === a.id ? '✓' : ''}
+                  </span>
+                </button>
+              ))}
             </div>
             {evidence && (
               <details className="reference-evidence">
@@ -410,11 +398,11 @@ function CardTile({
   index: number;
   onClick: () => void;
 }) {
-  const { t } = useLocalization();
+  const { t, text } = useLocalization();
   const attempt = Assets.selected(card),
-    pending = ['generating', 'reviewing'].includes(card.status);
+    pending = Assets.active(run) && ['generating', 'reviewing'].includes(card.status);
   return (
-    <button className="card-tile" onClick={onClick}>
+    <button className={`card-tile${pending ? ' is-working' : ''}`} onClick={onClick}>
       <div className="card-art">
         {attempt ? (
           <img src={Assets.image(run, attempt.preview)} alt={card.subject} />
@@ -432,9 +420,11 @@ function CardTile({
                 ? t('Queued')
                 : card.status === 'failed'
                   ? t('Error')
-                  : card.status === 'reviewing'
-                    ? t('Review')
-                    : t('Generating')}
+                  : !Assets.active(run) && ['generating', 'reviewing'].includes(card.status)
+                    ? text(Assets.status(run))
+                    : card.status === 'reviewing'
+                      ? t('Review')
+                      : t('Generating')}
             </span>
           </div>
         )}
@@ -450,12 +440,11 @@ function CardTile({
         <span>
           {' '}
           {t('Category')} {card.category}
-          {attempt &&
-            (attempt.review?.passed ? (
-              <CheckCircle2 size={13} className="green" />
-            ) : (
-              <CircleAlert size={13} className="amber" />
-            ))}
+          {pending && attempt ? (
+            <LoaderCircle size={13} className="spin" />
+          ) : attempt && !pending ? (
+            <CheckCircle2 size={13} className="green" />
+          ) : null}
         </span>
       </div>
     </button>

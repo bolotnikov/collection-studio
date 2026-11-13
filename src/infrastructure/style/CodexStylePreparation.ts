@@ -20,6 +20,8 @@ import { ReferenceRetriever } from '../../application/style/ReferenceRetriever';
 import { PromptBuilder } from '../../application/PromptBuilder';
 import { CodexRunner } from '../CodexRunner';
 import { SetComposition } from '../../domain/SetComposition';
+import fallbackContent from '../../../resources/reference-fallback.json';
+import { MaterialVocabulary } from '../../domain/MaterialVocabulary';
 
 /** Bounded specialist tasks: brief analysis, cached library analysis, visual selection and direction. */
 export class CodexStylePreparation implements StylePreparationPort {
@@ -109,6 +111,11 @@ export class CodexStylePreparation implements StylePreparationPort {
           backdrop: observation.facets.backdrop,
           pattern: observation.facets.pattern,
           depth: observation.facets.depth,
+          environment: observation.environment,
+          environmentKind: observation.facets.environmentKind,
+          backgroundLayout: observation.facets.backgroundLayout,
+          backgroundDetail: observation.facets.backgroundDetail,
+          backgroundProps: observation.facets.backgroundProps,
         }),
         usefulPrinciples: [observation.categoryRationale],
         avoidCopying: ['Source subject identity'],
@@ -326,7 +333,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       : undefined;
     const key = this.digest(
       JSON.stringify([
-        'prepared-style-v1',
+        'prepared-style-v2',
         this.model,
         this.prompts.values,
         this.categoryDefinitions,
@@ -435,7 +442,11 @@ export class CodexStylePreparation implements StylePreparationPort {
     const ranked = this.retriever.rank(query, card.category, effective, analyses, 24);
     const target = SetComposition.target(variant, card);
     const compositionIds = target
-      ? effective.filter((item) => SetComposition.reference(item, target)).map((item) => item.id)
+      ? (
+          target.selectedReferenceIds ??
+          target.referenceIds ??
+          effective.filter((item) => SetComposition.reference(item, target)).map((item) => item.id)
+        ).filter((id) => effective.some((item) => item.id === id && SetComposition.reference(item, target)))
       : undefined;
     const categoryCandidates = this.retriever.rank(
       query,
@@ -446,15 +457,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       analyses,
       8,
     );
-    const fixed = profile.references
-      .map((r) => effective.find((item) => item.id === r.id))
-      .filter(
-        (r): r is LibraryItem =>
-          Boolean(r) &&
-          (r ? analyses.get(r.id)?.eligible !== false && analyses.get(r.id)?.category !== '5' : false),
-      );
-    const commonAnchorIds = fixed.slice(0, 2).map((item) => item.id);
-    if (commonAnchorIds.length < 2) throw new Error('Two shared original style anchors are required.');
+    const catalogueOnly = profile.referenceSelection === 'catalogue-v1';
     const materialCandidates = this.retriever.rank(
       JSON.stringify(card.visual ?? { subject: card.subject, description: card.description }),
       card.category,
@@ -463,19 +466,37 @@ export class CodexStylePreparation implements StylePreparationPort {
       8,
     );
     const candidates = [
-      ...new Map(
-        [...categoryCandidates, ...fixed, ...materialCandidates, ...ranked].map((r) => [r.id, r]),
-      ).values(),
+      ...new Map([...categoryCandidates, ...materialCandidates, ...ranked].map((r) => [r.id, r])).values(),
     ];
     const scored = this.retriever.rank(query, card.category, candidates, analyses, 24);
-    const visualPool = this.retriever.select(
-      [...fixed, ...categoryCandidates, ...materialCandidates, ...scored],
-      scored.map((r) => r.id),
-      Math.min(12, this.policy.referenceLimit + 4),
-      card.category,
-      commonAnchorIds,
-      compositionIds,
-    );
+    const frozen = catalogueOnly ? target?.selectedReferenceIds : undefined;
+    const visualPool = frozen
+      ? frozen.map((id) => {
+          const item = effective.find((item) => item.id === id);
+          if (!item || !target || !SetComposition.reference(item, target))
+            throw new Error('Frozen slot reference is unavailable or contradicts its assigned pattern.');
+          return item;
+        })
+      : catalogueOnly
+        ? this.retriever.rank(
+            query,
+            card.category,
+            effective.filter(
+              (item) =>
+                item.category === card.category &&
+                (!compositionIds || compositionIds.includes(item.id)) &&
+                (!target || SetComposition.reference(item, target)),
+            ),
+            analyses,
+            Math.min(12, this.policy.referenceLimit + 4),
+          )
+        : this.retriever.select(
+            [...categoryCandidates, ...materialCandidates, ...scored],
+            scored.map((r) => r.id),
+            Math.min(12, this.policy.referenceLimit + 4),
+            card.category,
+            compositionIds,
+          );
     for (const item of visualPool) {
       const actual = createHash('sha256')
         .update(await fs.readFile(this.filename(item)))
@@ -491,81 +512,160 @@ export class CodexStylePreparation implements StylePreparationPort {
       : target
         ? baseEntry.extend({ compositionMatches: z.boolean() })
         : baseEntry;
-    const selection = (
-      await this.runner.run(
-        this.prompts.render('CodexStylePreparation.prepareOnce', {
-          producerAnalysis: direction,
-          card: JSON.stringify({
-            subject: card.subject,
-            description: card.description,
-            category: card.category,
-            categoryDefinition: profile.categories[card.category],
-            role: card.role,
-            compositionTarget: target,
-          }),
-          setConcept: variant.concept,
-          artContract: JSON.stringify(variant.artContract ?? null),
-          visualRequirements: JSON.stringify(card.visual ?? null),
-          correction: correction,
-          rules: JSON.stringify({
-            rendering: profile.rules,
-            production: this.policy.rules,
-            requirements: profile.requirements ?? [],
-          }),
-          candidateImages: JSON.stringify(
-            visualPool.map((r) => ({
-              id: r.id,
-              title: r.title,
-              origin: r.origin,
-              analysis: analyses.get(r.id),
-              observedFacets: r.observation?.facets,
-            })),
-          ),
-        }) + (coverageProtocol ? '\n' + coverageProtocol : ''),
-        StyleContracts.selection.extend({ selections: z.array(entrySchema) }),
-        visualPool.map((r) => this.filename(r)),
-      )
-    ).value;
-    if (
-      selection.selections.length !== visualPool.length ||
-      new Set(selection.selections.map((entry) => entry.id)).size !== visualPool.length ||
-      selection.selections.some((entry) => !visualPool.some((item) => item.id === entry.id))
-    )
-      throw new Error('Visual selection must explain every candidate exactly once.');
-    const selected = coverageProtocol
-      ? new ReferenceCoverageSelector().select(
-          visualPool,
-          selection.selections,
-          this.policy.referenceLimit,
-          card.category,
-          commonAnchorIds,
-          compositionIds,
-          card.visual?.materials ?? [],
+    const warnings: string[] = [];
+    let selection: ReturnType<typeof StyleContracts.selection.parse>;
+    let selectionModel = this.model;
+    if (profile.referenceSelection === 'catalogue-v1') {
+      selectionModel = 'deterministic:prepared-catalogue-v1';
+      selection = StyleContracts.selection.parse({
+        selections: visualPool.map((item) => {
+          const analysis = analyses.get(item.id);
+          return {
+            id: item.id,
+            reason: 'Selected using the persisted visual classification and current slot requirements.',
+            role:
+              item.category === card.category
+                ? 'catalogue composition reference'
+                : 'catalogue rendering reference',
+            take: analysis?.usefulPrinciples.join('; ') || fallbackContent.take,
+            ignore: analysis?.avoidCopying.join('; ') || fallbackContent.ignore,
+            compositionMatches:
+              item.category === card.category && (!target || SetComposition.reference(item, target)),
+            coverage: {
+              useful: Boolean(item.observation) && item.approved,
+              conflict: false,
+              rendering: item.origin === 'anchor',
+              lighting: Boolean(analysis?.lighting),
+              materials: (card.visual?.materials ?? []).filter((material) =>
+                MaterialVocabulary.matches(material, analysis?.materials ?? []),
+              ),
+            },
+          };
+        }),
+        visualDirection: variant.artContract?.rendering || profile.rules.join('\n'),
+        materialGuidance:
+          variant.artContract?.materialTreatment || JSON.stringify(card.visual?.materials ?? []),
+        compositionGuidance: card.visual?.composition || profile.categories[card.category],
+        pitfalls: [],
+      });
+    } else
+      try {
+        selection = (
+          await this.runner.run(
+            this.prompts.render('CodexStylePreparation.prepareOnce', {
+              producerAnalysis: direction,
+              card: JSON.stringify({
+                subject: card.subject,
+                description: card.description,
+                category: card.category,
+                categoryDefinition: profile.categories[card.category],
+                role: card.role,
+                compositionTarget: target,
+              }),
+              setConcept: variant.concept,
+              artContract: JSON.stringify(variant.artContract ?? null),
+              visualRequirements: JSON.stringify(card.visual ?? null),
+              correction: correction,
+              rules: JSON.stringify({
+                rendering: profile.rules,
+                production: this.policy.rules,
+                requirements: profile.requirements ?? [],
+              }),
+              candidateImages: JSON.stringify(
+                visualPool.map((r) => ({
+                  id: r.id,
+                  title: r.title,
+                  origin: r.origin,
+                  analysis: analyses.get(r.id),
+                  observedFacets: r.observation?.facets,
+                })),
+              ),
+            }) + (coverageProtocol ? '\n' + coverageProtocol : ''),
+            StyleContracts.selection.extend({ selections: z.array(entrySchema) }),
+            visualPool.map((r) => this.filename(r)),
+          )
+        ).value;
+        if (
+          selection.selections.length !== visualPool.length ||
+          new Set(selection.selections.map((entry) => entry.id)).size !== visualPool.length ||
+          selection.selections.some((entry) => !visualPool.some((item) => item.id === entry.id))
         )
-      : this.retriever.select(
-          selection.selections.map((entry) => {
-            const item = visualPool.find((candidate) => candidate.id === entry.id);
-            if (!item) throw new Error('Unknown reference ID');
-            return item;
-          }),
-          selection.selections.map((s) => s.id),
-          this.policy.referenceLimit,
-          card.category,
-          commonAnchorIds,
-          compositionIds?.filter(
-            (id) => selection.selections.find((entry) => entry.id === id)?.compositionMatches === true,
-          ),
-        );
+          throw new Error('Visual selection must explain every candidate exactly once.');
+      } catch (error) {
+        if (!profile.allowQualityWarnings) throw error;
+        warnings.push(fallbackContent.warning);
+        selectionModel = 'deterministic:catalogue-fallback-v1';
+        selection = StyleContracts.selection.parse({
+          selections: visualPool.map((item) => ({
+            id: item.id,
+            reason: fallbackContent.reason,
+            role: fallbackContent.role,
+            take: analyses.get(item.id)?.usefulPrinciples.join('; ') || fallbackContent.take,
+            ignore: analyses.get(item.id)?.avoidCopying.join('; ') || fallbackContent.ignore,
+            compositionMatches: false,
+            coverage: {
+              useful: item.approved,
+              conflict: false,
+              rendering: item.origin === 'anchor',
+              lighting: item.origin === 'anchor',
+              materials: [],
+            },
+          })),
+          visualDirection: variant.artContract?.rendering || profile.rules.join('\n'),
+          materialGuidance:
+            variant.artContract?.materialTreatment || JSON.stringify(card.visual?.materials ?? []),
+          compositionGuidance:
+            card.visual?.composition || (target ? JSON.stringify(target) : profile.categories[card.category]),
+          pitfalls: [],
+        });
+      }
+    const selected =
+      coverageProtocol || catalogueOnly
+        ? new ReferenceCoverageSelector().select(
+            visualPool,
+            selection.selections,
+            this.policy.referenceLimit,
+            card.category,
+            compositionIds,
+            card.visual?.materials ?? [],
+            profile.allowQualityWarnings ? (message) => warnings.push(message) : undefined,
+            Boolean(frozen),
+          )
+        : this.retriever.select(
+            selection.selections.map((entry) => {
+              const item = visualPool.find((candidate) => candidate.id === entry.id);
+              if (!item) throw new Error('Unknown reference ID');
+              return item;
+            }),
+            selection.selections.map((s) => s.id),
+            this.policy.referenceLimit,
+            card.category,
+            compositionIds?.filter(
+              (id) => selection.selections.find((entry) => entry.id === id)?.compositionMatches === true,
+            ),
+          );
+    if (
+      catalogueOnly &&
+      selected.some(
+        (item) => item.category !== card.category || (target && !SetComposition.reference(item, target)),
+      )
+    )
+      throw new Error('A generation reference contradicts the assigned slot composition.');
+    if (frozen && JSON.stringify(selected.map((item) => item.id)) !== JSON.stringify(frozen))
+      throw new Error('Generation references must preserve the frozen slot selection.');
     const evidence = StyleContracts.evidence.parse({
       version: 'style-v2',
+      warnings: warnings.length ? warnings : undefined,
       query,
       policy: this.policy,
       references: selected.map((r) => ({
         id: r.id,
         category: r.category,
         purposes: [
-          commonAnchorIds.includes(r.id) ? 'shared-style' : 'supporting',
-          ...(r.category === card.category && (!compositionIds || compositionIds.includes(r.id))
+          'supporting',
+          ...(r.category === card.category &&
+          (!compositionIds || compositionIds.includes(r.id)) &&
+          (!target || selection.selections.find((entry) => entry.id === r.id)?.compositionMatches === true)
             ? ['category']
             : []),
         ],
@@ -584,7 +684,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       })),
       analysis: selection,
       createdAt: new Date().toISOString(),
-      model: this.model,
+      model: selectionModel,
     });
     return {
       references: selected.map((r) => this.filename(r)),

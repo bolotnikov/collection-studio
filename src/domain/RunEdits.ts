@@ -1,5 +1,4 @@
 import type { Run } from '../shared/Contracts';
-import { ProductionRules } from './ProductionRules';
 
 /** User intents invalidate only the approvals whose inputs changed. */
 export class RunEdits {
@@ -11,9 +10,9 @@ export class RunEdits {
     if (card.locked) throw new Error('Unlock the card first.');
     if (card.selectedAttemptId === attemptId) return;
     card.selectedAttemptId = attemptId;
+    if (run.reviewProtocol === 'composition-v1') return;
     variant.review = null;
     delete variant.reviewedAttemptIds;
-    if (run.workflowVersion && ProductionRules.pilot(variant).id === cardId) delete variant.pilotAttemptId;
     variant.reviewError = 'Selection changed manually; set review is now outdated.';
     run.status = 'paused';
     run.stage = variant.reviewError;

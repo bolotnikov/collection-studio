@@ -9,7 +9,6 @@ import { Contracts } from '../src/shared/Contracts';
 import { KnowledgeContracts } from '../src/shared/KnowledgeContracts';
 import { CodexProvider } from '../src/infrastructure/CodexProvider';
 import { CodexRunner } from '../src/infrastructure/CodexRunner';
-import { OpenAiProvider } from '../src/infrastructure/OpenAiProvider';
 import defaults from '../resources/prompts/production.json';
 import requirements from '../resources/production-requirements.json';
 import baseProfile from '../resources/style-profile.json';
@@ -123,6 +122,11 @@ it('numbers art, composition diagram and previous candidate in exactly the provi
   expect(request.references).toEqual([...originals, '/source/diagram.png', '/run/previous-master.png']);
   expect(request.prompt).toContain('"image":3,"id":"diagram","role":"category-example"');
   expect(request.prompt).toContain('"image":4,"id":"attempt-1","role":"previous-candidate"');
+  expect(request.generationManifest?.at(-1)).toMatchObject({
+    image: 4,
+    id: 'attempt-1',
+    role: 'previous-candidate',
+  });
   expect(request.prompt).toContain('Repair the handle only.');
   expect(request.prompt).toContain(f.brief.wishes);
 });
@@ -223,6 +227,7 @@ it.each([false, true])(
         remove: async () => {},
       },
       {
+        read: async () => Buffer.from('fixture'),
         save: async (_folder, id) => ({ master: `${id}-master.png`, preview: `${id}.png` }),
         selected: (card) => card.attempts.find((attempt) => attempt.id === card.selectedAttemptId),
         sheet: async () => '/sheet.png',
@@ -251,6 +256,9 @@ it.each([false, true])(
       };
     });
     const provider: GenerationPort = {
+      designSlotSet: async () => {
+        throw new Error('Unexpected slot design');
+      },
       proposeSubjects: async () => {
         throw new Error('Unexpected semantic planning');
       },
@@ -287,7 +295,7 @@ it.each([false, true])(
     expect(f.card.attempts[1]?.reviewPrompt).toContain('frosted glass');
   },
 );
-it('preserves the complete request and input bytes through both generation adapters without network or a real worker', async () => {
+it('preserves the complete request and input bytes through Codex without network or a real worker', async () => {
   const f = fixture();
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'studio-generation-context-'));
   folders.push(root);
@@ -312,34 +320,9 @@ it('preserves the complete request and input bytes through both generation adapt
       threadId: null,
     };
   });
-  await new CodexProvider(runner).image(request.prompt, request.references, 'high');
+  const codexResult = await new CodexProvider(runner).image(request.prompt, request.references, 'high');
   expect(run).toHaveBeenCalledOnce();
-  const transport = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const req = input instanceof Request ? input : new Request(input, init);
-    // The SDK probes fetch/FormData compatibility with a local data URL.
-    if (req.url === 'data:,') return new Response();
-    const form = await req.formData();
-    expect(String(form.get('prompt')).replace(/\r\n/g, '\n')).toContain(request.prompt);
-    expect(form.get('quality')).toBe('high');
-    expect(form.get('background')).toBe('opaque');
-    const images = [...form.values()].filter((value): value is File => value instanceof File);
-    expect(await Promise.all(images.map((file) => file.text()))).toEqual(
-      files.map((file) => path.basename(file)),
-    );
-    return new Response(
-      JSON.stringify({ created: 1, data: [{ b64_json: Buffer.from('fixture').toString('base64') }] }),
-      { headers: { 'content-type': 'application/json' } },
-    );
-  });
-  vi.stubGlobal('fetch', transport);
-  await new OpenAiProvider('offline-fixture', 'offline-image', 'offline-text').image(
-    request.prompt,
-    request.references,
-    'high',
-  );
-  expect(
-    transport.mock.calls.filter(([input]) =>
-      (input instanceof Request ? input.url : String(input)).endsWith('/images/edits'),
-    ),
-  ).toHaveLength(1);
+  expect(run.mock.calls[0]?.[0]).not.toContain('Requested quality intent:');
+  expect(codexResult.usage).toMatchObject({ qualityControl: 'native' });
+  expect(codexResult.usage).not.toHaveProperty('qualityRequested');
 });

@@ -188,8 +188,6 @@ variant.artContract ??= {
   paletteRhythm: 'Varied saturated complementary accents with readable subject contrast.',
   compositionRhythm: 'Use all four categories with varied silhouettes and environmental depth.',
   avoid: ['People, text and interface chrome.'],
-  pilotIndex: 0,
-  pilotRationale: 'Offline fixture only; no pilot was generated or approved.',
 };
 for (const card of variant.cards)
   card.visual ??= {
@@ -368,7 +366,7 @@ const report = {
     'Archived observations are replayed into an isolated audit cache.',
     'Brief interpretation, set selection and visual reranking are deterministic fixtures, not model quality judgments.',
     'The shared contract is an offline fixture around a historical subject plan.',
-    'No new pilot or complete set was generated or artistically accepted.',
+    'No new artwork or complete set was generated or artistically accepted.',
   ],
 };
 await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2));

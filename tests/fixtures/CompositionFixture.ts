@@ -81,8 +81,6 @@ export class CompositionFixture {
             paletteRhythm: 'Complementary saturated colors',
             compositionRhythm: 'Patterned and contextual rhythm',
             avoid: ['Photographic texture'],
-            pilotIndex: 0,
-            pilotRationale: 'Representative painted material',
             composition: {
               version: 'set-composition-v1',
               catalogDependencyHash: catalog.dependencyHash,

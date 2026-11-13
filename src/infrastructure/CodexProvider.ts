@@ -14,12 +14,53 @@ import { z } from 'zod';
 import { Contracts, type Brief, type Card, type Profile, type Variant } from '../shared/Contracts';
 import type { GenerationPort } from '../application/GenerationPort';
 import { CodexRunner } from './CodexRunner';
+import { GenerationRepairContracts } from '../shared/GenerationRepairContracts';
 
 export class CodexProvider implements GenerationPort, ArtDirectionPort {
   constructor(
     private readonly runner: CodexRunner,
     private readonly prompts = new PromptCatalog(),
+    private readonly planner: CodexRunner = runner,
   ) {}
+  async verifyComposition(prompt: string, imagePath: string, references: string[]) {
+    return (
+      await this.runner.run(
+        prompt,
+        Contracts.repairableCompositionObservation,
+        [imagePath, ...references],
+        false,
+        'CodexProvider.verifyComposition',
+      )
+    ).value;
+  }
+  async verifySetComposition(prompt: string, contactSheet: string) {
+    return (
+      await this.runner.run(
+        prompt,
+        GenerationRepairContracts.setObservation,
+        [contactSheet],
+        false,
+        'CodexProvider.verifySetComposition',
+      )
+    ).value;
+  }
+  async designSlotSet(
+    brief: Brief,
+    profile: Profile,
+    slots: import('../shared/CompositionPlanningContracts').SlotPlan[],
+    references: string[],
+    correction: string,
+  ) {
+    return (
+      await this.planner.run(
+        CompositionPlanningPrompts.design(brief, profile, slots, correction, references),
+        CompositionPlanningContracts.assignedSubjects,
+        references,
+        false,
+        'CodexProvider.designSlotSet',
+      )
+    ).value;
+  }
   async suggestArtDirection(prompt: string) {
     return (
       await this.runner.run(
@@ -33,7 +74,7 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
   }
   async plan(brief: Brief, profile: Profile, referencePaths: string[] = [], correction = '') {
     return (
-      await this.runner.run(
+      await this.planner.run(
         PromptBuilder.planning(brief, profile, correction),
         profile.visualCatalog ? Contracts.preparedProductionPlan : Contracts.productionPlan,
         referencePaths,
@@ -44,9 +85,9 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
   }
   async proposeSubjects(brief: Brief, profile: Profile, references: string[], correction: string) {
     return (
-      await this.runner.run(
+      await this.planner.run(
         CompositionPlanningPrompts.subjects(brief, profile, correction),
-        CompositionPlanningContracts.concepts,
+        CompositionPlanningContracts.conceptProposal,
         references,
         false,
         'CodexProvider.proposeSubjects',
@@ -61,9 +102,9 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
     correction: string,
   ) {
     return (
-      await this.runner.run(
+      await this.planner.run(
         CompositionPlanningPrompts.details(brief, profile, blueprints, correction),
-        CompositionPlanningContracts.details,
+        CompositionPlanningContracts.descriptionProposal,
         references,
         false,
         'CodexProvider.describeComposition',
@@ -73,7 +114,7 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
   async reviewPlan(brief: Brief, variant: Plan['variants'][number], profile: Profile, references: string[]) {
     return (
       await this.runner.run(
-        PromptBuilder.planReview(brief, variant, profile),
+        PromptBuilder.planReview(brief, variant, profile, references),
         SetContract.review,
         references,
         false,
@@ -82,15 +123,16 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
     ).value;
   }
   async image(prompt: string, references: string[], quality: Brief['quality']) {
+    const historicalQuality = this.prompts.values['CodexProvider.image']?.includes('{{quality}}');
     const schema = z.object({ success: z.boolean(), tool: z.string(), message: z.string() });
     const result = await this.runner.run(
-      this.prompts.render('CodexProvider.image', { prompt: prompt, quality: quality }),
+      this.prompts.render('CodexProvider.image', { prompt, ...(historicalQuality ? { quality } : {}) }),
       schema,
       references,
       true,
       'CodexProvider.image',
     );
-    if (!result.value.success || !result.value.tool.includes('image_gen'))
+    if (!result.usage?.imageArtifact && (!result.value.success || !result.value.tool.includes('image_gen')))
       throw new Error(result.value.message || 'Codex did not confirm image generation.');
     const bytes = await fs.readFile(path.join(result.folder, 'image.png'));
     return {
@@ -100,8 +142,8 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
         ...result.usage,
         provider: 'codex',
         jobFolder: path.basename(result.folder),
-        qualityRequested: quality,
-        qualityControl: 'prompt-only',
+        ...(historicalQuality ? { qualityRequested: quality } : {}),
+        qualityControl: historicalQuality ? 'prompt-only' : 'native',
       },
     };
   }

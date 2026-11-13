@@ -2,6 +2,7 @@ import type { SheetLayout } from '../shared/SetSheetLayout';
 import type { Attempt, Card, Variant } from '../shared/Contracts';
 
 export interface ImageStore {
+  read(folder: string, attempt: Attempt, kind: 'master' | 'preview'): Promise<Buffer>;
   save(
     folder: string,
     attemptId: string,

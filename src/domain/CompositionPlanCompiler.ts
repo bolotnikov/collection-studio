@@ -1,9 +1,15 @@
 import { Contracts, type Plan, type Profile } from '../shared/Contracts';
 import type { CompositionBlueprint, CompositionDetails } from '../shared/CompositionPlanningContracts';
+import { SubjectAssignment } from './SubjectAssignment';
 
 /** Descriptive model output cannot overwrite subjects, slot constraints or canonical rendering. */
 export class CompositionPlanCompiler {
-  static compile(blueprints: CompositionBlueprint[], details: CompositionDetails, profile: Profile): Plan {
+  static compile(
+    blueprints: CompositionBlueprint[],
+    details: CompositionDetails,
+    profile: Profile,
+    allowSubjectWarnings = false,
+  ): Plan {
     const config = profile.compositionPlanning;
     if (!config) throw new Error('Composition planner configuration missing.');
     if (
@@ -18,29 +24,25 @@ export class CompositionPlanCompiler {
           throw new Error('Descriptive output must cover all ten assigned slots exactly once.');
         const allocation = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
         for (const slot of blueprint.slots) allocation[slot.target.category]++;
-        const pilot = [...blueprint.slots].sort(
-          (a, b) =>
-            Number(b.target.category === '3' || b.target.category === '4') -
-              Number(a.target.category === '3' || a.target.category === '4') ||
-            b.subject.materials.length - a.subject.materials.length ||
-            a.index - b.index,
-        )[0];
-        if (!pilot) throw new Error('Pilot slot missing.');
+        if (
+          !allowSubjectWarnings &&
+          blueprint.slots.some((slot) => !SubjectAssignment.compatible(slot.subject, slot.target))
+        )
+          throw new Error('Subject composition constraints are incompatible with its assigned slot.');
         return {
           title: blueprint.title,
           concept: blueprint.concept,
           artContract: {
+            warnings: blueprint.warnings,
             version: 'set-contract-v1',
             story: blueprint.concept,
             categoryAllocation: allocation,
             rendering: profile.rules.join('\n'),
-            lighting: config.prompts.lighting,
-            materialTreatment: config.prompts.materialTreatment,
+            lighting: described.lighting ?? config.prompts.lighting,
+            materialTreatment: described.materialTreatment ?? config.prompts.materialTreatment,
             paletteRhythm: described.paletteRhythm,
             compositionRhythm: blueprint.composition.rationale,
             avoid: [config.prompts.avoid],
-            pilotIndex: pilot.index,
-            pilotRationale: config.prompts.pilot,
             composition: blueprint.composition,
           },
           cards: blueprint.slots.map((slot) => {

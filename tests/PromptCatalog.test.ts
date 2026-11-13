@@ -25,4 +25,19 @@ describe('authored prompt configuration', () => {
     expect(PromptBuilder.reviewRubric(snapshot)).toBe('Persisted reviewer criteria');
     expect(PromptBuilder.reviewRubric()).not.toBe('Persisted reviewer criteria');
   });
+  it('omits the quality intent for new Codex requests while preserving archived templates', () => {
+    expect(new PromptCatalog().render('CodexProvider.image', { prompt: 'Production brief' })).toContain(
+      'Production brief',
+    );
+    const legacy = {
+      ...defaults,
+      'CodexProvider.image': '{{prompt}} Requested quality intent: {{quality}}.',
+    };
+    expect(
+      new PromptCatalog(legacy).render('CodexProvider.image', { prompt: 'Old brief', quality: 'low' }),
+    ).toBe('Old brief Requested quality intent: low.');
+    expect(() => new PromptCatalog({ ...legacy, 'CodexProvider.image': '{{prompt}} {{unknown}}' })).toThrow(
+      'placeholders',
+    );
+  });
 });

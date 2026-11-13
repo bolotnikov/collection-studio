@@ -45,6 +45,8 @@ export class Localization {
       });
     }
     for (const prefix of [
+      'Manual regeneration requested: ',
+      'Checking composition: ',
       'Generating: ',
       'Reviewing: ',
       'Generating ',

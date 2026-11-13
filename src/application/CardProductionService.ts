@@ -1,9 +1,10 @@
+import { CompositionVerificationService } from './CompositionVerificationService';
 import { PromptCatalog } from './prompts/PromptCatalog';
 import type { ActiveRun } from './ActiveRun';
 import type { GenerationPort } from './GenerationPort';
 import { ProductionContext } from './ProductionContext';
 import { SetRules } from '../domain/SetRules';
-import { randomUUID } from 'node:crypto';
+import { ImageGenerationService } from './ImageGenerationService';
 import path from 'node:path';
 import {
   Contracts,
@@ -16,6 +17,9 @@ import {
 import { PromptBuilder } from './PromptBuilder';
 import { GenerationRequestBuilder } from './GenerationRequestBuilder';
 import { SetComposition } from '../domain/SetComposition';
+import { ProductionRules } from '../domain/ProductionRules';
+import { CompositionRepairRules } from '../domain/CompositionRepairRules';
+import type { RepairRequest } from '../shared/GenerationRepairContracts';
 
 export class CardProductionService {
   constructor(private readonly context: ProductionContext) {}
@@ -25,14 +29,62 @@ export class CardProductionService {
     variant: Variant,
     card: Card,
     instruction = '',
+    options: { manual?: boolean; automaticRevision?: boolean; repair?: RepairRequest } = {},
   ): Promise<void> {
     const producing = (active.producing ??= new Set());
     producing.add(card.id);
+    const previous = this.context.images.selected(card);
     try {
-      await this.produceOnce(active, provider, variant, card, instruction);
+      if (options.manual || instruction.trim() || !active.run.repairPolicy || !previous?.compositionCheck)
+        await this.produceOnce(
+          active,
+          provider,
+          variant,
+          card,
+          instruction,
+          Boolean(options.manual),
+          options.repair,
+        );
+      if (!options.repair)
+        while (
+          !active.stop &&
+          CompositionRepairRules.needsCardRepair(active.run, variant, card) &&
+          CompositionRepairRules.hasImageBudget(active.run)
+        ) {
+          const source = this.context.images.selected(card);
+          if (!source) throw new Error('Composition repair requires a selected version.');
+          const correction = PromptCatalog.render(
+            'correction.mandatory.v1',
+            {
+              violations: CompositionRepairRules.violations(variant, card, source),
+              subject: card.subject,
+              target: SetComposition.target(variant, card) ?? { category: card.category },
+              previousAttemptId: source.id,
+            },
+            active.profile.promptCatalog,
+          );
+          await this.produceOnce(active, provider, variant, card, correction, false, {
+            scope: 'card',
+            sourceAttemptId: source.id,
+            rootAttemptId: source.repairRootId ?? source.id,
+            requestedAt: new Date().toISOString(),
+            instruction: correction,
+          });
+          if (card.selectedAttemptId === source.id) break;
+        }
+      const selected = this.context.images.selected(card);
+      if (options.automaticRevision && previous && this.score(selected) < this.score(previous)) {
+        card.selectedAttemptId = previous.id;
+        await this.context.publish(active.run, 'Retained the stronger previous version');
+      }
     } finally {
       producing.delete(card.id);
       this.context.clearActivity(active.run, card.id);
+      if (
+        active.run.reviewProtocol !== 'composition-v1' &&
+        ProductionRules.allowsWarnings(active.run.planningPolicy)
+      )
+        active.run.qualityWarnings = ProductionRules.warnings(active.run);
       await this.context.publish(active.run);
     }
   }
@@ -42,11 +94,15 @@ export class CardProductionService {
     variant: Variant,
     card: Card,
     instruction: string,
+    manual: boolean,
+    repair?: RepairRequest,
   ): Promise<void> {
     const run = active.run;
     if (card.locked) return;
     const previous = this.context.images.selected(card);
     if (
+      run.reviewProtocol !== 'composition-v1' &&
+      !manual &&
       !instruction.trim() &&
       previous?.review &&
       !previous.reviewError &&
@@ -55,7 +111,7 @@ export class CardProductionService {
       instruction = this.repairInstruction(previous.review, active.profile);
     }
     const folder = this.context.repository.directory(run.id),
-      references = this.context.references(card, active.profile);
+      references = this.context.references(card, active.profile, variant);
     this.context.activity(run, {
       key: card.id,
       kind: 'references',
@@ -85,6 +141,7 @@ export class CardProductionService {
     const request = new GenerationRequestBuilder().build({
       prompt: prepared?.prompt ?? PromptBuilder.build(card, variant, cardProfile, instruction),
       profile: cardProfile,
+      target: SetComposition.target(variant, card),
       brief: run.brief,
       card,
       references: prepared?.references ?? references,
@@ -95,7 +152,13 @@ export class CardProductionService {
     });
     const selectedReferences = [...(prepared?.references ?? references), ...(context?.referencePaths ?? [])];
     const reviewProfile = { ...cardProfile, inputManifest: request.reviewManifest };
-    if (!instruction.trim() && SetRules.needsCardReview(previous)) {
+    if (
+      !manual &&
+      !instruction.trim() &&
+      (run.reviewProtocol === 'composition-v1'
+        ? previous && !previous.compositionCheck && !previous.compositionCheckError
+        : SetRules.needsCardReview(previous))
+    ) {
       if (!previous) throw new Error('Selected attempt missing.');
       await this.reviewAndRepair(
         active,
@@ -109,29 +172,37 @@ export class CardProductionService {
       return;
     }
     const prompt = request.prompt;
-    SetRules.reserveImage(run);
-    card.status = 'generating';
-    card.error = null;
-    this.context.activity(run, {
-      key: card.id,
-      kind: 'generation',
-      subject: card.subject,
-      index: variant.cards.findIndex((item) => item.id === card.id) + 1,
-      total: variant.cards.length,
-      attempt: card.attempts.length + 1,
-    });
-    await this.context.publish(run, `Generating: ${card.subject}`);
-    const started = Date.now();
-    const result = await provider.image(prompt, request.references, run.brief.quality);
-    const id = randomUUID();
-    const files = await this.context.images.save(folder, id, result.bytes);
+    if (active.stop) return;
+    if (repair) {
+      if (card.selectedAttemptId !== repair.sourceAttemptId)
+        throw new Error('Repair source selection changed.');
+      if (!CompositionRepairRules.hasImageBudget(run)) return;
+      (card.repairRequests ??= []).push(repair);
+    }
+    const callsBeforeGeneration = run.imageCalls;
+    const generated = await new ImageGenerationService(this.context).generate(
+      active,
+      provider,
+      variant,
+      card,
+      request,
+    );
+    if (!generated) {
+      if (repair && run.imageCalls === callsBeforeGeneration)
+        card.repairRequests = card.repairRequests?.filter((request) => request !== repair);
+      return;
+    }
+    const { result, id, files, elapsedMs } = generated;
     const attempt = {
+      repairRootId: repair?.rootAttemptId,
+      revisionOf: instruction.trim() ? previous?.id : undefined,
       id,
       ...files,
       prompt,
+      generationInputManifest: request.generationManifest,
       model: run.imageModel,
       createdAt: new Date().toISOString(),
-      elapsedMs: Date.now() - started,
+      elapsedMs,
       requestId: result.requestId,
       usage: result.usage,
       review: null,
@@ -141,6 +212,7 @@ export class CardProductionService {
     };
     card.attempts.push(attempt);
     card.selectedAttemptId = id;
+    if (repair) repair.resultAttemptId = id;
     const stored = card.attempts.find((a) => a.id === id);
     if (!stored) throw new Error('Attempt was not persisted.');
     await this.reviewAndRepair(active, provider, variant, card, stored, reviewProfile, selectedReferences);
@@ -155,6 +227,17 @@ export class CardProductionService {
     selectedReferences: string[],
   ): Promise<void> {
     const run = active.run;
+    if (run.reviewProtocol === 'composition-v1') {
+      await new CompositionVerificationService(this.context).verify(
+        active,
+        provider,
+        variant,
+        card,
+        stored,
+        selectedReferences,
+      );
+      return;
+    }
     stored.review = null;
     stored.reviewError = null;
     stored.reviewPrompt = PromptBuilder.cardReview(card, cardProfile, run.brief);
@@ -223,24 +306,14 @@ export class CardProductionService {
         variant,
         card,
         this.repairInstruction(stored.review, active.profile),
+        { automaticRevision: true },
       );
-      const repaired = this.context.images.selected(card);
-      const originalScore =
-        stored.review.style +
-        stored.review.readability +
-        stored.review.subjectMatch +
-        (stored.review.passed ? 20 : 0);
-      const newScore = repaired?.review
-        ? repaired.review.style +
-          repaired.review.readability +
-          repaired.review.subjectMatch +
-          (repaired.review.passed ? 20 : 0)
-        : 0;
-      if (newScore < originalScore) {
-        card.selectedAttemptId = stored.id;
-        await this.context.publish(run, 'Retained the stronger previous version');
-      }
     }
+  }
+  private score(attempt: Attempt | undefined): number {
+    if (!attempt?.review || attempt.reviewError) return 0;
+    const review = attempt.review;
+    return review.style + review.readability + review.subjectMatch + (review.passed ? 20 : 0);
   }
   private repairInstruction(review: Review, profile: Profile): string {
     return (

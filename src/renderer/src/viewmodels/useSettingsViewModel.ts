@@ -1,30 +1,22 @@
 import { useState } from 'react';
 import type { Bootstrap, Settings, StudioApi } from '../../../shared/Contracts';
-import { Assets } from '../Assets';
+import { GenerationRepairContracts } from '../../../shared/GenerationRepairContracts';
 
 export function useSettingsViewModel(
   data: Bootstrap,
-  busy: boolean,
   api: StudioApi,
   perform: (action: () => Promise<unknown>) => Promise<void>,
   refresh: () => Promise<void>,
 ) {
-  const [key, setKey] = useState('');
   const [settings, setSettings] = useState<Settings>(data.settings);
-  const [policy, setPolicy] = useState(data.productionPolicy);
-  const [policySaved, setPolicySaved] = useState(false);
-  const policyBusy = busy || data.runs.some(Assets.active);
   const [connection, setConnection] = useState<{ ok: boolean; message: string } | null>(null);
-  const savePolicy = () =>
-    perform(async () => {
-      await api.saveProductionPolicy(policy);
-      await refresh();
-      setPolicySaved(true);
-    });
+  const setRepairLimit = (field: 'maxCardRegenerations' | 'maxSetRegenerationRounds', input: number) => {
+    const value = GenerationRepairContracts.limit.safeParse(input);
+    if (value.success) setSettings((settings) => ({ ...settings, [field]: value.data }));
+  };
   const saveSettings = () =>
     perform(async () => {
-      await api.saveSettings(settings, key);
-      setKey('');
+      await api.saveSettings(settings);
       await refresh();
       setConnection({ ok: true, message: 'Settings saved.' });
     });
@@ -34,16 +26,10 @@ export function useSettingsViewModel(
       await refresh();
     });
   return {
-    key,
-    setKey,
     settings,
     setSettings,
-    policy,
-    setPolicy,
-    policySaved,
-    policyBusy,
+    setRepairLimit,
     connection,
-    savePolicy,
     saveSettings,
     checkConnection,
   };

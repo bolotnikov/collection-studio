@@ -1,6 +1,8 @@
 import { PromptCatalog } from './prompts/PromptCatalog';
 import type { Brief, Plan, Card, Profile, Variant } from '../shared/Contracts';
 import { SetComposition } from '../domain/SetComposition';
+import planningProtocol from '../../resources/planning-protocol.json';
+import { EnvironmentBackdrops } from '../domain/EnvironmentBackdrops';
 
 export class PromptBuilder {
   static cardReview(card: Card, profile: Profile, brief?: Brief): string {
@@ -77,17 +79,48 @@ export class PromptBuilder {
       profile.promptCatalog,
     );
   }
-  static planReview(brief: Brief, variant: Plan['variants'][number], profile: Profile): string {
-    return PromptCatalog.render(
-      'PromptBuilder.planReview',
-      {
-        sourceContext: this.sourceContext(profile),
-        brief: JSON.stringify(brief),
-        proposedSet: JSON.stringify(variant),
-        rules: JSON.stringify({ rendering: profile.rules, categories: profile.categories }),
-      },
-      profile.promptCatalog,
+  static planReview(
+    brief: Brief,
+    variant: Plan['variants'][number],
+    profile: Profile,
+    references?: string[],
+  ): string {
+    return (
+      PromptCatalog.render(
+        'PromptBuilder.planReview',
+        {
+          sourceContext: this.sourceContext(references ? this.planningContext(profile, references) : profile),
+          brief: JSON.stringify(brief),
+          proposedSet: JSON.stringify(variant),
+          rules: JSON.stringify({ rendering: profile.rules, categories: profile.categories }),
+        },
+        profile.promptCatalog,
+      ) +
+      '\n' +
+      planningProtocol.review
     );
+  }
+  static planningContext(profile: Profile, references: string[]): Profile {
+    const manifest = references.map((file, index) => {
+      const normalized = file.replaceAll('\\', '/');
+      const reference = [...profile.references, ...(profile.library ?? [])].find(
+        (item) =>
+          normalized.endsWith('/' + item.filename.replaceAll('\\', '/')) || normalized === item.filename,
+      );
+      const source = profile.knowledge?.images.find((item) => normalized.endsWith('/' + item.filename));
+      return {
+        image: index + 1,
+        id: reference?.id ?? source?.id,
+        category: reference?.category ?? source?.category,
+        role: reference ? 'original-rendering' : (source?.role ?? 'reference'),
+        take: planningProtocol.take,
+        ignore: planningProtocol.ignore,
+        background: EnvironmentBackdrops.evidence(
+          profile.visualCatalog?.cards.find((card) => card.id === reference?.id)?.observation,
+        ),
+      };
+    });
+    return { ...profile, inputManifest: manifest };
   }
 
   static sourceContext(

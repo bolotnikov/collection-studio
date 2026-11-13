@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { ReferenceImagePacker } from './ReferenceImagePacker';
 import { CodexOutputSchema } from './CodexOutputSchema';
 import { ExecutionJournal } from './ExecutionJournal';
+import { CodexImageArtifacts } from './CodexImageArtifacts';
 
 export class CodexRunner {
   private static readonly event = z.object({
@@ -31,6 +32,7 @@ export class CodexRunner {
     private readonly model: string,
     private readonly prompts = new PromptCatalog(),
     private readonly audit?: { journal: ExecutionJournal; runId: string },
+    private readonly imageArtifacts = new CodexImageArtifacts(),
   ) {}
   static async locate(configured = ''): Promise<string> {
     const candidates = configured
@@ -155,7 +157,8 @@ export class CodexRunner {
       'multi_agent',
       generateImage ? '--enable' : '--disable',
       'image_generation',
-      ...(!generateImage ? ['--disable', 'shell_tool'] : []),
+      '--disable',
+      'shell_tool',
       '-m',
       this.model,
       '--json',
@@ -231,9 +234,7 @@ export class CodexRunner {
       });
     }
     if (execution.timedOut)
-      throw new Error(
-        'Codex did not finish within 10 minutes. Generation outcome is unknown; automatic retry is disabled.',
-      );
+      throw new Error('Codex did not finish within 10 minutes. Generation outcome is unknown.');
     let failure: string | null = null;
     for (const line of transcript.split('\n').filter(Boolean)) {
       let payload: unknown;
@@ -259,6 +260,10 @@ export class CodexRunner {
       );
     if (failure) throw new Error(failure);
     const value = outputSchema.parse(JSON.parse(await fs.readFile(resultFile, 'utf8')));
+    if (generateImage) {
+      const imageArtifact = await this.imageArtifacts.collect(folder, threadId);
+      if (imageArtifact) usage = { ...usage, imageArtifact };
+    }
     if (packing) usage = { ...usage, referencePacking: packing.manifest };
     return { value, folder, usage, threadId };
   }

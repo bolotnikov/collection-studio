@@ -1,7 +1,7 @@
+import { GenerationRepairContracts } from '../src/shared/GenerationRepairContracts';
 import { CompositionPlanningContracts } from '../src/shared/CompositionPlanningContracts';
 import { expect, it } from 'vitest';
 import { z } from 'zod';
-import { zodTextFormat } from 'openai/helpers/zod';
 import { CodexOutputSchema } from '../src/infrastructure/CodexOutputSchema';
 import { Contracts } from '../src/shared/Contracts';
 import { SetContract } from '../src/shared/SetContract';
@@ -12,17 +12,22 @@ import { CompositionFixture } from './fixtures/CompositionFixture';
 it.each([
   CompositionPlanningContracts.concepts,
   CompositionPlanningContracts.details,
+  CompositionPlanningContracts.conceptProposal,
+  CompositionPlanningContracts.descriptionProposal,
+  CompositionPlanningContracts.assignedSubjects,
   Contracts.productionPlan,
   Contracts.preparedProductionPlan,
   Contracts.review,
   Contracts.compositionReview,
+  Contracts.repairableCompositionObservation,
+  GenerationRepairContracts.setObservation,
   Contracts.detailedSetReview,
   SetContract.review,
   VisualCatalogContracts.observation,
 ])('emits a strict-compatible schema for planning, reviews and catalog observations %#', (schema) => {
   const output = new CodexOutputSchema<unknown>(schema);
-  // The SDK rejects optional non-nullable properties anywhere in a strict schema.
-  expect(() => zodTextFormat(z.fromJSONSchema(output.jsonSchema), 'fixture')).not.toThrow();
+  expect(() => z.fromJSONSchema(output.jsonSchema)).not.toThrow();
+  expect(output.jsonSchema.required).toEqual(Object.keys(output.jsonSchema.properties ?? {}));
 });
 
 it('restores a prepared plan with sparse composition constraints and no gold cards', () => {
@@ -39,13 +44,19 @@ it('restores a prepared plan with sparse composition constraints and no gold car
         ...variant,
         artContract: {
           ...contract,
+          warnings: null,
           categoryAllocation: { ...contract.categoryAllocation, '5': null },
           composition: {
             ...composition,
+            positionPolicy: null,
+            rhythm: null,
             selection: null,
             aggregate: null,
             targets: composition.targets.map((target) => ({
               ...target,
+              appearance: null,
+              referenceIds: null,
+              selectedReferenceIds: null,
               required: { ...empty, ...target.required },
               preferred: { ...empty, ...target.preferred },
             })),

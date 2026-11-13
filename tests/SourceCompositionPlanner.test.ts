@@ -253,6 +253,7 @@ it('resumes the descriptive phase after a transport outage without regenerating 
     throw new Error('Unexpected legacy/image call');
   };
   const provider: GenerationPort = {
+    designSlotSet: unexpected,
     proposeSubjects,
     describeComposition,
     reviewPlan,

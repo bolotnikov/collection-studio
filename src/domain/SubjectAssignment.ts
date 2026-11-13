@@ -2,6 +2,21 @@ import type { SemanticConcept } from '../shared/CompositionPlanningContracts';
 import type { CompositionTarget } from '../shared/CompositionContract';
 
 export class SubjectAssignment {
+  static compatible(candidate: SemanticConcept['candidates'][number], target: CompositionTarget): boolean {
+    if (
+      !candidate.compatibleCategories.includes(target.category) ||
+      candidate.characterCount !== target.required.characterCount
+    )
+      return false;
+    const constraints = candidate.compatibleComposition;
+    if (!constraints) return true;
+    for (const axis of ['support', 'backdrop', 'pattern', 'depth', 'contextDensity'] as const) {
+      const value = target.required[axis];
+      const allowed: readonly string[] = constraints[axis];
+      if (value && !allowed.includes(value)) return false;
+    }
+    return true;
+  }
   static validate(concept: SemanticConcept, includeGold: boolean): void {
     if (
       new Set(concept.candidates.map((candidate) => candidate.id)).size !== concept.candidates.length ||
@@ -12,6 +27,10 @@ export class SubjectAssignment {
     for (const candidate of concept.candidates) {
       if (
         new Set(candidate.compatibleCategories).size !== candidate.compatibleCategories.length ||
+        (candidate.compatibleComposition &&
+          Object.values(candidate.compatibleComposition).some(
+            (values) => new Set(values).size !== values.length,
+          )) ||
         (!includeGold && candidate.compatibleCategories.includes('5')) ||
         (candidate.compatibleCategories.includes('5')
           ? candidate.compatibleCategories.length !== 1 || ![1, 2].includes(candidate.characterCount)
@@ -32,7 +51,7 @@ export class SubjectAssignment {
         concept.candidates.forEach((candidate, index) => {
           const preference = candidate.compatibleCategories.indexOf(target.category);
           if (
-            preference < 0 ||
+            !SubjectAssignment.compatible(candidate, target) ||
             mask & (1 << index) ||
             candidate.characterCount !== target.required.characterCount
           )

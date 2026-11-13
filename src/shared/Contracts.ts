@@ -8,6 +8,7 @@ import { StyleContracts, type ProductionPolicy, type LibraryItem } from './Style
 import { z } from 'zod';
 import { VisualCatalogContracts } from './VisualCatalogContracts';
 import { CompositionContract } from './CompositionContract';
+import { GenerationRepairContracts } from './GenerationRepairContracts';
 
 export class Contracts {
   static readonly inputManifest = z.array(
@@ -18,6 +19,7 @@ export class Contracts {
       category: z.string().nullable().optional(),
       take: z.string().optional(),
       ignore: z.string().optional(),
+      background: VisualCatalogContracts.backgroundEvidence.optional(),
     }),
   );
   static readonly artDirectionRequest = z.object({
@@ -47,7 +49,7 @@ export class Contracts {
       z.object({
         title: z.string(),
         concept: z.string(),
-        artContract: SetContract.art.optional(),
+        artContract: SetContract.persistedArt.optional(),
         cards: z.array(Contracts.plannedCard),
       }),
     ),
@@ -110,7 +112,30 @@ export class Contracts {
     }),
     corrections: z.array(z.object({ cardId: z.string(), instruction: z.string().min(1) })),
   });
+  static readonly compositionCheck = z.object({
+    unexpectedBackgroundObjects: z
+      .array(z.object({ object: z.string().trim().min(1), position: z.string().trim().min(1) }))
+      .optional(),
+    confirmedViolations: z.array(GenerationRepairContracts.violation).optional(),
+    subjectPresent: z.boolean(),
+    completeSilhouette: z.boolean(),
+    compositionDescriptionMatch: z.boolean(),
+    observedCategory: z.enum(['1', '2', '3', '4', '5']),
+    observedComposition: CompositionContract.observed.extend({
+      subjectPosition: CompositionContract.observed.shape.subjectPosition.unwrap(),
+      backgroundColor: CompositionContract.observed.shape.backgroundColor.unwrap(),
+    }),
+    findings: z.array(z.string()),
+    matches: z.boolean(),
+  });
+  static readonly compositionObservation = Contracts.compositionCheck.omit({ matches: true });
+  static readonly repairableCompositionObservation = Contracts.compositionObservation.extend({
+    confirmedViolations: z.array(GenerationRepairContracts.violation),
+  });
   static readonly attempt = z.object({
+    backgroundReviewVersion: z.literal('environment-background-v1').optional(),
+    repairRootId: z.string().optional(),
+    revisionOf: z.string().optional(),
     id: z.string(),
     master: z.string(),
     preview: z.string(),
@@ -123,13 +148,28 @@ export class Contracts {
     usage: z.record(z.string(), z.unknown()).nullable(),
     review: Contracts.review.nullable(),
     reviewError: z.string().nullable(),
+    compositionCheck: Contracts.compositionCheck.optional(),
+    compositionCheckError: z.string().optional(),
+    compositionCheckSkipped: z.literal('disabled-by-policy').optional(),
     reviewPrompt: z.string().optional(),
+    generationInputManifest: Contracts.inputManifest.optional(),
     reviewInputManifest: Contracts.inputManifest.optional(),
     reviewSourceEvidence: KnowledgeContracts.evidence.optional(),
     evidence: StyleContracts.evidence.optional(),
     sourceEvidence: KnowledgeContracts.evidence.optional(),
   });
   static readonly card = Contracts.plannedCard.extend({
+    generationFailures: z
+      .array(
+        z.object({
+          at: z.string(),
+          imageCall: z.number().int().positive(),
+          phase: z.enum(['provider', 'image-storage']),
+          error: z.string(),
+        }),
+      )
+      .optional(),
+    repairRequests: z.array(GenerationRepairContracts.request).optional(),
     id: z.string(),
     status: z.enum(['pending', 'generating', 'reviewing', 'done', 'failed']),
     attempts: z.array(Contracts.attempt),
@@ -138,13 +178,16 @@ export class Contracts {
     error: z.string().nullable(),
   });
   static readonly variant = z.object({
+    gridReviewHistory: z.array(GenerationRepairContracts.setReview).optional(),
+    gridRepairRounds: z.array(GenerationRepairContracts.round).optional(),
     id: z.string(),
     title: z.string(),
     concept: z.string(),
-    artContract: SetContract.art.optional(),
+    artContract: SetContract.persistedArt.optional(),
+    pilotAttemptId: z.string().optional(), // Archived evidence only; never an execution gate.
     planReview: SetContract.review.optional(),
+    planValidation: z.literal('deterministic-slots-first-v1').optional(),
     planSignature: z.string().optional(),
-    pilotAttemptId: z.string().optional(),
     cards: z.array(Contracts.card),
     review: z.union([Contracts.detailedSetReview, Contracts.setReview]).nullable(),
     sourceEvidence: KnowledgeContracts.evidence.optional(),
@@ -167,6 +210,18 @@ export class Contracts {
     reviewError: z.string().nullable(),
   });
   static readonly run = z.object({
+    repairPolicy: GenerationRepairContracts.policy.optional(),
+    providerHistory: z
+      .array(
+        z.object({
+          from: z.enum(['openai', 'codex']),
+          to: z.literal('codex'),
+          at: z.string(),
+          imageModel: z.string(),
+          textModel: z.string(),
+        }),
+      )
+      .optional(),
     id: z.string().uuid(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -196,13 +251,16 @@ export class Contracts {
     variants: z.array(Contracts.variant),
     imageModel: z.string(),
     textModel: z.string(),
+    planningModel: z.string().min(2).max(100).optional(),
     provider: z.enum(['openai', 'codex']).default('openai'),
     events: z.array(z.object({ at: z.string(), message: z.string() })),
     selectedVariantId: z.string().nullable(),
     productionPolicy: StyleContracts.policy.optional(),
     sourceEvidence: KnowledgeContracts.evidence.optional(),
-    workflowVersion: z.literal('planned-pilot-v1').optional(),
+    workflowVersion: z.enum(['planned-pilot-v1', 'planned-set-v2']).optional(),
     planningPolicy: SetContract.planningPolicy.optional(),
+    planningSessionStart: z.number().int().nonnegative().optional(),
+    qualityWarnings: z.array(z.string()).optional(),
     compositionDraft: CompositionPlanningContracts.draft.optional(),
     planHistory: z
       .array(
@@ -210,13 +268,24 @@ export class Contracts {
           at: z.string(),
           plan: Contracts.plan,
           reviews: z.array(SetContract.review),
+          validation: z.literal('deterministic-slots-first-v1').optional(),
           errors: z.array(z.string()),
           reviewError: z.string().optional(),
           compositionDraft: CompositionPlanningContracts.draft.optional(),
         }),
       )
       .optional(),
-    reviewProtocol: z.enum(['set-v2', 'set-v3']).optional(),
+    reviewProtocol: z.enum(['set-v2', 'set-v3', 'composition-v1']).optional(),
+    reviewProtocolHistory: z
+      .array(
+        z.object({
+          from: z.enum(['set-v2', 'set-v3']).optional(),
+          to: z.literal('composition-v1'),
+          at: z.string(),
+          reason: z.enum(['user-requested-resume', 'user-requested-regeneration']),
+        }),
+      )
+      .optional(),
   });
   static readonly reference = z.object({
     id: z.string(),
@@ -258,18 +327,19 @@ export class Contracts {
     inputManifest: Contracts.inputManifest.optional(),
     reviewStyleThreshold: z.number().min(4).max(5).optional(),
     analysisModel: z.string().min(1).optional(),
+    allowQualityWarnings: z.boolean().optional(),
     visualCatalog: VisualCatalogContracts.catalog.optional(),
     compositionState: z.unknown().optional(),
     compositionPlanning: CompositionPlanningContracts.configuration.optional(),
     contextOptimization: ContextOptimization.schema.optional(),
+    referenceSelection: z.literal('catalogue-v1').optional(),
   });
   static readonly id = z.string().uuid();
   static readonly settings = z.object({
-    provider: z.enum(['openai', 'codex']).default('codex'),
-    imageModel: z.string().min(2).max(100),
-    textModel: z.string().min(2).max(100),
+    ...GenerationRepairContracts.limits.shape,
     codexPath: z.string().max(1000).default(''),
-    codexModel: z.string().min(2).max(100).default('gpt-6.1-sol'),
+    codexModel: z.enum(['gpt-6.1-sol', 'gpt-6.1-terra']).default('gpt-6.1-terra'),
+    planningModel: z.enum(['gpt-6.1-sol', 'gpt-6.1-terra']).optional(),
   });
 }
 
@@ -292,7 +362,6 @@ export type Bootstrap = {
   runs: Run[];
   profile: Profile;
   settings: Settings;
-  hasKey: boolean;
   codexReady: boolean;
   referenceCount: number;
   dataPath: string;
@@ -300,6 +369,7 @@ export type Bootstrap = {
   library: LibraryItem[];
 };
 export interface StudioApi {
+  getRunProfile(runId: string): Promise<Profile>;
   getKnowledge(): Promise<import('./KnowledgeEditorContracts').KnowledgeSnapshot>;
   saveKnowledge(edit: import('./KnowledgeEditorContracts').KnowledgeEdit): Promise<void>;
   removeKnowledge(kind: import('./KnowledgeEditorContracts').KnowledgeKind, id: string): Promise<void>;
@@ -329,10 +399,15 @@ export interface StudioApi {
   selectVariant(runId: string, variantId: string): Promise<void>;
   setBudget(runId: string, maximum: number): Promise<void>;
   previewDelivery(runId: string, variantId: string): Promise<import('./DeliveryContracts').DeliveryPreview[]>;
+  exportDeliveryPreview(
+    runId: string,
+    variantId: string,
+    preview: import('./DeliveryContracts').DeliveryPreview,
+  ): Promise<string | null>;
   exportDiagnostics(runId: string): Promise<string | null>;
   exportExecutionLog(runId: string): Promise<string | null>;
   exportRun(runId: string, variantId: string): Promise<string | null>;
-  saveSettings(settings: Settings, key: string): Promise<void>;
+  saveSettings(settings: Settings): Promise<void>;
   checkConnection(): Promise<{ ok: boolean; message: string }>;
   onRun(callback: (run: Run) => void): () => void;
 }

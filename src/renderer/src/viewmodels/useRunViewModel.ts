@@ -1,14 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DeliveryReadiness } from '../../../domain/DeliveryReadiness';
-import type { Run, StudioApi } from '../../../shared/Contracts';
+import type { Run, StudioApi, Profile } from '../../../shared/Contracts';
 import { Assets } from '../Assets';
+import { ReferencePresentation } from './ReferencePresentation';
+import { SetComposition } from '../../../domain/SetComposition';
 
 export function useRunViewModel(
   run: Run,
   api: StudioApi,
   perform: (action: () => Promise<unknown>) => Promise<void>,
   onLibraryChanged: () => Promise<void>,
+  initialProfile: Profile,
 ) {
+  const [profile, setProfile] = useState(initialProfile);
+  const [referencesReady, setReferencesReady] = useState(false);
+  const [referenceError, setReferenceError] = useState<string | null>(null);
+  useEffect(() => {
+    let current = true;
+    void api.getRunProfile(run.id).then(
+      (value) => {
+        if (current) {
+          setProfile(value);
+          setReferencesReady(true);
+        }
+      },
+      (error: unknown) => {
+        if (current) setReferenceError(error instanceof Error ? error.message : String(error));
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [api, run.id]);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [tab, setTab] = useState<string | null>(null);
   const [cardId, setCardId] = useState<string | null>(null);
@@ -20,12 +43,25 @@ export function useRunViewModel(
     run.variants[0];
   const card = variant?.cards.find((c) => c.id === cardId);
   const evidence = card ? Assets.selected(card)?.evidence : undefined;
+  const target = card && variant ? SetComposition.target(variant, card) : undefined;
+  const usedReferences =
+    referencesReady && card ? ReferencePresentation.used(profile, run, card, Assets.selected(card)) : [];
+  const plannedReferences = referencesReady ? ReferencePresentation.planned(profile, target) : [];
+  const referenceCandidates = referencesReady ? ReferencePresentation.candidates(profile, target) : [];
   const total = run.brief.variants * 10,
     done = run.variants.flatMap((v) => v.cards).filter((c) => c.selectedAttemptId).length;
   const active = Assets.active(run);
   const complete = DeliveryReadiness.accepts(run, variant);
   const action = (task: () => Promise<unknown>) => void perform(task);
   return {
+    profile,
+    referencesReady,
+    referenceError,
+    usedReferences,
+    plannedReferences,
+    referenceCandidates,
+    comparisonReference:
+      usedReferences.find((reference) => reference.role === 'Composition reference') ?? usedReferences[0],
     diagnosticsOpen,
     setDiagnosticsOpen,
     exportDiagnostics: () => action(() => api.exportDiagnostics(run.id)),

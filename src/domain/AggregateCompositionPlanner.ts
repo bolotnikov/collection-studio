@@ -1,9 +1,12 @@
+import { SetRhythmPlanner } from './SetRhythmPlanner';
+import { SourcePositionPlanner } from './SourcePositionPlanner';
 import { CatalogPolicy } from '../shared/CatalogPolicy';
 import type { CompositionRequirements, CompositionTarget } from '../shared/CompositionContract';
 import type {
   CompositionBlueprint,
   CompositionPlanningConfiguration,
   SemanticConcept,
+  SlotPlan,
 } from '../shared/CompositionPlanningContracts';
 import type { CatalogCard, VisualCatalog } from '../shared/VisualCatalogContracts';
 import { SubjectAssignment } from './SubjectAssignment';
@@ -148,7 +151,7 @@ export class AggregateCompositionPlanner {
     }
     return loss;
   }
-  private distribute(patterns: Pattern[], quota: number): Pattern[] | null {
+  private distribute(patterns: Pattern[], quota: number, concept?: SemanticConcept): Pattern[] | null {
     if (!quota) return [];
     const total = patterns.reduce((sum, p) => sum + p.expected, 0);
     const expected = patterns.map((p) => (quota * p.expected) / total);
@@ -157,7 +160,19 @@ export class AggregateCompositionPlanner {
       let best = -1,
         score = Infinity;
       patterns.forEach((pattern, index) => {
-        if (pattern.references.length < CatalogPolicy.values.minimumCompositionReferences) return;
+        if (
+          pattern.references.length < CatalogPolicy.values.minimumCompositionReferences ||
+          (concept &&
+            !concept.candidates.some((candidate) =>
+              SubjectAssignment.compatible(candidate, {
+                index: 0,
+                category: pattern.category,
+                required: pattern.required,
+                preferred: {},
+              }),
+            ))
+        )
+          return;
         counts[index] = (counts[index] ?? 0) + 1;
         const value = this.loss(patterns, counts, expected);
         counts[index] = (counts[index] ?? 0) - 1;
@@ -171,8 +186,11 @@ export class AggregateCompositionPlanner {
     }
     return patterns.flatMap((pattern, index) => Array.from({ length: counts[index] ?? 0 }, () => pattern));
   }
-  select(concepts: SemanticConcept[], catalog: VisualCatalog, includeGold: boolean): CompositionBlueprint[] {
-    const profile = this.profile(catalog, includeGold);
+  private allocations(
+    profile: ReturnType<AggregateCompositionPlanner['profile']>,
+    concept: SemanticConcept | undefined,
+    includeGold: boolean,
+  ) {
     const allocation: { patterns: Pattern[]; score: number; key: string }[] = [];
     const distributions = new Map<string, Pattern[] | null>();
     const distribution = (category: string, actor: number, quota: number) => {
@@ -183,6 +201,7 @@ export class AggregateCompositionPlanner {
           this.distribute(
             profile.patterns.filter((p) => p.category === category && p.required.characterCount === actor),
             quota,
+            concept,
           ),
         );
       return distributions.get(key);
@@ -223,12 +242,115 @@ export class AggregateCompositionPlanner {
             }
           }
     allocation.sort((a, b) => a.score - b.score || a.key.localeCompare(b.key));
+    return allocation;
+  }
+  private referenceIds(pattern: Pattern, occurrence: number, seed?: string): string[] {
+    const ids = pattern.references.map((reference) => reference.id);
+    if (seed === undefined)
+      return Array.from(
+        { length: Math.min(8, ids.length) },
+        (_, offset) => ids[(occurrence + offset) % ids.length],
+      ).filter((id): id is string => id !== undefined);
+    let state = 2166136261;
+    for (const character of `${seed}/${pattern.key}/${occurrence}`)
+      state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0;
+    // Seeded Fisher-Yates changes input priority without changing the slot contract.
+    for (let index = ids.length - 1; index > 0; index--) {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let value = Math.imul(state ^ (state >>> 15), state | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      const other = Math.floor((((value ^ (value >>> 14)) >>> 0) / 4294967296) * (index + 1));
+      const currentId = ids[index],
+        otherId = ids[other];
+      if (currentId === undefined || otherId === undefined) throw new Error('Invalid reference permutation.');
+      ids[index] = otherId;
+      ids[other] = currentId;
+    }
+    return ids.slice(0, 8);
+  }
+  planSlots(catalog: VisualCatalog, includeGold: boolean, referenceSeed?: string): SlotPlan {
+    const profile = this.profile(catalog, includeGold);
+    const choice = this.allocations(profile, undefined, includeGold)[0];
+    if (!choice) throw new Error('No source-supported ten-slot allocation is available.');
+    const ordered = this.order(choice.patterns);
+    const slots = ordered.map((pattern, index) => {
+      const occurrence = ordered.slice(0, index).filter((item) => item.key === pattern.key).length;
+      const reference = pattern.references[occurrence % pattern.references.length];
+      if (!reference) throw new Error('Slot reference evidence is missing.');
+      const { camera, subjectScale, subjectPosition, backgroundColor } = reference.observation.facets;
+      return {
+        index,
+        sourceCardId: reference.id,
+        sourceRequired: pattern.required,
+        adaptedFacets: [],
+        target: {
+          index,
+          referenceIds: pattern.references.map((reference) => reference.id),
+          selectedReferenceIds: this.referenceIds(pattern, occurrence, referenceSeed),
+          category: pattern.category,
+          required: pattern.required,
+          preferred: { camera, subjectScale, subjectPosition, backgroundColor },
+        },
+      };
+    });
+    const plan = new SourcePositionPlanner().apply(
+      {
+        slots,
+        composition: this.contract(
+          catalog.dependencyHash,
+          profile,
+          choice.patterns,
+          slots.map((slot) => slot.target),
+        ),
+      },
+      catalog,
+    );
+    return catalog.cards.every((card) => card.observation.facets.backgroundColor)
+      ? new SetRhythmPlanner().apply(plan, catalog)
+      : plan;
+  }
+  private contract(
+    catalogHash: string,
+    profile: ReturnType<AggregateCompositionPlanner['profile']>,
+    patterns: Pattern[],
+    targets: CompositionTarget[],
+  ): SlotPlan['composition'] {
+    return {
+      version: 'set-composition-v1',
+      catalogDependencyHash: catalogHash,
+      sourceSetIds: profile.sourceSetIds,
+      rationale:
+        'New ten-slot composition fitted to equally weighted source-set statistics. Each slot preserves an observed joint category/support/background/pattern/depth/context/actor pattern with original-reference coverage. No source layout is selected or copied.',
+      aggregate: {
+        version: 'aggregate-pattern-v1',
+        sourceSetCount: profile.sourceSetIds.length,
+        contributingSetCount: profile.contributingSetCount,
+        patterns: profile.patterns.map((pattern) => ({
+          category: pattern.category,
+          required: pattern.required,
+          expected: pattern.expected,
+          count: patterns.filter((selected) => selected.key === pattern.key).length,
+          referenceCount: pattern.references.length,
+        })),
+      },
+      targets,
+    };
+  }
+  select(
+    concepts: SemanticConcept[],
+    catalog: VisualCatalog,
+    includeGold: boolean,
+    allowApproximation = false,
+  ): CompositionBlueprint[] {
+    const profile = this.profile(catalog, includeGold);
     return concepts.map((concept) => {
       SubjectAssignment.validate(concept, includeGold);
+      const allocation = this.allocations(profile, concept, includeGold);
       for (const choice of allocation) {
         const ordered = this.order(choice.patterns);
         const targets: CompositionTarget[] = ordered.map((p, index) => ({
           index,
+          referenceIds: p.references.map((reference) => reference.id),
           category: p.category,
           required: p.required,
           preferred: {},
@@ -257,27 +379,25 @@ export class AggregateCompositionPlanner {
           title: concept.title,
           concept: concept.concept,
           slots,
-          composition: {
-            version: 'set-composition-v1',
-            catalogDependencyHash: catalog.dependencyHash,
-            sourceSetIds: profile.sourceSetIds,
-            rationale:
-              'New ten-slot composition fitted to equally weighted source-set statistics. Each slot preserves an observed joint category/support/background/pattern/depth/context/actor pattern with original-reference coverage. No source layout is selected or copied.',
-            aggregate: {
-              version: 'aggregate-pattern-v1',
-              sourceSetCount: profile.sourceSetIds.length,
-              contributingSetCount: profile.contributingSetCount,
-              patterns: profile.patterns.map((p) => ({
-                category: p.category,
-                required: p.required,
-                expected: p.expected,
-                count: choice.patterns.filter((selected) => selected.key === p.key).length,
-                referenceCount: p.references.length,
-              })),
-            },
-            targets,
-          },
+          composition: this.contract(catalog.dependencyHash, profile, choice.patterns, targets),
         };
+      }
+      if (allowApproximation) {
+        const relaxed: SemanticConcept = {
+          ...concept,
+          candidates: concept.candidates.map((candidate) => ({
+            ...candidate,
+            compatibleComposition: undefined,
+            compatibleCategories: candidate.characterCount ? ['5'] : ['1', '2', '3', '4'],
+          })),
+        };
+        const fallback = this.select([relaxed], catalog, includeGold)[0];
+        if (fallback) {
+          fallback.warnings = [
+            'Exact subject/composition compatibility was unavailable. Category and visual-pattern allocation were retained; subject compatibility was approximated.',
+          ];
+          return fallback;
+        }
       }
       throw new Error(
         `No subject assignment satisfies the aggregate composition model for "${concept.title}". Revise subject compatibility, not the source statistics.`,

@@ -1,0 +1,2399 @@
+{
+  "version": "environment-background-v1",
+  "reviewedAt": "2026-11-13",
+  "method": "visual-inspection",
+  "cards": [
+    {
+      "id": "source-ab6d35e5bfbde16d737dd748",
+      "sha256": "ab6d35e5bfbde16d737dd74824f43212ec2e2891ba489d1b448124e737a8c5e5",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-cf87f02074ccbff155710258",
+      "sha256": "cf87f02074ccbff155710258c44dc83860e1e1e7f5bef1c33f3bf644b77ff6d0",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Лужайка",
+          "извилистая дорожка",
+          "кроны и стволы деревьев",
+          "дальняя зелень"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Листья в кронах",
+          "пучки травы",
+          "швы мощения"
+        ],
+        "layout": "Деревья обрамляют края, дорожка уходит вправо за статую; задний план зеленее и темнее светлого льва."
+      }
+    },
+    {
+      "id": "source-b636a656867f5add2fa2c715",
+      "sha256": "b636a656867f5add2fa2c7155925de250455fce4def08a6cd7abbf8a46908afd",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-089536668de70c042e368309",
+      "sha256": "089536668de70c042e36830937487b6d76e8fa15e98e8a637ec38490d1a0f168",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "дерево с крупным стволом и кроной",
+          "зелёная полоса парка",
+          "мощёная дорожка"
+        ],
+        "secondaryObjects": [
+          "Дальние светлые здания справа"
+        ],
+        "smallDetails": [
+          "Листья",
+          "далёкие окна зданий",
+          "семечки относятся к кормушке"
+        ],
+        "layout": "Дерево занимает центр и верх, здания видны небольшим бледным участком справа; кормушка ярче окружения."
+      }
+    },
+    {
+      "id": "source-7046856c94161f6449c6744f",
+      "sha256": "7046856c94161f6449c6744f325c40f154e12e087a075b4dea65eaf37f42c948",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Открытое голубое небо",
+          "ровная живая изгородь",
+          "полоса дорожки",
+          "газон"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные травинки",
+          "листья изгороди"
+        ],
+        "layout": "Большое пустое небо сверху, узкие горизонтальные полосы внизу; подробная листва принадлежит главному кусту."
+      }
+    },
+    {
+      "id": "source-e87f007d49d788a329a93c1f",
+      "sha256": "e87f007d49d788a329a93c1fc2a05157b846029020e13362677073e68d0663af",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-2dd4079ed5e35f634804b5ab",
+      "sha256": "2dd4079ed5e35f634804b5abddab35f7a5e9060fb0c8970c098aca7457f1f367",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Газон",
+          "светлая дорожка",
+          "кроны деревьев",
+          "небо"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Немного травинок и листьев"
+        ],
+        "layout": "Крупное дерево слева и дальние округлые кроны сверху; табурет является частью главной шахматной группы."
+      }
+    },
+    {
+      "id": "source-96b873f051f383830cddf488",
+      "sha256": "96b873f051f383830cddf48863224f8463b42bff119a34bb9dc9a03320d7b02d",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-9e0b17076b88c80587991c22",
+      "sha256": "9e0b17076b88c80587991c22db37dcef1039a61fbd6e6f6501b52bcaeb6e8d16",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёный газон",
+          "вода пруда",
+          "каменный бортик"
+        ],
+        "secondaryObjects": [
+          "Листья кувшинок в воде"
+        ],
+        "smallDetails": [
+          "Небольшие пучки травы",
+          "блики и круги воды"
+        ],
+        "layout": "Каменный обод связывает воду с газоном; лебеди занимают центр, отдельные кувшинки лежат вокруг них."
+      }
+    },
+    {
+      "id": "source-853c349c215e26c01a36fa9a",
+      "sha256": "853c349c215e26c01a36fa9a98f94de36bb7e802095b010cf817652f2124ca41",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Открытое голубое небо",
+          "дорожка",
+          "зелень за воротами"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Небольшие листья",
+          "швы дорожки"
+        ],
+        "layout": "Небо свободно над воротами, зелень видна по краям и сквозь них; столбы и завитки принадлежат главным воротам."
+      }
+    },
+    {
+      "id": "3458764679576006668",
+      "sha256": "dfc6074782a01f7babd170d6b35984934c61a17f319fa8118bc84b9cafe7637e",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006669",
+      "sha256": "e3582d3b8d1d5c453aa7451eb32af68bf5cbe135592d59c6086e703fd43f38e8",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006671",
+      "sha256": "46b055210f415a7e29750b91ba8978b7a82fe51b131ed9b5f38d7023b43471d0",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёное игровое поле",
+          "белая разметка"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Травинки на переднем плане"
+        ],
+        "layout": "Поле полностью заполняет кадр, разметка уходит за мяч; ни неба, ни отдельного задника, ни фоновых предметов нет."
+      }
+    },
+    {
+      "id": "3458764679576006672",
+      "sha256": "f7c207c15d3dfc3f8be0a63f0744f9c0e5c69c8772750f4e4f9f588306560e7d",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006675",
+      "sha256": "f0e60ade600ec7200c9ee25792b58474de9ab8416212392291dc0153486fb38b",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006676",
+      "sha256": "70965a16b00ffad3a485d6c33b649dc82790c1301b412566e42b3ee4bc5f8546",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "облака",
+          "гладкие зелёные холмы",
+          "газон"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Передние травинки"
+        ],
+        "layout": "Небо и облака над несколькими широкими полосами холмов; клюшка и мяч образуют главную предметную группу."
+      }
+    },
+    {
+      "id": "3458764679576006678",
+      "sha256": "15d11c0849e7e4ff1f44b1ad14a4b2babf3b094c5bf7a9f23a5139af0ad420b8",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006680",
+      "sha256": "073234c728918823a1c4f1977777b71a6ae677d9e3b2b4b3153beab12884484f",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубая вода бассейна",
+          "край бассейна"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Водные блики и небольшая плиточная сетка"
+        ],
+        "layout": "Вода занимает почти всё пространство вокруг главных ворот и мяча; самостоятельных фоновых предметов нет."
+      }
+    },
+    {
+      "id": "3458764679576006681",
+      "sha256": "8369c19391d1f98cdde93aa9f9aa47a32127020c81ce1eb3ebec67b98edfec37",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006682",
+      "sha256": "a64a3fb43405fd3176cb76de7f183b63a3579c8f2062a139f86d83b7b7bae638",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006333",
+      "sha256": "e5fd84a3eae5908ade5fb0505cc1457989ee7e9c86a589bf6718d0a8617a9e39",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006335",
+      "sha256": "81c4981890da10f19efcfead7a7cf6609e30c892d6369de802dbb28acbd0e974",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Спокойная сиреневая стена",
+          "поверхность стола"
+        ],
+        "secondaryObjects": [
+          "Окно с голубой рамой"
+        ],
+        "smallDetails": [
+          "Небольшой фрагмент листвы за окном"
+        ],
+        "layout": "Окно обрезано верхним правым краем, остальное — крупные плоскости; книги остаются наиболее насыщенной группой."
+      }
+    },
+    {
+      "id": "3458764679576006336",
+      "sha256": "37f29c16538d3f447bc93b5c8809d294800f34ee9116efd95d0fc245bb42e3aa",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "stage",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бордовый занавес",
+          "дощатый пол сцены"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Вертикальные складки за трибуной и узкая полоса пола; никаких дополнительных сценических предметов."
+      }
+    },
+    {
+      "id": "3458764679576006337",
+      "sha256": "6242149b15fc110a55826dc2e76ea861cec10ef379b7a64b76b9493c4fb884c7",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006338",
+      "sha256": "c80c45d144914e10e3187478ba7eff19a5f1a89860637e22f6ce671571e95778",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Однотонная сиреневая стена",
+          "деревянный пол",
+          "плинтус"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Шкаф стоит перед стеной и плинтусом; книги, мяч и обувь внутри принадлежат самому шкафу."
+      }
+    },
+    {
+      "id": "3458764679576006339",
+      "sha256": "7f4d7c6f76cba3ced6dbaeb581f4803b69d02af69761959c792e63d49f16ca21",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006342",
+      "sha256": "d757a3ad198bacde52c5c6dcfdc34da84bc98cff6375dfc94c58aac2f485163f",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "sky",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "крупные облака"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Облака по нижнему и боковым краям, свободное небо вокруг шаров; наземных объектов нет."
+      }
+    },
+    {
+      "id": "3458764679576006345",
+      "sha256": "cfe21a5ed5ec810dbb0c2cc2c4f52f37ed1819585e0f41902fab68f0fe97b27b",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006348",
+      "sha256": "b59e4c6ce8a635e4be623b1bb16fff21aadf08943b918dc9ad1536163b68ba76",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006351",
+      "sha256": "695a2e9f4be1002c08e6e3fe728965566c489eac6f262c2bc32ddd1bf31843de",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006755",
+      "sha256": "7b5011039159dadb78efc08b2df8ab34640fe17546caf35735d53d613c092880",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006756",
+      "sha256": "b1d875cb6be491ec1ebdf26a8a8f5c0ae7d060fcdb27e3bc07b728e6422719fb",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006757",
+      "sha256": "ea1f419e0d10c05a754c23c7e8f8db3a2ff59f69460f9dc9309de5188bfa225a",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006759",
+      "sha256": "b64456f01920a60cc13ed9ec33d457eda894da4ed544a62a50b7c5cdba96a05e",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёная стена",
+          "деревянная полка"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Мишень, подсветка рамки и медвежонок составляют главный игровой стенд; за ним остаётся простая стена."
+      }
+    },
+    {
+      "id": "3458764679576006760",
+      "sha256": "66dcc10616d69aa50ed7862f5c5bce5faba150a6ad68ce94e153dbcccff61286",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006761",
+      "sha256": "728131eb25b29f35a1a41317b2b95dcb1ed69690cba668105792700b175aa6df",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бирюзовые стены комнаты",
+          "угол",
+          "плиточный пол"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Простая перспектива угла комнаты; игрушки внутри автомата относятся к главному объекту, фоновых предметов нет."
+      }
+    },
+    {
+      "id": "3458764679576006762",
+      "sha256": "3956fd06957a9dd5ca8642f126c00fb4eea3b6b39a5e2dc3db4d3cbfe6ee9d78",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006764",
+      "sha256": "9be3de3107738170499fe5910186cb02d6e9b5292be3e7cc580559426e004703",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёная дощатая стена"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Весь фон — одна вертикальная поверхность; свечение вокруг вывески не образует отдельную сцену."
+      }
+    },
+    {
+      "id": "3458764679576006765",
+      "sha256": "ffd563be57ac9ffcd7a7ab68aed206f0372b54dfd81d99cccbb2d797759e4ff6",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "облака",
+          "дальние зелёные холмы",
+          "земля"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Небольшие травинки у опоры"
+        ],
+        "layout": "Большая область неба, низкий горизонт; вагончики и рельсы принадлежат главным американским горкам."
+      }
+    },
+    {
+      "id": "3458764679576006766",
+      "sha256": "92b1d5bb54c1bf88b983dbda06e49fe82d9b274b5461c281bab6baab1fd1c48b",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006389",
+      "sha256": "c66319b505527fc662eb950e1b69b7e19c9b0e1147d84a397b7d3b54538f9a81",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Тёплая однотонная стена"
+        ],
+        "secondaryObjects": [
+          "Окно слева",
+          "зелёная штора"
+        ],
+        "smallDetails": [],
+        "layout": "Окно и штора прижаты к левому краю, справа спокойная стена; других приборов и мебели нет."
+      }
+    },
+    {
+      "id": "3458764679576006381",
+      "sha256": "2d731586564da0bdf4e382cd964a777f0abb807b9893502ba09208e27db1ff49",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006382",
+      "sha256": "309388b5569e402ce39eb7c2ada96daba8b57b7127e67235a3ff8c2d3a0c9cbb",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006383",
+      "sha256": "09f3c6ce8e4e3303c1bedc68253a75a78c260c1eb59dac59edaf5fb9e6ebd202",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёная стена с широкими полосами",
+          "узкая плоскость потолка"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Потолочный стык задаёт комнату, а не графический абстрактный задник; вокруг кондиционера нет предметов."
+      }
+    },
+    {
+      "id": "3458764679576006385",
+      "sha256": "e3696820a1cf33c37c9094ba41b204cd5fecdd5ad101e3e42729231f0d6aa390",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006386",
+      "sha256": "a9669f9cd99650edcb4631f7199bb4e124787114ea0304504acbec39ef0920dd",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Оранжевая кирпичная стена"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Швы крупных кирпичей"
+        ],
+        "layout": "Стена полностью заполняет фон; окно и занавеска являются главным объектом, не дополнительными фоновыми предметами."
+      }
+    },
+    {
+      "id": "3458764679576006390",
+      "sha256": "0e1b5c669153d840f14827536931902cce81f21d62395982abf6de84c07601bb",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006387",
+      "sha256": "be28de04cb995ef077eb5b03a831cba108bdca191104287c178ba5956fe58c85",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006391",
+      "sha256": "22b9b525ef5d2251fbe7d928a5d62a9424886293ffb6e21fdb35c5081f56dc1d",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Газон",
+          "деревянный забор"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Пучки травы",
+          "фактура досок"
+        ],
+        "layout": "Забор замыкает задний план сверху, бассейн крупно стоит на газоне; уточка относится к главной группе."
+      }
+    },
+    {
+      "id": "3458764679576006388",
+      "sha256": "1058d429f10e1107535e51ab0577e883c78b992cab84fc217c3139f557ea837e",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006862",
+      "sha256": "b902b11d6771321ad41ffca8217d0fe33d4990b22806b52fad3a6ad3f14e7e7a",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо с облаками",
+          "газон",
+          "кустарник",
+          "крона и ствол дерева справа"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные цветы в траве",
+          "листья"
+        ],
+        "layout": "Дерево справа и кусты по краям обрамляют качели; подушки и плед принадлежат главным качелям."
+      }
+    },
+    {
+      "id": "3458764679576006863",
+      "sha256": "a5a735309ed4b632f53dd2122789dc6f6fd6b2da3c988ff8040b64cf5b3a2c36",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Светлый деревянный забор",
+          "кустарник",
+          "каменная площадка"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Листья по краям",
+          "швы мощения"
+        ],
+        "layout": "Забор — большая спокойная вертикальная плоскость; растения, лейка и совок входят в главную садовую стойку."
+      }
+    },
+    {
+      "id": "3458764679576006866",
+      "sha256": "8484d8d4d99523f7651f1ef4d06318e9fe55dfac59c6db2a1d8a232150fd676e",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006868",
+      "sha256": "860744c84384d63444dab4ace3d7f9cf8447b191b95d00222734251daf0728a7",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006870",
+      "sha256": "71f83981107f4a35d2772713692f16e685a0f9cb6b88633de061c6c3c7ff357a",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Светлая стена дома",
+          "крупные массы вьющейся зелени"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Много отдельных листьев по бокам и сверху"
+        ],
+        "layout": "Листва обрамляет дверь, не закрывая её центр; венок принадлежит двери, других предметов в глубине нет."
+      }
+    },
+    {
+      "id": "3458764679576006871",
+      "sha256": "6a785f7d3fadc9226638af96d84a8895acb7d7f44eafa5590f3bc8ec6a69a8d1",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006872",
+      "sha256": "8db5b2e1fd3b1121ff27f5adf32ece8340839c75903b19f74c47be7e15331246",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Деревянная поверхность и перила",
+          "зелёная масса куста"
+        ],
+        "secondaryObjects": [
+          "Край горшка с растением справа"
+        ],
+        "smallDetails": [
+          "Отдельные листья",
+          "фактура досок"
+        ],
+        "layout": "Открытая книга крупно внизу, перила идут за ней по диагонали, зелень занимает верхнюю полосу."
+      }
+    },
+    {
+      "id": "3458764679576006874",
+      "sha256": "e7abfb6a785128383186d1a8c864b696d93980ef460765b4a98aaee567056a74",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006875",
+      "sha256": "3949323850f477a19a8652d31975b1c20016d3e18c14574bb589863123dff369",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006878",
+      "sha256": "58ebd298caff0885f186306ef4a538f7208b79606e9aff3a7b36d60aa453f280",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бирюзовая вода",
+          "край деревянного причала"
+        ],
+        "secondaryObjects": [
+          "Несколько листьев кувшинок"
+        ],
+        "smallDetails": [
+          "Круги на воде",
+          "линии досок"
+        ],
+        "layout": "Лодка рядом с причалом образует главную сцену сверху; свободная вода окружает её, дальнего берега нет."
+      }
+    },
+    {
+      "id": "source-bc316a0c80adb6c9a7143d48",
+      "sha256": "bc316a0c80adb6c9a7143d48b303b6e8c7c57c41febaa79530bf115d8b0d021e",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-f28a403dbeb611adb4c3a243",
+      "sha256": "f28a403dbeb611adb4c3a243cb171d01db66ab16d12a2cbaaef6debbc7ae8cdc",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Море",
+          "голубое небо",
+          "крупные облака"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Низкая ровная линия горизонта, облака по сторонам; никаких кораблей или построек вдалеке."
+      }
+    },
+    {
+      "id": "source-03f12fc303f20bf6662a2d2c",
+      "sha256": "03f12fc303f20bf6662a2d2cfea4afa34fa563bd7c9810195e7203eda60b56b6",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-48ccb1eda5d25c0572eb9a9f",
+      "sha256": "48ccb1eda5d25c0572eb9a9f3c2d7fc3f796eb0deaa15a69489212f699fc81b4",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-2487cf39077ff25deebc7726",
+      "sha256": "2487cf39077ff25deebc772684e2c74ca9d2fc1fa61744c5e6644b0e487b5043",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-5d6c7264cc08b7d54acedfdc",
+      "sha256": "5d6c7264cc08b7d54acedfdce3be631a479ff9b2ba4691bbb234dbeb242a9d31",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-370714873bed6a6886c81768",
+      "sha256": "370714873bed6a6886c817687e7cdb7523e2ce80b23a8395507c3266a6d8d1e1",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Деревянный настил",
+          "два сходящихся дощатых борта"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Линии досок",
+          "немного древесной фактуры"
+        ],
+        "layout": "Крупный деревянный угол позади фуражки; это архитектурное замыкание пространства без дополнительных объектов."
+      }
+    },
+    {
+      "id": "source-96c05c6983b6bb759d15f322",
+      "sha256": "96c05c6983b6bb759d15f322b1135475c3a0962d5164c7e2287a6f58b1568298",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Большое голубое небо",
+          "облачная полоса",
+          "море"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Маяк перед низким горизонтом; небо — основная свободная область, порта и дальних зданий нет."
+      }
+    },
+    {
+      "id": "source-d30942cff0c02254a1aa6497",
+      "sha256": "d30942cff0c02254a1aa6497b19c4c6057087c3e946ced4763b6f090665e024c",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-538aa6a3554b92c28b36d1da",
+      "sha256": "538aa6a3554b92c28b36d1da09ed71eec2db3b41fbdbced0f843e0c88c14fabe",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Закатное небо",
+          "облака",
+          "море",
+          "часть палубы"
+        ],
+        "secondaryObjects": [
+          "Мачта",
+          "верёвочная лестница"
+        ],
+        "smallDetails": [
+          "Мелкие блики воды"
+        ],
+        "layout": "Мачта и лестница за плечом капитана справа, светлый закат слева; штурвал относится к действию персонажа."
+      }
+    },
+    {
+      "id": "3458764679576193978",
+      "sha256": "f368f5de9c9df6d2c060b43688215c332a6a5dcd73c10650ad89f677f64cf4f8",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёная масса леса",
+          "земля поляны",
+          "крупные хвойные силуэты"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Камешки у костра",
+          "редкая трава"
+        ],
+        "layout": "Деревья за котелком создают плотную зелёную кулису; стойка, костёр и дрова входят в главный походный объект."
+      }
+    },
+    {
+      "id": "3458764679576193979",
+      "sha256": "ffb3e57873b2bca751b74fc87f0e0d0e1647fd8af6275e2cc1d362c9e4c522f1",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193980",
+      "sha256": "80cd2ec4ac167edca7f5b026c93265e21a19f319f6b9d1fdc82f6bf04f04686a",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193981",
+      "sha256": "169353170258c5db8fbe263fa04e25b504b9ab16f45b31677f83274fd8a92c1d",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193982",
+      "sha256": "24eae38abbfc09e01cce41970db0a2725cc40cf5f86c154eea30211e170002ff",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193983",
+      "sha256": "a342a64f05b6c928afe60d644553b9cf73f9c0d2b275071b0ff4e6dccb3a5448",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Поляна",
+          "крупные стволы по краям",
+          "массы листвы",
+          "дальние ели"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Листья и травинки"
+        ],
+        "layout": "Стволы образуют боковые кулисы, дальний лес светлее; вокруг палатки нет другого лагерного инвентаря."
+      }
+    },
+    {
+      "id": "3458764679576193984",
+      "sha256": "80eaf64a5d8df202dd5181a43d37d1ab3a3ea6e7e0c41efa59dc90738bfa1a46",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193985",
+      "sha256": "f2e38f99f88548da88b54fb9744f209c1646054ae4d7bb545b0571c96aa9a0c5",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193987",
+      "sha256": "4a062b0e80310b0f5b6266f8b74737831075e1b334eacfb739ff85dda76fce82",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576193988",
+      "sha256": "aa84ba3fcea28bdc1cb7b8510f4f67aa72200124ffe74f098c5e927de19ff7b5",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Светлая лесная глубина",
+          "стволы",
+          "зелёные кроны и кусты"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные листья и травинки"
+        ],
+        "layout": "Крупные стволы обрамляют персонажа, центр леса светлее; лук и стрелы относятся к действию овцы."
+      }
+    },
+    {
+      "id": "source-fc400fe91d54a615569a4448",
+      "sha256": "fc400fe91d54a615569a4448a10458702bc04738bc71c31788cbc479a77dac97",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-d52a8cb1c77b670b906c08ea",
+      "sha256": "d52a8cb1c77b670b906c08eab7ace764f31ed154e68011bc1ded2f2a74b58ea8",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Навес станции",
+          "стена платформы",
+          "полоса неба",
+          "железнодорожный путь"
+        ],
+        "secondaryObjects": [
+          "Скамейка внизу слева",
+          "опорные стойки навеса"
+        ],
+        "smallDetails": [
+          "Швы плит стены",
+          "доски скамейки"
+        ],
+        "layout": "Повтор стоек задаёт глубину, часы крупно перед ними; нет мелких пассажиров и разбросанного багажа."
+      }
+    },
+    {
+      "id": "source-5de9c17ed04fe7296c8d23ae",
+      "sha256": "5de9c17ed04fe7296c8d23ae53a130c72c3dc0ff3bd872bae9046ff9589d2957",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-a46413d9b0ad964c9535797e",
+      "sha256": "a46413d9b0ad964c9535797e1bc6353361655c293386a6740157d1d5e6889850",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-5c94299995fcf9e697f5ec01",
+      "sha256": "5c94299995fcf9e697f5ec0117756afafd4f4abbe389b20e8fcf5d44dd51082f",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-b3a638b051511b38b3a52217",
+      "sha256": "b3a638b051511b38b3a5221796ef0c376d599255358d8b56720e59e2551be848",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-1734623ccb10b6968a86b137",
+      "sha256": "1734623ccb10b6968a86b137d3c1adb2f2d6409777c7661a5ecaef40f74c2ccf",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "sky",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "крупные облачные группы"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Облака в нижней полосе и по краям; самолёт занимает центр без земли и аэропорта вдалеке."
+      }
+    },
+    {
+      "id": "source-6904cb845b16b197e42e2c8b",
+      "sha256": "6904cb845b16b197e42e2c8b888f103780f593411792d4e53c1d3afe249703c8",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-604f87eb3140cf3514831547",
+      "sha256": "604f87eb3140cf35148315478014f8ab77d0b8b53d7ab5d34558a634079bae87",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Большое окно аэропорта",
+          "голубое небо",
+          "дальняя зелень"
+        ],
+        "secondaryObjects": [
+          "Самолёт за окном",
+          "низкое здание аэропорта с башней"
+        ],
+        "smallDetails": [
+          "Крупные окна здания"
+        ],
+        "layout": "Окно делит фон на несколько крупных панелей; чемодан у персонажа — часть действия, не фоновой россыпью."
+      }
+    },
+    {
+      "id": "source-71ab16ba395bad832f2b27e5",
+      "sha256": "71ab16ba395bad832f2b27e51b4a0dc10c6bd5eb991494b13cc12acca123d7b6",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Зелёные холмы",
+          "закатное небо",
+          "изгибающийся железнодорожный путь"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Травинки",
+          "несколько дальних хвойных силуэтов"
+        ],
+        "layout": "Путь уходит вправо в глубину; паровоз и дым принадлежат главному действию поросёнка."
+      }
+    },
+    {
+      "id": "3458764679576006454",
+      "sha256": "b3ec2323a3621aaa9b3222bbc85a136dc94fa1891801e8e97445929026e32f1c",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Большое голубое небо",
+          "узкая полоса моря",
+          "песок"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Немного камешков и песчинок"
+        ],
+        "layout": "Горизонт низко за замком; ведёрко и лопатка входят в главную песочную группу, дальних построек нет."
+      }
+    },
+    {
+      "id": "3458764679576006455",
+      "sha256": "6f89e7991f04cea0179abfb157b5582c05f3f74fd8b5df60f6dfd08956d9ce74",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006456",
+      "sha256": "800e451f54147d787949902bfd6749647feb55be6751615de3d12fd0247843e5",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бирюзовая вода",
+          "узкий песчаный берег"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Редкие камешки на берегу",
+          "круги воды"
+        ],
+        "layout": "Вид сверху: причал, столбики и круг — главный объект, вода свободна вокруг, берег тонкой дугой сверху."
+      }
+    },
+    {
+      "id": "3458764679576006457",
+      "sha256": "c3b69c59d26d8d51a24c8b66679b896418f331a022774182afa5cf1205e6aef5",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "облака",
+          "море",
+          "песок"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Небольшие камешки",
+          "песчаные точки"
+        ],
+        "layout": "Море — узкая горизонтальная полоса за холодильником; банки и лёд относятся к главному предмету."
+      }
+    },
+    {
+      "id": "3458764679576006458",
+      "sha256": "419f9eb1370d1e98a0ad79fe066177e64fcca8626e951a8518ad8099efdb1959",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006459",
+      "sha256": "d1c35f678a18a032c8220d8fcafcab07fa223eecb102d1c28f1cabdb25982fd0",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Песчаная поверхность с широкими волнами"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Редкие песчинки"
+        ],
+        "layout": "Песок заполняет весь фон без горизонта и самостоятельных объектов; экологический контекст при backdrop=surface-continuation."
+      }
+    },
+    {
+      "id": "3458764679576006460",
+      "sha256": "cf69ef687f66eb00d58164cd5c8071cad99f1e0aeb9d4795a65bf04dcf0273bb",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006461",
+      "sha256": "fda554b238c22bfb5436f6e5e95666314cd1f66b561fe1614f6e6ce4d2f7df55",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "sky",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "крупные облака"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Кресло спасателя крупно перед небом; лестница, навес и спасательный круг являются частями главного объекта."
+      }
+    },
+    {
+      "id": "3458764679576006462",
+      "sha256": "388e0c3d17917ac780a1ad880a65f8e9f0da7e895a2e98c457eda9e95acaeaf2",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Большая волна",
+          "голубое небо",
+          "пена"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Капли брызг"
+        ],
+        "layout": "Волна обрамляет персонажа, доска входит в действие; нет самостоятельных фоновых сооружений."
+      }
+    },
+    {
+      "id": "3458764679576006463",
+      "sha256": "157b76e6b535645acbff61be3157de725c1bb583bc8ad73bcbdbe9b317d18df8",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "песчаный берег",
+          "вода"
+        ],
+        "secondaryObjects": [
+          "Пальма слева",
+          "пляжный зонт справа"
+        ],
+        "smallDetails": [
+          "Несколько растительных силуэтов",
+          "брызги воды"
+        ],
+        "layout": "Пальма и зонт стоят по краям за персонажами; мяч и плавательный круг относятся к главной сцене."
+      }
+    },
+    {
+      "id": "3458764679576194041",
+      "sha256": "1cb93d4b7f989f8bcac42705f65dba8f0539e6527d7a1794510f62fa65cc1164",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "stage",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Тёмный задник сцены",
+          "деревянный пол",
+          "крупные световые конусы"
+        ],
+        "secondaryObjects": [
+          "Боковые и верхняя сценические фермы",
+          "несколько прожекторов на фермах"
+        ],
+        "smallDetails": [
+          "Повтор перемычек ферм"
+        ],
+        "layout": "Фермы по краям и сверху, световые пятна широкие; гитара центральная, зрителей на фоне нет."
+      }
+    },
+    {
+      "id": "3458764679576194042",
+      "sha256": "3d9d9e7d899a02d1f6a6081316ad3783a335573e6a26188c468a9fe5990418c5",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "stage",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бирюзовый сценический задник",
+          "широкий световой конус"
+        ],
+        "secondaryObjects": [
+          "Горизонтальная ферма сверху"
+        ],
+        "smallDetails": [],
+        "layout": "Главный прожектор подвешен к верхней ферме; остальная область — спокойный градиент и его луч."
+      }
+    },
+    {
+      "id": "3458764679576194043",
+      "sha256": "93aa5c93cf48d0624ca32ac447ee9660570fdabc1f96c75562fbe9ad7e9f87d2",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194044",
+      "sha256": "955e5dbc7104222cf22ff088a41e7aedcd353f82a402358b29ec5888143fe7d3",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194045",
+      "sha256": "d6987ecfba9b7ca29c63b84eda3f18c50b2275c53bf8b177935c3d9a61db42ab",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194046",
+      "sha256": "2842a158e69dac774ca4d7a22fa9686a8169b939a339803fccbd275144544c3d",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Крупные зелёные полотнища палатки",
+          "деревянная столешница",
+          "узкая полоса травы"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Палатка занимает заднюю плоскость, бутылки образуют главную группу на столе; лагерной россыпи нет."
+      }
+    },
+    {
+      "id": "3458764679576194048",
+      "sha256": "5048ce07434fac30efdde7cbe95f944750771c85a06b8cced67c463faf79fb8a",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194049",
+      "sha256": "2e6db55682e42129d358a2192266489bd102179b026546d2617bb8c2d23f9866",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194050",
+      "sha256": "2e3ca7362801c64b9ff719a98c0e99da291b197f98051c53f9f72a31ff31c5af",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "stage",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Сценический навес",
+          "небо",
+          "широкие световые конусы"
+        ],
+        "secondaryObjects": [
+          "Гирлянда ламп",
+          "дальние силуэты зрителей"
+        ],
+        "smallDetails": [
+          "Конфетти",
+          "мелкие лампы на сцене"
+        ],
+        "layout": "Два персонажа крупно спереди, сцена позади, гирлянда сверху; это более насыщенный сюжетный пример."
+      }
+    },
+    {
+      "id": "3458764679576194051",
+      "sha256": "3a4ac42d732c0710359acb7ebfb45a951bc1ea3d6f652704e7ee4e1190656f5d",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "stage",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "several"
+      },
+      "environment": {
+        "majorShapes": [
+          "Тёмная сцена",
+          "широкие цветные световые конусы"
+        ],
+        "secondaryObjects": [
+          "Сценические фермы",
+          "колонки",
+          "прожекторы",
+          "толпа зрителей"
+        ],
+        "smallDetails": [
+          "Лица и руки в толпе",
+          "перемычки ферм"
+        ],
+        "layout": "Музыкант занимает центр, колонки и фермы по краям, толпа внизу; более подробное сюжетное исключение."
+      }
+    },
+    {
+      "id": "source-aa4e711101b82b77e8c9bbc7",
+      "sha256": "aa4e711101b82b77e8c9bbc707cc462fa109c52f63f5bcb85ffd21ffe90fc94b",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Деревянный настил",
+          "бирюзовая вода"
+        ],
+        "secondaryObjects": [
+          "Край причального столбика с канатом"
+        ],
+        "smallDetails": [
+          "Линии дерева",
+          "водные блики"
+        ],
+        "layout": "Маска крупно на настиле снизу слева, вода — свободная область справа сверху."
+      }
+    },
+    {
+      "id": "source-8f094262a4eef7faad5fb443",
+      "sha256": "8f094262a4eef7faad5fb443b0d11102db795249722bf9cd41b0e1faa7090549",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "underwater",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубая вода",
+          "песчаное дно",
+          "крупные световые полосы"
+        ],
+        "secondaryObjects": [
+          "Камни по краям",
+          "две группы водорослей"
+        ],
+        "smallDetails": [
+          "Несколько пузырьков"
+        ],
+        "layout": "Водоросли и камни обрамляют бутылку, центральная толща воды спокойна; песок крупными полосами."
+      }
+    },
+    {
+      "id": "source-98a870b7146897b0ee680af4",
+      "sha256": "98a870b7146897b0ee680af4ebf659611ff8d78f3f00877cb538cc1fe4160b0b",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "underwater",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Глубокая синяя вода",
+          "широкие световые лучи"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Несколько пузырьков"
+        ],
+        "layout": "Медуза изолирована в воде, ни дна, ни кораллов, ни дальних обитателей нет."
+      }
+    },
+    {
+      "id": "source-78faa3971e573e998c565d6d",
+      "sha256": "78faa3971e573e998c565d6d72cdb8336ea8162997d476f4d7f89f0af603392c",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "underwater",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Синяя толща воды",
+          "небольшой участок песчаного дна"
+        ],
+        "secondaryObjects": [
+          "Ракушка слева на песке"
+        ],
+        "smallDetails": [
+          "Несколько пузырьков"
+        ],
+        "layout": "Сундук крупно спереди; монеты снаружи принадлежат его содержимому, фон без других сокровищ и сооружений."
+      }
+    },
+    {
+      "id": "source-841dc4e1a81d6a762f01fb05",
+      "sha256": "841dc4e1a81d6a762f01fb0566368a7a328cc8959b1bdc4f039590abdd8f5e0d",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-40b3eafb68609c7f5ca82f4b",
+      "sha256": "40b3eafb68609c7f5ca82f4bf11db9693631af1441d13b2e52681a9736bbc28b",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-689d7f1c80897856827ec0f8",
+      "sha256": "689d7f1c80897856827ec0f8c4dd05ca1679aad617fff573c7ac13168ed74d6b",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-900d93795c6172492bcde836",
+      "sha256": "900d93795c6172492bcde836c6c4dcc712f766b92a474bf637ed6ea3ffdbb741",
+      "hasEnvironment": false
+    },
+    {
+      "id": "source-2dbbe3896e0d7861ffcea5fe",
+      "sha256": "2dbbe3896e0d7861ffcea5fe23d311d51f16b56b92c597e90d58e5c1ffaf2ca9",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "море",
+          "узкий тропический берег"
+        ],
+        "secondaryObjects": [
+          "Небольшие пальмы вдоль берега"
+        ],
+        "smallDetails": [
+          "Пена за гидроциклом"
+        ],
+        "layout": "Берег тонкой полосой за персонажем; пальмы упрощены, гидроцикл и рация входят в действие."
+      }
+    },
+    {
+      "id": "source-ff2344f61f7d5eb373479909",
+      "sha256": "ff2344f61f7d5eb37347990928253d5513dab9dc4972a13376446f691e596a66",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "underwater",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубая вода",
+          "песчаное дно",
+          "световые полосы"
+        ],
+        "secondaryObjects": [
+          "Кораллы по нижним краям",
+          "ракушка на дне"
+        ],
+        "smallDetails": [
+          "Несколько пузырьков"
+        ],
+        "layout": "Кораллы служат нижними кулисами; персонаж и рыба-фугу остаются главной взаимодействующей парой."
+      }
+    },
+    {
+      "id": "3458764679576006575",
+      "sha256": "1ccd5010bb0cf641646d66a9a8d497857af8ada902647c47722866ccabe4dace",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006576",
+      "sha256": "caa3babe34513561ccef118368155414c64056f528c1663ba6414c1913a6a9d8",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Градиентное небо",
+          "пустынная равнина",
+          "крупные дальние скальные плато"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Редкие камешки и кустики"
+        ],
+        "layout": "Скалы сгруппированы у низкого горизонта; колонка крупно спереди, других машин и построек нет."
+      }
+    },
+    {
+      "id": "3458764679576006577",
+      "sha256": "b0e72cf7ceb39751a455ccc589e57cd7d7bf2d3cb577a766135bb13a1ad4cf3c",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006580",
+      "sha256": "19cd27c37e070fc2c79e97eb9dab86d863dc52c165068da1389b5439a6afdda1",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "sky",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "крупные облака"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Свободное небо вокруг указателя; бабочка на его верхушке — локальный акцент главного предмета."
+      }
+    },
+    {
+      "id": "3458764679576006584",
+      "sha256": "1de2b6169eb9c842b40cf98046de8ddb5812ff6363bd95029c16f8d201067293",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Ночное небо",
+          "фасад мотеля",
+          "тёмный забор",
+          "зелёные массы деревьев"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Несколько звёзд",
+          "повтор светящихся окон"
+        ],
+        "layout": "Мотель слева, вывеска спереди справа; здание крупным единым блоком, без мелких машин и прохожих."
+      }
+    },
+    {
+      "id": "3458764679576006587",
+      "sha256": "e4c21b118775ffde4700f3b9f0eae09b3aa321aa46795f17e611b678f3e913a6",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576006588",
+      "sha256": "4d89080238ea8c34434cd233636039f4fd61feb7d30ef1801cf8f2ef50999cb5",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Асфальтовая дорога",
+          "низкие холмы",
+          "тёплое небо"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Немного придорожных кустиков",
+          "дорожная разметка"
+        ],
+        "layout": "Автомобиль и закреплённый велосипед образуют главный объект; горы низкой полосой слева, фон пустой."
+      }
+    },
+    {
+      "id": "3458764679576006590",
+      "sha256": "098e73cce6921f915fa86f9a712593a822307cc4816b66c275a573a6f3ac2658",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Открытое небо",
+          "облака",
+          "луговая зелень",
+          "дальние деревья"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Редкие травинки"
+        ],
+        "layout": "Небо занимает верхнюю область, деревья узкой низкой полосой; столик и термос принадлежат действию."
+      }
+    },
+    {
+      "id": "3458764679576006591",
+      "sha256": "c31d0fb9bcece0f4e77d8a8313aea501a9dea9ee0641f280a0e696dd46c29945",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо с облаками",
+          "дорога",
+          "кустарник справа"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные листья куста",
+          "разметка"
+        ],
+        "layout": "Машина и багаж относятся к взаимодействию персонажей; на заднем плане остаются небо и одна зелёная масса."
+      }
+    },
+    {
+      "id": "3458764679576006593",
+      "sha256": "3999de60ebfef27086856b1918375cb5ffcbbc0f51c9659fc2e92f2c16ed0eca",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "пустынная равнина",
+          "прямая дорога",
+          "дальние скальные плато"
+        ],
+        "secondaryObjects": [
+          "Несколько кактусов по краям дороги"
+        ],
+        "smallDetails": [
+          "Немного камней и пустынной травы"
+        ],
+        "layout": "Дорога уходит к низкому горизонту, кактусы по бокам; персонажи крупно справа спереди."
+      }
+    },
+    {
+      "id": "3458764679576194110",
+      "sha256": "2704cfbbeb712eecc15570b930924c21adc1fe9e727704952af00887b54c38ce",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194111",
+      "sha256": "c776bb3afb2f9d40a8928d3ad9f4c819deb181802d593f85bba99d8bb137b0a0",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194114",
+      "sha256": "3d87d5eccdc206966a7fff38bb8b80253a1059042e0bcc6e943efffe3a055c66",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "open-field",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Вода бассейна",
+          "плиточная кромка"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Повтор водных бликов",
+          "швы плит"
+        ],
+        "layout": "Фламинго крупно спереди, бассейн заполняет оставшуюся область; нет зданий или дополнительного пляжного инвентаря."
+      }
+    },
+    {
+      "id": "3458764679576194115",
+      "sha256": "6058457533a3772844b7c313d7503a047bd7bd629df1f61368921e2ad487e95a",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194116",
+      "sha256": "5643fd86f199c569a63fc79db6c2e441ba4724699c30c95ee4c07ee535a8325f",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194118",
+      "sha256": "6c1450fd1fe7f486e9e4925ba2b89915c83732651271c649836b269f1dace423",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Вода бассейна",
+          "дальний бортик"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Блики воды",
+          "плиточные швы"
+        ],
+        "layout": "Бар, соломенный навес, напитки и табуреты составляют главный комплекс, фон — вода без другого оборудования."
+      }
+    },
+    {
+      "id": "3458764679576194119",
+      "sha256": "034822c28017d8e849148288571ba1bde50a3f724f0385b40397366d86666267",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194121",
+      "sha256": "850bc1eec51b87e875606f56a702f79c0388cd3e0e2a1e5f479c3f4a4ccb378b",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "облака",
+          "плоскости бассейна и террасы"
+        ],
+        "secondaryObjects": [
+          "Пальмовая крона",
+          "ограждение"
+        ],
+        "smallDetails": [
+          "Немного цветов у ограждения",
+          "брызги"
+        ],
+        "layout": "Горка и брызги связаны с действием поросёнка; пальма и перила обрамляют сцену сзади."
+      }
+    },
+    {
+      "id": "3458764679576194122",
+      "sha256": "854d46005605af0449c14dec602d2686a49cdf388a0c0464e1952dfc764595d4",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "several"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "терраса",
+          "ограждение",
+          "зелёные растительные массы"
+        ],
+        "secondaryObjects": [
+          "Пальма",
+          "два подстриженных куста",
+          "цветочный ряд"
+        ],
+        "smallDetails": [
+          "Листья и цветы"
+        ],
+        "layout": "Зонт и шезлонг входят в главный отдых персонажа; растения стоят за ограждением, более подробный сюжетный фон."
+      }
+    },
+    {
+      "id": "3458764679576194123",
+      "sha256": "c97b8762edf06e22ab62536f8f8c5f61fb001040a1180ad9a031241f7487fbb4",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Вода бассейна",
+          "полоса бортика",
+          "крупная зелёная масса листвы"
+        ],
+        "secondaryObjects": [
+          "Лестница бассейна слева"
+        ],
+        "smallDetails": [
+          "Отдельные листья",
+          "водные блики"
+        ],
+        "layout": "Листва замыкает верх кадра, лестница у края; овца и матрас крупно в воде спереди."
+      }
+    },
+    {
+      "id": "3458764679576194230",
+      "sha256": "c180badf35cfc8874aa9077bc3c17809946dc29bd126151f572fc26fea674764",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "облака",
+          "улица",
+          "крупные фасады домов по краям"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Повтор простых окон"
+        ],
+        "layout": "Автобус закрывает большую часть улицы, фасады узкими полосами сзади; мелкого транспорта и прохожих нет."
+      }
+    },
+    {
+      "id": "3458764679576194231",
+      "sha256": "fcf1f2a09073b09322feda0905f9db62d3b581b3f4fa808b859e4b0433fe6346",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194232",
+      "sha256": "9d3a956b4bc48ba37448fb065321c9bdf7d0d0cf0fd3432cde4b629002758c98",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Светлое небо",
+          "единая голубая масса городской застройки",
+          "ограждение площадки"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Много маленьких окон в дальних зданиях"
+        ],
+        "layout": "Панорама занимает нижнюю заднюю полосу, город холоднее и светлее бинокля; это подробное городское исключение."
+      }
+    },
+    {
+      "id": "3458764679576194233",
+      "sha256": "6de2926c67ea6728c69b7ee3e8d5511d32a25b758e13f6631718b162a1d0c61f",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194234",
+      "sha256": "8ced81f6be46cd7d1b21ecfa6ef8441c8eb0eeb854bb69b81efc10c1b61e7e3c",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "interior",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "broad-masses",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Бордовые стены музейного угла",
+          "тёмный пол"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [],
+        "layout": "Колонна, постамент и табличка составляют главный экспонат; за ним нет других экспонатов."
+      }
+    },
+    {
+      "id": "3458764679576194235",
+      "sha256": "3f6520a3afe681f18bb3c622985c8e5f15f572f6e288801f1b8254664eb0879c",
+      "hasEnvironment": false
+    },
+    {
+      "id": "3458764679576194236",
+      "sha256": "bd16bc4e6de61e4024e74669829c664c8e08ef763975f2c41baff280701ee9d1",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "крупные разноцветные фасады",
+          "мощёная улица"
+        ],
+        "secondaryObjects": [
+          "Цветочные ящики на окнах"
+        ],
+        "smallDetails": [
+          "Повтор окон",
+          "цветы",
+          "швы мощения"
+        ],
+        "layout": "Фасады обрамляют уличную перспективу по краям, скутер и персонажи крупно в центре; сюжетный городской фон."
+      }
+    },
+    {
+      "id": "3458764679576194238",
+      "sha256": "463dac77183e9a9e3e6df1cbab4afda35b0327260fcb135168b986cc2dd9af30",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Деревянная лавка",
+          "небо",
+          "кроны деревьев"
+        ],
+        "secondaryObjects": [
+          "Подвешенные ожерелья на стене лавки"
+        ],
+        "smallDetails": [
+          "Цветные бусины"
+        ],
+        "layout": "Навес и стена лавки справа за персонажем, слева спокойное небо; пакеты относятся к действию овцы."
+      }
+    },
+    {
+      "id": "3458764679576194239",
+      "sha256": "3728b754042c5efc252e2e7dc2ec120f0c6e62a0c18bed9313b70fbe965a9d32",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Голубое небо",
+          "крупный борт экскурсионного автобуса"
+        ],
+        "secondaryObjects": [
+          "Узкий фрагмент городского фасада слева"
+        ],
+        "smallDetails": [
+          "Крупные окна фасада"
+        ],
+        "layout": "Автобус замыкает правую часть кадра, фасад малой полосой слева; флаг и мегафон принадлежат гиду."
+      }
+    },
+    {
+      "id": "3458764679576194240",
+      "sha256": "fc41404c0d7e61f212fc2dbe54f242e407d913ca66934ad75bace54772abd379",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "waterside",
+        "backgroundLayout": "layered-bands",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Небо",
+          "зелёные холмы",
+          "широкая полоса водопадов",
+          "вода"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Немного отдельных камней",
+          "брызги"
+        ],
+        "layout": "Водопад единой крупной массой за парой персонажей; посторонних строений и людей нет."
+      }
+    },
+    {
+      "id": "3458764679576194409",
+      "sha256": "d32b91a1a24ab2a6cdd401061fd3d7f1352b85cff34d1403716a9a8eb7b7e691",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Газон",
+          "деревянный забор",
+          "небо",
+          "кустарник"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Травинки",
+          "отдельные листья"
+        ],
+        "layout": "Забор горизонтальной полосой, кусты по бокам; ракетки и волан принадлежат действию пары."
+      }
+    },
+    {
+      "id": "3458764679576194410",
+      "sha256": "564e07b6d807542fc8a77dd225f18a74f5080bb29f31964916f8ebf24eaa5800",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Ночное небо",
+          "кроны деревьев",
+          "кустарник",
+          "терраса"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные цветы слева",
+          "звёзды"
+        ],
+        "layout": "Светлая игровая башня и стол относятся к действию; тёмная зелень по краям отступает за корову."
+      }
+    },
+    {
+      "id": "3458764679576194415",
+      "sha256": "722be1c8df296f27f62946ef23aaf55fcba4d65ba88a7e729ce69a34470697d3",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Закатное небо",
+          "кирпичная стена",
+          "газон",
+          "крупные кусты"
+        ],
+        "secondaryObjects": [
+          "Фрагмент крыши справа",
+          "цветочный горшок у стены"
+        ],
+        "smallDetails": [
+          "Немного цветов",
+          "швы кирпича"
+        ],
+        "layout": "Стена запирает задний план, крыша по правому краю; батут относится к действию поросёнка."
+      }
+    },
+    {
+      "id": "3458764679576194411",
+      "sha256": "10080c8ce5dc655f3319bdd139edcd6d985de27162da0dbeaee5f5622a6be846",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Спокойная голубая стена",
+          "деревянная стойка",
+          "зелёная листва по верхним краям"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Отдельные листья"
+        ],
+        "layout": "Большая пустая стена за головой, листва сверху и по краям; лимоны, стаканы и лёд входят в действие продавца."
+      }
+    },
+    {
+      "id": "3458764679576194412",
+      "sha256": "4aee0804779ebc66f1a697c0102389b4c7e616db0e05ff44e644427a8d02d6aa",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "architecture",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "none"
+      },
+      "environment": {
+        "majorShapes": [
+          "Фасад кирпичного дома",
+          "газон",
+          "кустарник"
+        ],
+        "secondaryObjects": [],
+        "smallDetails": [
+          "Кирпичные швы",
+          "несколько листьев"
+        ],
+        "layout": "Дом крупной плоскостью вверху, кустарник полосой перед ним; коврик и персонажи — главная сцена."
+      }
+    },
+    {
+      "id": "3458764679576194414",
+      "sha256": "6bcb54ce47c80c2c32a6d77d5346489c17e60f00827f8a23680bbb9c084e6b9a",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Закатное небо",
+          "газон",
+          "дальняя зелень",
+          "крона слева"
+        ],
+        "secondaryObjects": [
+          "Стол для пикника слева в глубине"
+        ],
+        "smallDetails": [
+          "Немного листьев и травы"
+        ],
+        "layout": "Стол расположен небольшим боковым акцентом, центр фона свободнее; поднос с едой относится к действию коровы."
+      }
+    },
+    {
+      "id": "3458764679576194416",
+      "sha256": "b85270102b28671dabd3470a1c3e849022cfc2171b478b3576dc81c457be8ddf",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "repeated-detail",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Закатное небо",
+          "газон",
+          "крупные деревья по краям"
+        ],
+        "secondaryObjects": [
+          "Гирлянды ламп между деревьями"
+        ],
+        "smallDetails": [
+          "Повтор лампочек",
+          "отдельные листья",
+          "трава"
+        ],
+        "layout": "Деревья образуют боковые кулисы и верхний свод; гамак — часть главной сцены, гирлянды тонкими дугами сверху."
+      }
+    },
+    {
+      "id": "3458764679576194417",
+      "sha256": "1065b75af618dfe5d624b1d636062ddce540e05cbb8f956202f87abc8e55929b",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "enclosing-surfaces",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Деревянный забор",
+          "закатное небо",
+          "крупные кусты"
+        ],
+        "secondaryObjects": [
+          "Край наружного экрана справа"
+        ],
+        "smallDetails": [
+          "Отдельные листья",
+          "линии досок"
+        ],
+        "layout": "Экран нужен действию с проектором и расположен справа; дальний фон — простые полосы забора, кустов и неба."
+      }
+    },
+    {
+      "id": "3458764679576194418",
+      "sha256": "7d070594f5dc944b5a9f7cd0fe76d01723d96ad2f660e975a3af26e45d0c83d2",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Ночное небо",
+          "газон",
+          "крупные деревья",
+          "кусты"
+        ],
+        "secondaryObjects": [
+          "Фрагмент дома с освещённым окном слева",
+          "луна"
+        ],
+        "smallDetails": [
+          "Звёзды",
+          "немного травы"
+        ],
+        "layout": "Дом по левому краю, дерево по правому, небо свободно между ними; плед и подушки относятся к главной сцене."
+      }
+    },
+    {
+      "id": "3458764679576194419",
+      "sha256": "3c8a0c9ed90cc45777faa29cbc361723777044b20ba7427adf5b11276a2437e8",
+      "hasEnvironment": true,
+      "facets": {
+        "environmentKind": "landscape",
+        "backgroundLayout": "side-framing",
+        "backgroundDetail": "local-accents",
+        "backgroundProps": "one-or-two"
+      },
+      "environment": {
+        "majorShapes": [
+          "Ночное небо",
+          "забор",
+          "крупная крона дерева",
+          "трава"
+        ],
+        "secondaryObjects": [
+          "Гирлянда ламп сверху"
+        ],
+        "smallDetails": [
+          "Несколько звёзд",
+          "листья"
+        ],
+        "layout": "Экран справа — часть просмотра кино, дерево слева и гирлянда сверху обрамляют персонажей; попкорн входит в действие."
+      }
+    }
+  ]
+}

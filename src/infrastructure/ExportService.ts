@@ -7,6 +7,7 @@ import type { Run } from '../shared/Contracts';
 import { ImageFiles } from './ImageFiles';
 import { ExecutionLogExporter } from './ExecutionLogExporter';
 import { Contracts } from '../shared/Contracts';
+import { ProductionRules } from '../domain/ProductionRules';
 
 export class ExportService {
   constructor(
@@ -21,7 +22,11 @@ export class ExportService {
     if (!DeliveryReadiness.accepts(run, variant))
       throw new Error('Production export requires passed card and set reviews.');
     const sheet = await this.images.sheet(folder, variant, variant.sourceEvidence?.cleanSets?.[0]?.layout);
-    if (run.reviewProtocol === 'set-v3' && path.basename(sheet) !== variant.reviewSheet)
+    if (
+      !ProductionRules.allowsWarnings(run.planningPolicy) &&
+      run.reviewProtocol === 'set-v3' &&
+      path.basename(sheet) !== variant.reviewSheet
+    )
       throw new Error('Export sheet no longer matches the reviewed image bytes.');
     const zip = new AdmZip();
     for (const [index, card] of variant.cards.entries()) {
@@ -58,13 +63,16 @@ export class ExportService {
       );
     }
     zip.addFile('run.json', Buffer.from(JSON.stringify(run, null, 2)));
+    if (run.reviewProtocol !== 'composition-v1')
+      zip.addFile('quality-warnings.json', Buffer.from(JSON.stringify(run.qualityWarnings ?? [], null, 2)));
     zip.addFile('selection.json', Buffer.from(JSON.stringify({ variantId, variant }, null, 2)));
     zip.addFile('style-profile.json', await fs.readFile(path.join(folder, 'style-profile.json')));
     if (this.executionLog) {
       const profile = Contracts.profile.parse(
         JSON.parse(await fs.readFile(path.join(folder, 'style-profile.json'), 'utf8')),
       );
-      zip.addFile('execution-log.md', Buffer.from(await this.executionLog.render(run, profile)));
+      zip.addFile('journal.md', Buffer.from(await this.executionLog.render(run, profile)));
+      zip.addFile('diagnostics.json', Buffer.from(await this.executionLog.diagnostics(run, profile)));
     }
     const cardReports = variant.cards.map((card, index) => {
       const selected = this.images.selected(card),
@@ -72,12 +80,19 @@ export class ExportService {
       const state = review
         ? review.passed
           ? 'Automated checks passed'
-          : 'NEEDS ART REVIEW'
+          : 'QUALITY WARNINGS'
         : 'NOT REVIEWED';
       return `### ${index + 1}. ${card.subject}\n\nCategory: ${card.category}. ${card.role}\n\nStatus: ${state}. Locked: ${card.locked}. Selected attempt: ${card.selectedAttemptId}. Versions: ${card.attempts.length}.\n\n${review ? `Style: ${review.style}/5; readability: ${review.readability}/5; subject: ${review.subjectMatch}/5; category match: ${review.categoryMatch}.` : ''}\n\n${review?.findings.join('\n') || selected?.reviewError || 'No additional findings.'}`;
     });
-    const report = `# ${variant.title}\n\n${variant.concept}\n\nTheme: ${run.brief.theme}\nWishes: ${run.brief.wishes}\nProvider: ${run.provider}\nImage model: ${run.imageModel}\nPlanning/review model: ${run.textModel}\nImage requests (whole run): ${run.imageCalls}\n\n## Set review\n\nStatus: ${variant.review ? (variant.review.passed ? 'Automated checks passed' : 'NEEDS ART REVIEW') : 'NOT REVIEWED'}. Coherence: ${variant.review?.coherence ?? 'unavailable'}/5.\n\n${variant.review?.findings.join('\n') || variant.reviewError || 'No additional set findings.'}\n\n## Cards\n\n${cardReports.join('\n\n')}\n\nModel review is advisory; final production approval requires visual inspection. Source art is employer-supplied reference material and is not included in this archive. Codex quality settings are prompt preferences, not guaranteed rendering parameters.\n`;
-    zip.addFile('report.md', Buffer.from(report));
+    const report = `# ${variant.title}\n\n${variant.concept}\n\nTheme: ${run.brief.theme}\nWishes: ${run.brief.wishes}\nProvider: ${run.provider}\nImage model: ${run.imageModel}\nPlanning/review model: ${run.textModel}\nImage requests (whole run): ${run.imageCalls}\n\n## Set review\n\nStatus: ${variant.review ? (variant.review.passed ? 'Automated checks passed' : 'QUALITY WARNINGS') : 'NOT REVIEWED'}. Coherence: ${variant.review?.coherence ?? 'unavailable'}/5.\n\n${variant.review?.findings.join('\n') || variant.reviewError || 'No additional set findings.'}\n\n## Cards\n\n${cardReports.join('\n\n')}\n\nModel reviews are recorded judgments. Automatic delivery retains unresolved findings as quality warnings; no manual approval is required. Source art is employer-supplied reference material and is not included in this archive. Codex quality settings are prompt preferences, not guaranteed rendering parameters.\n`;
+    zip.addFile(
+      'report.md',
+      Buffer.from(
+        run.reviewProtocol === 'composition-v1'
+          ? `# ${variant.title}\n\nТема: ${run.brief.theme}\n\nПожелания: ${run.brief.wishes}\n\nСоздано карточек: ${variant.cards.length}. Запросов изображений: ${run.imageCalls}.\n\nИзображения не оцениваются в баллах и не перерисовываются автоматически. Проверяются содержание и композиция; результаты сохранены в диагностике. Версию для экспорта выбирает пользователь.\n`
+          : report,
+      ),
+    );
     await fs.writeFile(destination, zip.toBuffer());
   }
 }

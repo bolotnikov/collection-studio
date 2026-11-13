@@ -4,7 +4,28 @@ import { KnowledgeContracts } from './KnowledgeContracts';
 /** Orthogonal observations; composition category is never inferred from background alone. */
 export class VisualCatalogContracts {
   static readonly category = z.enum(['1', '2', '3', '4', '5']);
+  static readonly environment = z.object({
+    majorShapes: z.array(z.string().min(1)).min(1),
+    secondaryObjects: z.array(z.string().min(1)),
+    smallDetails: z.array(z.string().min(1)),
+    layout: z.string().min(10),
+  });
+  static readonly environmentFacets = z.object({
+    environmentKind: z
+      .enum(['sky', 'landscape', 'waterside', 'underwater', 'interior', 'stage', 'architecture'])
+      .optional(),
+    backgroundLayout: z
+      .enum(['open-field', 'layered-bands', 'side-framing', 'enclosing-surfaces'])
+      .optional(),
+    backgroundDetail: z.enum(['broad-masses', 'local-accents', 'repeated-detail']).optional(),
+    backgroundProps: z.enum(['none', 'one-or-two', 'several']).optional(),
+  });
+  static readonly backgroundEvidence = z.object({
+    facets: VisualCatalogContracts.environmentFacets,
+    environment: VisualCatalogContracts.environment,
+  });
   static readonly facets = z.object({
+    ...VisualCatalogContracts.environmentFacets.shape,
     support: z.enum(['none', 'simple-plane', 'material-surface', 'environment']),
     backdrop: z.enum(['plain', 'gradient', 'pattern', 'surface-continuation', 'environment']),
     pattern: z.enum([
@@ -49,6 +70,7 @@ export class VisualCatalogContracts {
     lighting: z.string().min(5),
   });
   static readonly observation = z.object({
+    environment: VisualCatalogContracts.environment.optional(),
     category: VisualCatalogContracts.category,
     subject: z.string().min(3),
     facets: VisualCatalogContracts.facets,

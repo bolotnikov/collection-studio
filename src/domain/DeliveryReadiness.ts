@@ -6,6 +6,10 @@ import { SetRules } from './SetRules';
 export class DeliveryReadiness {
   static accepts(run: Run, variant: Variant | undefined): boolean {
     if (!variant || variant.cards.length !== 10) return false;
+    if (run.reviewProtocol === 'composition-v1' || ProductionRules.allowsWarnings(run.planningPolicy))
+      return variant.cards.every((card) =>
+        card.attempts.some((attempt) => attempt.id === card.selectedAttemptId),
+      );
     const minimum = run.productionPolicy?.styleThreshold ?? 4;
     return (
       (run.reviewProtocol !== 'set-v3' || SetRules.hasCleanSetEvidence(variant)) &&

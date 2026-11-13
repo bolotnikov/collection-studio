@@ -1,0 +1,19 @@
+{
+  "wood": ["wood", "walnut", "oak", "timber", "дерев", "древес"],
+  "glass": ["glass", "стекл"],
+  "plastic": ["plastic", "bakelite", "пласт", "бакелит"],
+  "rubber": ["rubber", "резин"],
+  "steel": ["steel", "iron", "сталь", "стал", "желез"],
+  "metal": ["metal", "металл"],
+  "brass": ["brass", "латун"],
+  "gold": ["gold", "золот"],
+  "chrome": ["chrome", "хром"],
+  "fabric": ["fabric", "textile", "cotton", "ткан", "текстил", "хлоп"],
+  "velvet": ["velvet", "бархат"],
+  "satin": ["satin", "атлас"],
+  "leather": ["leather", "кож"],
+  "paper": ["paper", "cardboard", "бумаг", "картон"],
+  "stone": ["stone", "marble", "камен", "камн", "мрамор"],
+  "ceramic": ["ceramic", "porcelain", "керами", "фарфор"],
+  "emerald": ["emerald", "изумруд"]
+}

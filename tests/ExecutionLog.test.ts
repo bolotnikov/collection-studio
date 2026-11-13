@@ -6,8 +6,6 @@ import { randomUUID } from 'node:crypto';
 import { ExecutionJournal } from '../src/infrastructure/ExecutionJournal';
 import { ExecutionLogExporter } from '../src/infrastructure/ExecutionLogExporter';
 import { RunRepository } from '../src/infrastructure/RunRepository';
-import { AuditedFetch } from '../src/infrastructure/AuditedFetch';
-import { OpenAiProvider } from '../src/infrastructure/OpenAiProvider';
 import { Contracts } from '../src/shared/Contracts';
 import sourceProfile from '../resources/style-profile.json';
 
@@ -61,11 +59,11 @@ it('preserves deterministic decisions across restart and exports an honest histo
   const render = new ExecutionLogExporter(reopened);
   const document = await render.render(await store.get(run.id), await store.getProfile(run.id));
   expect(document).toContain('Pilot approved after reference comparison');
-  expect(document).toContain('Production workflow');
-  expect(document).toContain('Configuration and knowledge snapshot');
-  expect(document).toContain('does not make any LLM calls');
+  expect(document).toContain('Состояние работы: приостановлено');
+  expect(document).toContain('машинной диагностике');
+  expect(document).toContain('без обращений к моделям');
   const legacy = { ...run, id: randomUUID() };
-  expect(await render.render(legacy, profile)).toContain('cannot be reconstructed');
+  expect(await render.render(legacy, profile)).toContain('восстановить нельзя');
 });
 it('records failed and concurrent calls with stable IDs while excluding secrets, binary data and private reasoning', async () => {
   const { journal, run } = await fixture();
@@ -103,39 +101,6 @@ it('records failed and concurrent calls with stable IDs while excluding secrets,
   expect(log).toContain('category-3');
   expect(entries.filter((entry) => entry.action.startsWith('request.'))).toHaveLength(4);
 });
-it('captures the real OpenAI image request and response once, with hashed file inputs instead of image payloads', async () => {
-  const { root, journal, run } = await fixture();
-  const file = path.join(root, 'reference.png');
-  await fs.writeFile(file, 'fixture image bytes');
-  const transport = vi.fn(
-    async () =>
-      new Response(
-        JSON.stringify({ data: [{ b64_json: Buffer.from('result pixels').toString('base64') }], created: 1 }),
-        {
-          headers: { 'content-type': 'application/json', 'x-request-id': 'image-request' },
-        },
-      ),
-  );
-  vi.stubGlobal('fetch', transport);
-  const audited = new AuditedFetch(journal, run.id);
-  const provider = new OpenAiProvider(
-    'sk-fixtureCredential123',
-    'fixture-image',
-    'fixture-text',
-    undefined,
-    audited.transport(),
-  );
-  const result = await provider.image('Specific composition prompt', [file], 'low');
-  expect(result.bytes.toString()).toBe('result pixels');
-  expect(transport).toHaveBeenCalledOnce();
-  const log = JSON.stringify(await journal.entries(run.id));
-  expect(log).toContain('Specific composition prompt');
-  expect(log).toContain('fixture-image');
-  expect(log).toContain('sha256');
-  expect(log).toContain('image-request');
-  expect(log).not.toContain('sk-fixtureCredential123');
-  expect(log).not.toContain(Buffer.from('result pixels').toString('base64'));
-});
 it('keeps array changes granular instead of copying all card evidence on every checkpoint', () => {
   expect(
     ExecutionJournal.changes(
@@ -143,4 +108,62 @@ it('keeps array changes granular instead of copying all card evidence on every c
       { cards: [{ id: 'a', state: 'done' }, { id: 'b' }] },
     ),
   ).toEqual([{ path: '/cards/0/state', before: 'pending', after: 'done' }]);
+});
+
+it('pairs concurrent requests in chronological Russian narration and keeps full sanitized machine evidence', async () => {
+  const { journal, run, profile } = await fixture();
+  await journal.record(run.id, 'CodexProvider.designSlotSet', 'request.started', {
+    callId: 'first',
+    request: { model: 'gpt-6.1-terra', prompt: 'Точный запрос А', secret: 'hidden-secret' },
+  });
+  await journal.record(run.id, 'CodexProvider.image', 'request.started', {
+    callId: 'second',
+    request: { prompt: 'Точный запрос Б' },
+  });
+  await journal.record(run.id, 'CodexProvider.image', 'request.failed', {
+    callId: 'second',
+    error: 'provider offline',
+  });
+  await journal.record(run.id, 'CodexProvider.designSlotSet', 'request.completed', {
+    callId: 'first',
+    response: { response: { variants: [{ title: 'Набор', cards: [{ subject: 'Ключ' }] }] } },
+  });
+  const exporter = new ExecutionLogExporter(journal);
+  const human = await exporter.render(run, profile);
+  expect(human.indexOf('Отправлен запрос №1')).toBeLessThan(human.indexOf('Отправлен запрос №2'));
+  expect(human.indexOf('Запрос №2 завершился ошибкой')).toBeLessThan(
+    human.indexOf('Получен ответ на запрос №1'),
+  );
+  expect(human).toContain('Точный запрос А');
+  expect(human).toContain('Ключ');
+  const machine = JSON.parse(await exporter.diagnostics(run, profile));
+  expect(machine.schema).toBe('collection-studio-diagnostics-v2');
+  expect(machine.journal).toHaveLength(4);
+  expect(machine.run.id).toBe(run.id);
+  expect(machine.profile.id).toBe(profile.id);
+  expect(JSON.stringify(machine)).not.toContain('hidden-secret');
+});
+
+it('exports full long requests and responses in collapsed blocks while preserving redaction and literal markup', async () => {
+  const { journal, run, profile } = await fixture();
+  const prompt =
+    'Начало задания\n' + 'Полный текст задания.\n'.repeat(300) + '````\n</details>\nКонец задания';
+  const response = {
+    findings: ['Полное наблюдение.\n'.repeat(300) + 'Конец ответа'],
+    secret: 'hidden-secret',
+  };
+  await journal.capture(run.id, 'CodexProvider.verifyComposition', { prompt }, async () => response);
+
+  const document = await new ExecutionLogExporter(journal).render(run, profile);
+  const requestBlock = document.match(
+    /<details>\n<summary>Точный текст отправленного задания<\/summary>\n\n(`{3,})text\n([\s\S]*?)\n\1\n\n<\/details>/,
+  );
+  expect(requestBlock?.[2]).toBe(prompt);
+  const responseBlock = document.match(
+    /<details>\n<summary>Полный исходный ответ модели<\/summary>\n\n(`{3,})text\n([\s\S]*?)\n\1\n\n<\/details>/,
+  );
+  expect(JSON.parse(responseBlock?.[2] ?? 'null')).toEqual({ ...response, secret: '[redacted]' });
+  expect(document).not.toMatch(/<details\s+open/);
+  expect(document).not.toContain('hidden-secret');
+  expect(document).not.toContain('Полный текст находится в отдельном файле');
 });

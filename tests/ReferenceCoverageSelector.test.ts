@@ -35,16 +35,33 @@ class CoverageFixture {
 }
 it('stops at sufficient role coverage instead of filling eight slots', () => {
   const f = CoverageFixture.create();
-  expect(
-    f.selector.select(f.items, f.assessments, 8, '3', f.shared, f.matching, []).map((i) => i.id),
-  ).toEqual(['ref-0', 'ref-1', 'ref-2', 'ref-3']);
+  expect(f.selector.select(f.items, f.assessments, 8, '3', f.matching, []).map((i) => i.id)).toEqual([
+    'ref-2',
+    'ref-3',
+  ]);
 });
+it('uses matching composition evidence without requiring unrelated fixed rendering examples', () => {
+  const f = CoverageFixture.create();
+  expect(f.selector.select(f.items, f.assessments, 8, '3', f.matching, []).map((item) => item.id)).toEqual([
+    'ref-2',
+    'ref-3',
+  ]);
+});
+it.each([3, 8])(
+  'retains all %i exact pattern matches under the eight-image cap without unrelated padding',
+  (count) => {
+    const f = CoverageFixture.create();
+    const matching = f.items.slice(2, 2 + count).map((item) => item.id);
+    const chosen = f.selector.select(f.items, f.assessments, 8, '3', matching, [], undefined, true);
+    expect(chosen.map((item) => item.id)).toEqual(matching);
+  },
+);
 it('allows shared anchors to also cover exact composition without requiring four distinct images', () => {
   const f = CoverageFixture.create();
   f.assessments.slice(0, 2).forEach((a) => {
     a.compositionMatches = true;
   });
-  expect(f.selector.select(f.items, f.assessments, 8, '1', f.shared, f.shared, [])).toHaveLength(2);
+  expect(f.selector.select(f.items, f.assessments, 8, '1', f.shared, [])).toHaveLength(2);
 });
 it('adds only useful nonconflicting evidence that covers a missing material', () => {
   const f = CoverageFixture.create();
@@ -53,22 +70,37 @@ it('adds only useful nonconflicting evidence that covers a missing material', ()
   if (!bad?.coverage || !good?.coverage) throw new Error('Fixture');
   bad.coverage = { ...bad.coverage, conflict: true, materials: ['glass'] };
   good.coverage.materials = ['glass'];
-  const result = f.selector.select(f.items, f.assessments, 8, '3', f.shared, f.matching, ['Glass']);
-  expect(result.map((i) => i.id)).toEqual(['ref-0', 'ref-1', 'ref-2', 'ref-3', 'ref-5']);
-  expect(() => f.selector.select(f.items, f.assessments, 4, '3', f.shared, f.matching, ['glass'])).toThrow(
-    'budget',
-  );
+  const result = f.selector.select(f.items, f.assessments, 8, '3', f.matching, ['Glass']);
+  expect(result.map((i) => i.id)).toEqual(['ref-2', 'ref-3', 'ref-5']);
+  expect(() => f.selector.select(f.items, f.assessments, 2, '3', f.matching, ['glass'])).toThrow('budget');
 });
 it('never substitutes unrelated candidates for missing composition or material evidence', () => {
   const f = CoverageFixture.create();
-  expect(() => f.selector.select(f.items, f.assessments, 8, '3', f.shared, [], [])).toThrow('composition');
-  expect(() => f.selector.select(f.items, f.assessments, 8, '3', f.shared, f.matching, ['velvet'])).toThrow(
-    'velvet',
-  );
-  const entry = f.assessments[0];
+  expect(() => f.selector.select(f.items, f.assessments, 8, '3', [], [])).toThrow('composition');
+  expect(() => f.selector.select(f.items, f.assessments, 8, '3', f.matching, ['velvet'])).toThrow('velvet');
+  const entry = f.assessments[2];
   if (!entry?.coverage) throw new Error('Fixture');
   entry.coverage.conflict = true;
-  expect(() => f.selector.select(f.items, f.assessments, 8, '3', f.shared, f.matching, [])).toThrow(
-    'Shared style',
+  expect(() => f.selector.select(f.items, f.assessments, 8, '3', f.matching, [])).toThrow('composition');
+});
+
+it('continues with explicit warnings for unconfirmed composition and missing materials without fabricating matches', () => {
+  const f = CoverageFixture.create();
+  f.assessments.forEach((assessment) => {
+    assessment.compositionMatches = false;
+  });
+  const warnings: string[] = [];
+  const chosen = f.selector.select(
+    f.items,
+    f.assessments,
+    8,
+    '3',
+    f.matching,
+    ['emerald', 'velvet'],
+    (message) => warnings.push(message),
   );
+  expect(chosen.map((item) => item.id)).toEqual(['ref-2', 'ref-3']);
+  expect(warnings.join(' ')).toContain('unconfirmed');
+  expect(warnings.join(' ')).toContain('emerald');
+  expect(f.assessments.every((assessment) => assessment.compositionMatches === false)).toBe(true);
 });

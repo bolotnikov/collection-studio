@@ -9,6 +9,21 @@ export function useDeliveryViewModel(api: StudioApi, runId: string, variantId: s
     error: null,
   });
   const [retry, setRetry] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [savedPath, setSavedPath] = useState<string | null>(null);
+  const exportPreview = async (preview: DeliveryPreview) => {
+    setSaving(true);
+    setExportError(null);
+    setSavedPath(null);
+    try {
+      setSavedPath(await api.exportDeliveryPreview(runId, variantId, preview));
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSaving(false);
+    }
+  };
   const [expanded, setExpanded] = useState<DeliveryPreview | null>(null);
   const key = `${runId}:${variantId}:${selection}:${retry}`;
   useEffect(() => {
@@ -28,6 +43,10 @@ export function useDeliveryViewModel(api: StudioApi, runId: string, variantId: s
     };
   }, [api, runId, variantId, key]);
   return {
+    saving,
+    exportError,
+    savedPath,
+    exportPreview,
     previews: state.key === key ? state.previews : [],
     error: state.key === key ? state.error : null,
     loading: state.key !== key,

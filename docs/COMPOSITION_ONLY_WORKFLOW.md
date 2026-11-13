@@ -1,0 +1,37 @@
+# Composition-only production
+
+## Current behavior
+
+Generation uses only ChatGPT-authenticated Codex CLI. The default worker model is `gpt-6.1-terra`; an optional separate planning model applies only to `plan`, `proposeSubjects`, `designSlotSet` and `describeComposition`. API-key settings, credential loading, HTTP providers and the API smoke command have been removed. Historical provider/model records remain readable. Explicit continuation of an API-era run records a provider transition to Codex without rewriting previous attempts.
+
+New runs retain `composition-v1` and snapshot an additive `bounded-composition-v1` repair policy. Settings expose `maxCardRegenerations` and `maxSetRegenerationRounds`, both defaulting to **0**. Zero disables the corresponding model verification and automatic corrections entirely. Positive integers enable that stage and bound its corrections; changing settings does not reset the policy of an existing run.
+
+After deterministic slot planning, one design call supplies the shared concept and ten Russian subject briefs. All ten initial images use the same bounded worker pool. When card verification is enabled, every output receives a composition observation. Only explicit `confirmedViolations` backed by consistent observations can trigger an automatic card correction: wrong subject, clipped silhouette, forbidden character, wrong category or required background. Uncertainty, description-only drift, approximate percentages and artistic preferences never trigger repairs. The per-card limit applies to one initial/manual generation chain, is persisted before each image request, and survives interruption. Each correction uses the exact previous immutable master as its edit base and is checked again.
+
+When whole-set verification is enabled, the actual selected images are assembled into one 5×2 sheet. One initial observation can identify distinct existing card IDs for minimal relationship corrections. Every correction round processes all eligible flagged cards through the bounded worker pool and then reviews the updated sheet. A limit of N permits at most N rounds and N+1 whole-set model calls, including the final observation. Set corrections do not start nested card-repair chains. Persisted round/request identities prevent replay after pause or restart; locks, exact image identities and the shared image budget remain enforced. Invalid targets, unavailable observations, remaining findings and exhausted limits stay in diagnostics without artistic scoring or producer warnings.
+
+A producer can still request a new image from the drawer. An empty instruction generates a new version; a nonempty instruction uses the selected immutable master as its revision base. Earlier files remain available. Manual selection does not silently start verification or reset automatic limits. Archived protocols, prompts, scores and policies are preserved; current adapters explicitly record protocol/policy activation on user-requested resume or regeneration. Existing active jobs are not modified.
+
+## Technical image recovery
+
+Technical image recovery is independent of the optional composition verifier. `ImageGenerationService` retries provider and image-validation/storage failures with the identical prompt and references, reserving and persisting each request against the shared image budget. Failed requests do not create candidate versions or consume another composition correction allowance. Pausing prevents another request; persistent failures stop at the request budget. Per-card `generationFailures` retain the request number, timestamp, phase and sanitized error through save/reopen/export.
+
+`CodexImageArtifacts` collects the single native PNG under the current CLI thread's `generated_images` directory before the provider evaluates the worker's structured save report. It records the artifact source and SHA-256 and preserves the native file. It never searches other threads or chooses among ambiguous outputs. Missing or corrupt artifacts proceed through mandatory technical retries. The generator's shell tool is disabled; it must not transport base64 in shell arguments or reconstruct a truncated tool response. Saved historical prompt snapshots are preserved.
+
+## Whole-grid planning
+
+`CollectionCorpusStatistics` counts membership in all sixteen source windows, with separate ordinary-only, mixed and gold-only cohorts. It records category/facet frequencies, per-window ranges, category-conditioned color/pattern distributions, exact repeated pairs and horizontal/vertical transitions in the real 5×2 grid. Free-text artistic descriptions are not treated as calibrated numeric style measurements.
+
+`SetRhythmPlanner` runs before the model. It retains the aggregate category/joint-pattern allocation, assigns category/backdrop/pattern-supported output colors and orders the complete grid using a bounded deterministic search. It forbids repeated color-family/pattern pairs globally, including `none`, and equal color families in horizontal or vertical neighbors. Cyan and blue share one family. These are explicit product rules, stronger than the observed corpus: the sources contain one repeated decorative color/pattern pair and some neighboring equal coarse color labels.
+
+`target.appearance` is mandatory output direction, distinct from source-reference eligibility. Source selection continues to match the exact structural category/pattern facets and retains its frozen identities. Output color can differ from source colors; it is recorded before design, repeated explicitly in generation and compared during composition inspection. Large subject scale is supported by all 160 classified originals. Distinct-color minima and maximum single-color frequency come from complete ordinary source windows. Historical contracts without the additive rhythm field keep their original semantics.
+
+Run `npx tsx scripts/audit-set-rhythm.ts` for a Russian human report, full machine statistics and both ordinary/gold plans in `output/set-rhythm-audit/`. Run `npx tsx scripts/audit-slot-inputs.ts` to verify source identity, exact structural matching, numbered inputs and absence of model calls.
+
+## Presentation and export
+
+The generation workspace combines compact progress, a small variant title and the ten clickable slots. Before subjects exist, the same grid shows planned slots. The drawer owns slot details and manual regeneration. Artistic warnings and numeric grades are absent from the producer screen; archived evidence remains in diagnostics.
+
+Every game-window preview has an individual PNG export action in the gallery and expanded modal. The main process resolves the preview against the current selection and validates its hash before writing. The renderer cannot supply an arbitrary file path to export.
+
+`journal-<run>.md` is the Russian chronological narrative; `diagnostics-<run>.json` contains the complete sanitized run, profile and execution journal. The human log pairs concurrent requests by stable call identity and explains deterministic checkpoints. Full original requests and responses appear without length limits in disclosures that are collapsed by default. Their original language is preserved, and credential, binary-payload and private-reasoning redaction still applies. It does not fabricate missing history, reasons or private model reasoning. New composition observations and user-facing design content are requested in Russian. Historical English content is never silently rewritten.

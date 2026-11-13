@@ -11,6 +11,7 @@ export class SetContract {
     composition: z.string().min(3),
   });
   static readonly art = z.object({
+    warnings: z.array(z.string()).optional(),
     version: z.literal('set-contract-v1'),
     story: z.string().min(10),
     categoryAllocation: z.object({
@@ -26,9 +27,12 @@ export class SetContract {
     paletteRhythm: z.string().min(10),
     compositionRhythm: z.string().min(10),
     avoid: z.array(z.string().min(3)).min(1),
-    pilotIndex: z.number().int().min(0).max(9),
-    pilotRationale: z.string().min(10),
     composition: CompositionContract.set.optional(),
+  });
+  // Decode archived evidence without reintroducing the removed execution stage.
+  static readonly persistedArt = SetContract.art.extend({
+    pilotIndex: z.number().int().min(0).max(9).optional(),
+    pilotRationale: z.string().optional(),
   });
   static readonly review = z.object({
     passed: z.boolean(),
@@ -41,6 +45,7 @@ export class SetContract {
     correction: z.string(),
   });
   static readonly planningPolicy = z.object({
+    qualityMode: z.enum(['strict-v1', 'best-effort-v1']).optional(),
     maxPlanRepairs: z.number().int().min(0).max(3),
     minimumPlanScore: z.number().min(4).max(5),
     productionConcurrency: z.number().int().min(1).max(2),
