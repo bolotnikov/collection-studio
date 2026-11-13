@@ -1,38 +1,40 @@
 # Collection Studio
 
-A desktop art-production tool for collectible mobile-game card sets, built with Electron, React and strict TypeScript. Enter a theme and optional art direction, generate 1–5 ten-card variants (one by default), compare versions with source references, and export a selected set.
+Настольное приложение для создания коллекций карточек мобильных игр на Electron, React и строгом TypeScript. Задайте тему и при необходимости художественное направление, создайте от 1 до 5 вариантов по десять карточек, сравните версии с исходными референсами и экспортируйте выбранный набор. По умолчанию создаётся один вариант.
 
-The interface supports English and Russian, device-language detection with English fallback, and persistent dark/light themes. Generator rules have one canonical Russian source, independent of interface language.
+Интерфейс поддерживает русский и английский языки, определяет язык устройства и использует английский, если язык не поддерживается. Светлая и тёмная темы сохраняются между запусками. Правила генератора хранятся в одном каноническом источнике на русском и не зависят от языка интерфейса.
 
-## Download the application
+## Скачать приложение
 
-[**Download Collection Studio for macOS · Intel and Apple Silicon**](https://github.com/bolotnikov/collection-studio/releases/latest/download/Collection-Studio-mac-universal.zip)
+[**Скачать Collection Studio для macOS · Intel и Apple Silicon**](https://github.com/bolotnikov/collection-studio/releases/latest/download/Collection-Studio-mac-universal.zip)
 
-Download the ZIP, extract it, move `Collection Studio.app` to Applications, and open it. The Electron runtime and prepared reference library are included. Opening the packaged app requires no source checkout, build tools, npm, or separate Node.js installation. [All releases and checksums](https://github.com/bolotnikov/collection-studio/releases).
+Скачайте ZIP, распакуйте его, перенесите `Collection Studio.app` в «Программы» и откройте. Electron и подготовленная библиотека референсов уже включены. Для запуска готового приложения не нужны исходники, инструменты сборки, npm или отдельная установка Node.js. [Все релизы и контрольные суммы](https://github.com/bolotnikov/collection-studio/releases).
 
-This universal preview targets Intel and Apple Silicon Macs running **macOS 13 Ventura or later**. Older macOS and Windows are not supported. It is ad-hoc signed and **not Apple-notarized**. macOS may block the first launch; see [Apple's first-launch instructions](https://support.apple.com/102445) and the bilingual `START-HERE.txt` inside the archive. A Developer ID certificate and notarization are needed before promising a launch without this security exception.
+Универсальная предварительная сборка предназначена для Intel и Apple Silicon с **macOS 13 Ventura и новее**. Старые версии macOS и Windows не поддерживаются. У приложения есть ad-hoc подпись, но **нет нотарификации Apple**. macOS может заблокировать первый запуск: см. [инструкцию Apple](https://support.apple.com/102445) и `START-HERE.txt` на русском и английском внутри архива. Для распространения без такого исключения безопасности нужны сертификат Developer ID и нотарификация.
 
-**Generation still requires Codex CLI and ChatGPT sign-in.** The app opens without them, shows setup guidance in New set and Settings, and disables generation until connected. Follow [Connect Codex](#connect-codex). The connection test checks local sign-in, not model/image-tool availability or remaining subscription limits.
+**Для генерации по-прежнему нужны Codex CLI и вход через ChatGPT.** Без них приложение открывается и показывает инструкции на экранах «Новый набор» и «Настройки», а генерация остаётся недоступной до подключения. См. [подключение Codex](#connect-codex). Проверка подключения подтверждает локальный вход, но не доступность модели, инструмента изображений или оставшихся лимитов подписки.
 
-Release files are hosted as GitHub Release assets; the documentation website can link directly to the download above. See [distribution and packaging](docs/DISTRIBUTION.md) for release maintenance.
+Готовые файлы размещены в GitHub Releases. Сайт документации может использовать прямую ссылку на скачивание выше. Порядок подготовки и обновления релизов описан в [документации по распространению и упаковке](docs/DISTRIBUTION.md).
 
-### If macOS blocks the first launch
+### Если macOS блокирует первый запуск
 
-After attempting to open the downloaded app, go to **System Settings → Privacy & Security**, scroll to **Security**, and choose **Open Anyway** for Collection Studio. Confirm **Open** and enter your Mac password if asked. This creates an exception for this app; leave the system's general security protections enabled. Managed Macs may restrict this action.
+После попытки открыть скачанное приложение перейдите в **Системные настройки → Конфиденциальность и безопасность**, прокрутите до раздела **Безопасность** и нажмите **Всё равно открыть** для Collection Studio. Подтвердите **Открыть** и при необходимости введите пароль пользователя Mac. Это добавит исключение для конкретного приложения; общую защиту системы оставьте включённой. На корпоративных Mac действие может быть запрещено администратором.
 
-![Apple's screenshot: Open Anyway in macOS Privacy & Security](https://cdsassets.apple.com/live/7WUAS350/images/macos/sequoia/macos-sequoia-system-settings-privacy-and-security-open-app-anyway.png)
+![Скриншот Apple: кнопка Open Anyway в настройках Privacy & Security](https://cdsassets.apple.com/live/7WUAS350/images/macos/sequoia/macos-sequoia-system-settings-privacy-and-security-open-app-anyway.png)
 
-Screenshot: [Apple Support](https://support.apple.com/en-by/102445), using an example app name. See the [illustrated first-launch guide](docs/MACOS_FIRST_LAUNCH.md) for English/Russian labels and troubleshooting. A message about an unverified developer is a Gatekeeper check, not an insecure network connection.
+Источник скриншота — [Apple Support](https://support.apple.com/en-by/102445); на нём показано примерное название приложения. В [подробной инструкции первого запуска](docs/MACOS_FIRST_LAUNCH.md) приведены русские и английские названия элементов и действия при затруднениях. Сообщение о непроверенном разработчике относится к Gatekeeper, а не к безопасности сетевого подключения.
 
-You can always [build from source](#building-from-source). A local build normally does not carry the downloaded release's internet-quarantine flag, so that particular first-download prompt usually does not appear. Local builds are still subject to macOS security policy; this is not a guarantee of bypassing every check, and Codex installation/sign-in is still needed for generation.
+Всегда можно [собрать приложение из исходников](#building-from-source). Локальная сборка обычно не получает метку карантина скачанного релиза, поэтому именно проверка первого запуска интернет-загрузки обычно не появляется. На локальную сборку по-прежнему распространяются правила безопасности macOS: отсутствие любых проверок не гарантируется. Для генерации также нужны Codex CLI и вход через ChatGPT.
 
-## Building from source
+<a id="building-from-source"></a>
 
-- The release targets macOS 13 Ventura or later on Intel and Apple Silicon. Runtime checks on Apple Silicon and Intel execution through Rosetta do not substitute for testing every physical Mac and macOS version.
-- Use Node.js 22.13 or later in the 22.x line, or Node.js 24+, with npm. Earlier Node 22 versions do not satisfy the locked development tools.
-- Image generation and model-assisted editing require an installed Codex CLI signed in with ChatGPT. Browsing the prepared knowledge base does not require a model request.
+## Сборка из исходников
 
-From the repository root:
+- Релиз предназначен для macOS 13 Ventura и новее на Intel и Apple Silicon. Проверки на Apple Silicon и запуск Intel-версии через Rosetta не заменяют проверку каждого физического Mac и каждой версии macOS.
+- Нужны Node.js 22.13 или новее в ветке 22.x либо Node.js 24 и новее, а также npm. Более ранние версии Node.js 22 не соответствуют требованиям зафиксированных инструментов разработки.
+- Для генерации изображений и редактирования с помощью модели нужен установленный Codex CLI с входом через ChatGPT. Просмотр подготовленной базы знаний не требует обращения к модели.
+
+В корне репозитория выполните:
 
 ```sh
 npm ci
@@ -40,120 +42,122 @@ npm run build
 npm start
 ```
 
-A clone or GitHub source ZIP includes the prepared reference images and knowledge catalog under `resources/`. Optional `local-sources/`, private download manifests and developer caches are not required for a normal build or first launch. No preparation or source-analysis command is needed to use the supplied database.
+Клон репозитория и ZIP с исходниками GitHub включают подготовленные изображения референсов и каталог знаний в `resources/`. Необязательный каталог `local-sources/`, приватные манифесты загрузки и кеши разработчика для обычной сборки и первого запуска не нужны. Для работы с поставляемой базой не требуется выполнять команды подготовки или анализа исходников.
 
-`npm run dev` starts development mode with reloads. If dependency install scripts were disabled and Electron's binary is missing, run `node node_modules/electron/install.js` before launching.
+`npm run dev` запускает режим разработки с перезагрузкой при изменениях. Если выполнение установочных скриптов зависимостей было отключено и исполняемый файл Electron отсутствует, перед запуском выполните `node node_modules/electron/install.js`.
 
-### Connect Codex
+<a id="connect-codex"></a>
 
-1. Install Codex CLI and run `codex login`, choosing **Sign in with ChatGPT**.
-2. Open **Settings**. If automatic executable discovery fails, enter its absolute path under **Codex executable**.
-3. Choose the generation/check model: **GPT-6.1 Terra** by default, or **GPT-6.1 Sol**. The separate **Collection planning model** can use either model or inherit the generation model.
-4. Save settings, then click **Test connection**. The test uses the saved executable settings and checks CLI discovery and ChatGPT authentication; it does not generate an image or establish image-tool compatibility.
+### Подключение Codex
 
-The adapter was calibrated with CLI `0.167.0-alpha.4.1`. Compatibility with another installation should be checked using the optional [live calibration](#maintenance-and-live-calibration) before production work.
+1. Установите Codex CLI и выполните `codex login`, выбрав **Sign in with ChatGPT**.
+2. Откройте **Настройки**. Если автоматический поиск не сработал, укажите абсолютный путь к исполняемому файлу в поле **Путь к Codex CLI**.
+3. Выберите модель генерации и проверки: по умолчанию **GPT-6.1 Terra**, также доступна **GPT-6.1 Sol**. В отдельном поле **Модель планирования коллекции** можно выбрать любую из них или использовать модель генерации.
+4. Сохраните настройки и нажмите **Проверить подключение**. Проверка использует сохранённый путь к CLI и подтверждает вход через ChatGPT; она не генерирует изображение и не подтверждает совместимость с инструментом изображений.
 
-Codex uses its saved login and subscription limits. Image requests, planning and visual analysis all consume provider usage. Image quality is a prompt preference, not a guaranteed low/medium/high image API parameter. The application has no API-key generation provider.
+Адаптер проверен с CLI `0.167.0-alpha.4.1`. Перед производственной работой совместимость с другой установкой стоит проверить с помощью необязательной [калибровки с обращением к модели](#maintenance-and-live-calibration).
 
-Official [Codex CLI installation instructions](https://developers.openai.com/codex/cli/) include native binaries; installing the CLI that way does not require Node.js. The app also discovers standard Homebrew and `~/.local/bin` locations when launched from Finder. A connection check has a 15-second timeout and provides localized setup instructions on failure.
+Codex использует сохранённую авторизацию и лимиты подписки. Генерация изображений, планирование и визуальный анализ расходуют лимиты провайдера. Качество изображения задаётся пожеланием в запросе, а не гарантированным параметром low/medium/high API изображений. Провайдера генерации по API-ключу в приложении нет.
 
-## Producer workflow
+Официальная [инструкция установки Codex CLI](https://developers.openai.com/codex/cli/) включает готовые нативные исполняемые файлы; при таком способе установки Node.js не нужен. При запуске из Finder приложение также проверяет стандартные пути Homebrew и `~/.local/bin`. Проверка подключения ограничена 15 секундами; при неудаче показывается инструкция на языке интерфейса.
 
-1. Open **New set**, enter the theme and optional art direction, and choose 1–5 variants. **Include gold cards** is off by default. The **AI** button can draft a short English art direction from the theme and current wishes; this makes a model request.
-2. Start generation. Each variant contains exactly ten subjects and all four ordinary composition categories. Gold-enabled sets additionally include category 5 within the same ten-card total. Multi-variant planning checks subject uniqueness across the batch.
-3. Open a card to inspect its selected image, the references actually used for that version, prompt metadata and version history. Choose an earlier version, regenerate, or lock the selection. **Approve and save to library** adds the selected image as a supplemental user reference; approval is not required for delivery.
-4. Use **Pause** to stop scheduling new work. Already-running requests may finish; the current image worker pool has two workers. Wait for the run to become inactive before editing selections or deleting it. **Resume** retains saved images. A restart pauses interrupted runs and records unfinished image requests as having an unknown outcome; work resumes only on an explicit user action.
-5. Choose a variant. With multiple variants, **Select for delivery** records the preferred one. **Export set** exports the currently displayed complete variant. Game-window previews also have individual PNG download actions.
+## Работа с наборами
 
-### Manual revisions and slot tags
+1. Откройте **Новый набор**, укажите тему и при необходимости художественное направление, выберите от 1 до 5 вариантов. Опция **Добавлять золотые карточки** по умолчанию выключена. Кнопка **AI** может составить краткое художественное направление на английском по теме и текущим пожеланиям; это обращение к модели.
+2. Запустите генерацию. Каждый вариант содержит ровно десять сюжетов и все четыре обычные категории композиции. При включённых золотых карточках категория 5 добавляется в те же десять позиций. При планировании нескольких вариантов проверяется уникальность сюжетов между ними.
+3. Откройте карточку, чтобы посмотреть выбранное изображение, фактически использованные референсы, метаданные запроса и историю версий. Можно выбрать предыдущую версию, перегенерировать изображение или заблокировать выбор. **Одобрить и добавить в библиотеку** сохраняет выбранное изображение как дополнительный пользовательский референс; для сдачи набора одобрение не требуется.
+4. Нажмите **Приостановить**, чтобы прекратить назначение новых задач. Уже начатые запросы могут завершиться; текущий пул генерации изображений состоит из двух обработчиков. Перед изменением выбранных версий или удалением проекта дождитесь остановки работы. **Продолжить** сохраняет уже созданные изображения. После перезапуска прерванные проекты остаются на паузе, а незавершённые запросы изображений получают отметку о неизвестном результате. Продолжение возможно только по явному действию пользователя.
+5. Выберите вариант. Если вариантов несколько, **Выбрать для сдачи** фиксирует предпочтительный. **Экспорт набора** выгружает текущий полностью готовый вариант. Из предпросмотра игровых окон также можно отдельно скачать PNG.
 
-In the card drawer, **Regenerate image** with empty instructions creates a fresh version. Nonempty **Revision instructions** use the selected stored master as the edit base. Earlier versions remain available.
+### Ручная доработка и теги позиций
 
-Slot tags are editable while the run is inactive and the card is unlocked. Save tag changes before regenerating; saving alone does not redraw the card. Removing a tag removes that requirement, so write prohibitions in the revision instructions. Category-defining constraints and character restrictions stay fixed. Tag edits, reference selections and per-version target snapshots are persisted without rewriting earlier images or reviews.
+В панели карточки кнопка **Перегенерировать** с пустыми указаниями создаёт новую версию. Если поле **Указания для доработки** заполнено, основой редактирования становится выбранный сохранённый оригинал. Предыдущие версии остаются доступными.
 
-### Verification, corrections and request limits
+Теги позиции можно редактировать, пока проект не выполняется и карточка не заблокирована. Перед перегенерацией сохраните изменения тегов: само сохранение не перерисовывает изображение. Удаление тега снимает требование, поэтому запреты нужно писать в указаниях для доработки. Ограничения категории и персонажей остаются фиксированными. Изменения тегов, выбранные референсы и требования к каждой версии сохраняются без перезаписи старых изображений и проверок.
 
-Settings expose two independent limits, both **0 by default**:
+### Проверки, исправления и лимиты запросов
 
-| Setting                                    | At 0                                                         | At a positive value                                                                                                                      |
-| ------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Maximum corrections per card               | Skips card model verification and automatic card corrections | Checks generated cards and permits bounded corrections for confirmed subject, silhouette, character, category or background defects      |
-| Maximum correction rounds after set review | Skips whole-set model verification and corrections           | Checks the selected 5×2 grid and permits bounded rounds of targeted relationship corrections, checking the updated grid after each round |
+В настройках есть два независимых ограничения, оба **по умолчанию равны 0**:
 
-The card limit applies to each initial/manual generation chain. A whole-set limit of N rounds permits one initial check plus up to N checks after correction rounds. These settings are saved in each new run. Changing Settings does not overwrite an existing run's policy. Automatic corrections retain earlier versions and identify their exact previous candidate. Locks, saved attempt identities and the shared image-request budget remain enforced. Artistic scores are not used; uncertainty and unresolved observations remain in **Diagnostics** and do not block current-protocol delivery.
+| Настройка                                           | При значении 0                                                   | При положительном значении                                                                                                                                        |
+| --------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Максимум перегенераций одной карточки               | Проверка карточки моделью и автоматические исправления отключены | Карточки проверяются; допускается ограниченное число исправлений подтверждённых нарушений сюжета, силуэта, персонажей, категории или фона                         |
+| Максимум раундов перегенерации после общей проверки | Проверка и автоматические исправления всего набора отключены     | Проверяется выбранная сетка 5×2; допускается ограниченное число раундов конкретных исправлений связей между карточками с повторной проверкой после каждого раунда |
 
-Technical image failures are retried independently of these limits, using the same prompt and references, until an image is saved, the user pauses, or the image-request budget is exhausted. Failed image requests consume that budget and are recorded in diagnostics.
+Лимит карточки применяется к каждой цепочке первоначальной или ручной генерации. Лимит набора в N раундов допускает одну первоначальную проверку и до N повторных проверок после исправлений. Эти настройки сохраняются в каждом новом проекте. Изменение настроек не перезаписывает политику существующего проекта. Автоматические исправления сохраняют предыдущие версии и указывают точное изображение, на основе которого сделана доработка. Блокировки, идентификаторы попыток и общий лимит запросов изображений продолжают действовать. Художественные оценки не используются; неопределённые и неразрешённые наблюдения остаются в **Технической диагностике** и не блокируют сдачу по текущему протоколу.
 
-Open **Diagnostics → Production log & limits** to adjust the image-request limit while the run is inactive, up to 150 requests. This counts application image requests, including technical retries and revisions; it is not a monetary cap or an exact count of native Codex tool calls. Planning and verification calls are outside this image counter.
+При технических сбоях запрос изображения повторяется независимо от этих ограничений, с теми же указаниями и референсами, пока изображение не будет сохранено, пользователь не приостановит работу или не закончится лимит запросов. Неудачные запросы расходуют этот лимит и записываются в диагностику.
 
-Historical runs retain their saved evidence. Explicitly resuming or regenerating an archived run can activate the current protocol and records that transition. Historical strict-mode export gates apply until the run's protocol is explicitly transitioned. See [composition-only production](docs/COMPOSITION_ONLY_WORKFLOW.md).
+Откройте **Техническая диагностика → Журнал работы и лимиты**, чтобы изменить ограничение запросов изображений, пока проект не выполняется; максимум — 150 запросов. Считаются запросы приложения, включая технические повторы и доработки. Это не денежный лимит и не точное количество внутренних вызовов инструментов Codex. Запросы планирования и проверок в этот счётчик не входят.
 
-## Knowledge base and generation
+Исторические проекты сохраняют свои материалы проверок. Явное продолжение или перегенерация архивного проекта может включить текущий протокол; переход фиксируется в истории. До явного перехода продолжают действовать исторические строгие условия экспорта. См. [процесс с проверкой композиции](docs/COMPOSITION_ONLY_WORKFLOW.md).
 
-The collapsible **Knowledge base** group contains:
+## База знаний и генерация
 
-- **Cards**: source and supplemental reference art, category/pattern filters, descriptions, classifications and entity analysis/editing.
-- **Sets**: ordered source-set membership, composition observations and aggregate statistics.
-- **Categories**: composition examples and each category's canonical generation rule.
-- **Style**: shared editable rendering rules and operational image guidance.
+Сворачиваемая группа **База знаний** содержит:
 
-Cards, Sets and Categories support source-entity additions and removals. Source bytes and historical run snapshots are retained. Knowledge edits apply to subsequent production snapshots. Opening a new project reuses prepared source analysis; it does not reanalyze the unchanged library. Missing or changed source observations can require model analysis, with readiness and errors shown in Settings.
+- **Карточки**: исходные и дополнительные референсы, фильтры категорий и узоров, описания, классификации, анализ и редактирование объектов.
+- **Наборы**: упорядоченный состав исходных наборов, наблюдения о композиции и сводная статистика.
+- **Категории**: примеры композиции и каноническое правило генерации каждой категории.
+- **Стиль**: общие редактируемые правила отрисовки и практические указания для генерации изображений.
 
-The current production sequence is:
+В разделах «Карточки», «Наборы» и «Категории» можно добавлять и удалять исходные объекты. Исходные файлы и исторические снимки проектов сохраняются. Изменения базы знаний применяются к последующим производственным снимкам. Новый проект использует готовый анализ референсов, не повторяя анализ неизменившейся библиотеки. Для отсутствующих или изменённых наблюдений может потребоваться анализ моделью; готовность и ошибки отображаются в настройках.
+
+Текущая последовательность работы:
 
 ```text
-Prepared source catalog
-  → deterministic category/pattern, color and 5×2 grid planning
-  → frozen structurally matching original references per slot
-  → one structured set-design request, with bounded structural retries if needed
-  → ten images through the same worker pool
-  → optional card and whole-grid verification/corrections
-  → user version selection and export
+Подготовленный каталог исходников
+  → детерминированное планирование категорий, узоров, цветов и сетки 5×2
+  → фиксация подходящих исходных референсов для каждой позиции
+  → один структурированный запрос разработки набора с ограниченными повторами при структурных ошибках
+  → десять изображений через общий пул обработчиков
+  → необязательная проверка композиции карточек и всей сетки с исправлениями
+  → выбор версий пользователем и экспорт
 ```
 
-Planning uses aggregate source statistics rather than copying one source-set layout. New rhythm contracts forbid repeated color-family/pattern pairs and equal color families in horizontal or vertical neighbors. These are product constraints, not claims that every original source set follows the same rules.
+Планирование использует сводную статистику, а не копирует раскладку одного исходного набора. Новые правила ритма запрещают повторение пар «цветовое семейство — узор» и одинаковые цветовые семейства у соседей по горизонтали и вертикали. Это требования продукта, а не утверждение, что им соответствует каждый исходный набор.
 
-Each initial slot has at least two and at most eight matching original card references. Current catalog-based selection does not add a separate vision-reranking call for every card. Applicable category figures and revision bases have explicit input roles. Larger input packs are transported in complete, unscaled reference sheets to fit the adapter's five-path image-tool limit, retaining mappings and hashes. Delivery templates are not style references.
+Для каждой исходной позиции выбирается от двух до восьми подходящих оригинальных карточек-референсов. Текущий отбор по каталогу не добавляет отдельное визуальное ранжирование моделью для каждой карточки. Примеры категорий и основы доработок имеют явные роли во входных данных. Большие подборки передаются на полных листах референсов без уменьшения изображений, чтобы уложиться в ограничение адаптера — пять путей для инструмента изображений. Соответствия и хеши сохраняются. Шаблоны сдачи не служат референсами стиля.
 
-## Export
+## Экспорт
 
-For the current `composition-v1` protocol, export requires ten selected image versions and an inactive run. Successful artistic reviews or manual approval are not prerequisites. Image-file integrity is checked during export.
+Для текущего протокола `composition-v1` нужны десять выбранных версий изображений и остановленный проект. Успешные художественные проверки и ручное одобрение не являются условиями экспорта. При экспорте проверяется целостность файлов изображений.
 
-The desktop production ZIP contains:
+ZIP с готовым набором содержит:
 
-- `cards/01.png` … `10.png`: 430×480 sRGB PNG crops;
-- `masters/01.png` … `10.png`: full-resolution stored PNG masters, normalized to sRGB when saved;
-- `history/<card-id>/<attempt-id>.png`: previews for all saved versions, including the selected version;
-- `contact-sheet.png`: the selected grid;
-- `delivery/`: game-window composites and their selection manifest;
-- `selection.json`, `run.json`, `style-profile.json` and `report.md`;
-- `journal.md` and `diagnostics.json`: execution narrative and sanitized diagnostic evidence.
+- `cards/01.png` … `10.png`: обрезанные PNG размером 430×480 в sRGB;
+- `masters/01.png` … `10.png`: сохранённые PNG-оригиналы полного разрешения, приведённые к sRGB при сохранении;
+- `history/<card-id>/<attempt-id>.png`: предпросмотры всех сохранённых версий, включая выбранную;
+- `contact-sheet.png`: выбранную сетку;
+- `delivery/`: изображения игровых окон и манифест выбранных версий;
+- `selection.json`, `run.json`, `style-profile.json` и `report.md`;
+- `journal.md` и `diagnostics.json`: журнал выполнения и диагностические материалы с удалёнными чувствительными данными.
 
-Historical protocols may also include `quality-warnings.json`. Individual source-reference files and Codex authentication files are not copied into the delivery ZIP. Game-window composites do retain the supplied template artwork and captions. Run/profile metadata contains the brief, prompts, source identities, model identifiers, attempts, selections and stored observations.
+Исторические протоколы также могут включать `quality-warnings.json`. Отдельные файлы исходных референсов и авторизации Codex в ZIP набора не копируются. Изображения игровых окон содержат предоставленную графику шаблонов и подписи. В метаданных проекта и профиля сохраняются бриф, запросы, идентификаторы исходников и моделей, попытки, выбранные версии и наблюдения.
 
-**Download execution log** is available for inactive projects and exports a Russian chronological journal. **Diagnostics → Download diagnostics** exports sanitized run/profile/journal JSON. Missing historical evidence is identified rather than reconstructed. Stored request/response text retains its original language.
+Действие **Скачать журнал работы** доступно для остановленных проектов и выгружает хронологический журнал на русском. **Техническая диагностика → Скачать данные для диагностики** сохраняет JSON проекта, профиля и журнала с удалёнными чувствительными данными. Отсутствующие исторические материалы отмечаются как отсутствующие, а не восстанавливаются задним числом. Сохранённые запросы и ответы остаются на исходном языке.
 
-## Resources and local data
+## Ресурсы и локальные данные
 
-`resources/` is the canonical build source for supplied reference assets. The prepared corpus contains 200 unique PNG files:
+`resources/` — канонический источник поставляемых референсов для сборки. Подготовленный корпус содержит 200 уникальных PNG:
 
-| Location                                          | Contents                                                                                                                   |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `resources/references/`                           | 160 hash-verified original card PNGs                                                                                       |
-| `resources/knowledge/images/`                     | 25 contextual images: 16 source-set windows, 5 category figures and 4 delivery templates; plus 15 derived clean-set sheets |
-| `resources/knowledge/catalog.json`                | Seven source documents, contextual image provenance and clean-set membership                                               |
-| `resources/knowledge/visual-catalog.json`         | Published card, category and 16-set visual analysis                                                                        |
-| Other `resources/*.json` and `resources/prompts/` | Default profile, canonical rules, validated planning policies, layouts, taxonomies and prompt templates                    |
+| Расположение                                        | Содержимое                                                                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resources/references/`                             | 160 оригинальных PNG карточек, проверенных по хешам                                                                                            |
+| `resources/knowledge/images/`                       | 25 контекстных изображений: 16 окон исходных наборов, 5 примеров категорий и 4 шаблона сдачи; ещё 15 производных листов наборов без оформления |
+| `resources/knowledge/catalog.json`                  | Семь исходных документов, происхождение контекстных изображений и состав листов наборов без оформления                                         |
+| `resources/knowledge/visual-catalog.json`           | Опубликованный визуальный анализ карточек, категорий и 16 наборов                                                                              |
+| Остальные `resources/*.json` и `resources/prompts/` | Профиль по умолчанию, канонические правила, проверяемые политики планирования, макеты, классификации и шаблоны запросов                        |
 
-Clean sheets and source screenshots serve different purposes; individual card membership points to the canonical card files. Optional maintenance exports and research live only under the ignored `local-sources/` directory; see [local source layout](docs/LOCAL_SOURCES.md). Source PNG names there are symbolic links to canonical tracked assets, not additional image copies. The supplied art retains its original usage and redistribution restrictions.
+Листы наборов без оформления и исходные скриншоты решают разные задачи; состав отдельных карточек ссылается на канонические файлы карточек. Необязательные выгрузки для обслуживания и исследования находятся только в игнорируемом каталоге `local-sources/`; см. [организацию локальных исходников](docs/LOCAL_SOURCES.md). PNG в нём представлены символическими ссылками на отслеживаемые ресурсы, а не дополнительными копиями изображений. Для предоставленной графики сохраняются исходные ограничения использования и распространения.
 
-Electron user data holds settings, edited rules, working knowledge, imported references and project history. Runs default to its `runs/` directory. Set `COLLECTION_STUDIO_DATA=/absolute/path/to/runs` before launch to relocate runs and their worker evidence; this does **not** relocate all settings or knowledge edits.
+В каталоге пользовательских данных Electron хранятся настройки, отредактированные правила, рабочая база знаний, импортированные референсы и история проектов. По умолчанию проекты находятся в его подкаталоге `runs/`. Чтобы изменить расположение проектов и материалов выполнения, перед запуском задайте `COLLECTION_STUDIO_DATA=/absolute/path/to/runs`. Эта переменная **не переносит** остальные настройки и изменения базы знаний.
 
-Each run retains `run.json`, a profile snapshot, stored image versions, contact sheets and `execution.jsonl`. Project Codex requests live in that run's `_jobs/`; non-project operations use separate directories such as `_codex-jobs/`, `_catalog-jobs/` and `_knowledge-jobs/` under the runs root.
+Каждый проект сохраняет `run.json`, снимок профиля, версии изображений, контактные листы и `execution.jsonl`. Запросы Codex для проекта находятся в его `_jobs/`; операции вне проектов используют отдельные каталоги, например `_codex-jobs/`, `_catalog-jobs/` и `_knowledge-jobs/`, в корневом каталоге проектов.
 
-For backup or transfer, close the app and preserve the entire Electron user-data directory, plus any custom runs directory. A delivery ZIP is an export of a selected set, not a complete backup of the editable workspace. Deleting an inactive project through its confirmed Trash action moves its complete run folder to the system Trash; shared library references and separately exported files remain.
+Для резервного копирования или переноса закройте приложение и сохраните весь каталог пользовательских данных Electron, а также отдельно заданный каталог проектов, если он используется. ZIP набора содержит экспорт выбранного результата, а не полную резервную копию редактируемого рабочего пространства. Подтверждённое удаление остановленного проекта перемещает всю его папку в системную Корзину. Общие библиотечные референсы и отдельно экспортированные файлы сохраняются.
 
-## Development and validation
+## Разработка и проверка
 
 ```sh
 npm run typecheck
@@ -162,51 +166,53 @@ npm test
 npm run build
 ```
 
-Offline tests cover planning contracts, reference identity and resource completeness, image integrity, budgets, corrections, pause/resume, interruption, historical protocols, localization and exports. Test images and provider responses are fixtures; passing tests does not establish generated-art quality.
+Проверки без обращения к модели охватывают контракты планирования, идентичность референсов и полноту ресурсов, целостность изображений, лимиты, исправления, паузу и продолжение, прерывания, исторические протоколы, локализацию и экспорт. Изображения и ответы провайдера в тестах — заранее подготовленные данные. Успешные тесты не подтверждают художественное качество генерации.
 
-### Local macOS bundle
+### Локальная сборка для macOS
 
 ```sh
 npm run package:mac
 ```
 
-On the validated Apple Silicon platform this creates `release/mac-arm64/Collection Studio.app`, `release/Collection-Studio-mac-universal.zip`, and `release/SHA256SUMS.txt`, including the prepared resources. Packaging verifies the ad-hoc signature and ZIP before replacing the canonical local release. Developer ID signing, notarization and clean-machine installation are not established. See [distribution](docs/DISTRIBUTION.md).
+На проверенной платформе Apple Silicon команда создаёт `release/mac-arm64/Collection Studio.app`, `release/Collection-Studio-mac-universal.zip` и `release/SHA256SUMS.txt` с подготовленными ресурсами. Перед заменой текущего локального релиза проверяются ad-hoc подпись и ZIP. Подпись Developer ID, нотарификация и установка на отдельной чистой машине не подтверждены. См. [документацию по распространению](docs/DISTRIBUTION.md).
 
-### Maintenance and live calibration
+<a id="maintenance-and-live-calibration"></a>
 
-These commands are not part of first launch:
+### Обслуживание и калибровка с обращением к модели
 
-- `REFERENCE_ART_DIR=/absolute/path/to/originals npm run prepare:library` restores all catalogued card PNGs by SHA-256. Importing an updated full toolbar export instead uses `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:library`.
-- `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:knowledge` imports source documents/context images and rebuilds clean-set sheets. The full export must contain `Файлы.json` and `Разделы.json`.
-- `npm run prepare:references` restores only the eight legacy curated anchors from the local export or an explicit originals/manifest override; it does not restore the full library or knowledge publication.
-- `npm run kb:sync` updates and publishes prepared visual analysis. The staged commands are `npm run kb:analyze-cards` and `npm run kb:analyze-sets`. These use Codex text/vision requests and subscription usage, but do not generate artwork. Preserve incremental checkpoints under `output/catalog/cache/` when continuing maintenance. See [prepared knowledge](docs/KNOWLEDGE_CATALOG.md).
-- `npm run calibrate:codex` uses GPT-6.1 Sol to generate one reference-guided calibration image and perform a legacy-style visual review. It consumes subscription usage, writes to `output/codex-calibration/`, and does not exercise the complete current set-production workflow.
+Эти команды не нужны для первого запуска:
 
-Preparation commands can rewrite tracked catalogs and assets; review the resulting changes together before distribution. Ordinary tests and builds do not invoke live calibration or image generation.
+- `REFERENCE_ART_DIR=/absolute/path/to/originals npm run prepare:library` восстанавливает PNG всех карточек каталога по SHA-256. Для импорта обновлённого полного экспорта панели используется `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:library`.
+- `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:knowledge` импортирует исходные документы и контекстные изображения, затем перестраивает листы наборов без оформления. Полный экспорт должен содержать `Файлы.json` и `Разделы.json`.
+- `npm run prepare:references` восстанавливает только восемь исторических опорных референсов из локального экспорта или явно заданных оригиналов и манифеста. Команда не восстанавливает всю библиотеку или опубликованную базу знаний.
+- `npm run kb:sync` обновляет и публикует подготовленный визуальный анализ. Отдельные этапы — `npm run kb:analyze-cards` и `npm run kb:analyze-sets`. Они выполняют текстовые и визуальные запросы Codex и расходуют лимиты подписки, но не генерируют изображения. Для продолжения обслуживания сохраняйте промежуточные результаты в `output/catalog/cache/`. См. [подготовленную базу знаний](docs/KNOWLEDGE_CATALOG.md).
+- `npm run calibrate:codex` с помощью GPT-6.1 Sol генерирует одно калибровочное изображение по референсам и выполняет визуальную проверку по исторической схеме. Команда расходует лимиты подписки, сохраняет результаты в `output/codex-calibration/` и не проверяет весь текущий процесс создания набора.
 
-## Architecture and further reading
+Команды подготовки могут перезаписывать отслеживаемые каталоги и ресурсы: перед распространением проверяйте все связанные изменения вместе. Обычные тесты и сборки не запускают калибровку с обращением к модели или генерацию изображений.
+
+## Архитектура и дополнительные материалы
 
 ```text
-React views / ViewModels → typed preload bridge → validated Electron IPC
-                                                       ↓
-                                           Application use cases / ports
-                                                       ↓
-                                            Domain rules and invariants
+Представления React / ViewModel → типизированный мост preload → проверяемый Electron IPC
+                                                                       ↓
+                                                        Сценарии приложения / порты
+                                                                       ↓
+                                                        Правила и инварианты предметной области
 
-Electron composition supplies Codex, filesystem, image and export adapters.
+Точка сборки зависимостей Electron подключает адаптеры Codex, файловой системы, изображений и экспорта.
 ```
 
-Domain/application code does not depend on React, Electron or concrete providers. The renderer has no Node integration; filesystem and provider operations cross the validated IPC boundary. Prompt text and tunable production policies live in validated JSON resources. Model output is decoded before use; image rendering and visual observations remain probabilistic.
+Предметная область и слой приложения не зависят от React, Electron или конкретных провайдеров. У процесса отображения нет доступа к Node.js; операции с файловой системой и провайдером проходят через проверяемую границу IPC. Тексты запросов и настраиваемые политики производства находятся в проверяемых JSON-ресурсах. Ответы модели декодируются перед использованием; отрисовка и визуальные наблюдения остаются вероятностными.
 
-Codex workers run `codex exec` without a shell, in per-request workspaces with `workspace-write` sandboxing. App connectors, plugins, shell tools and agent delegation are disabled. `OPENAI_*` and `CODEX_API_KEY` environment variables are filtered; the app relies on CLI-managed ChatGPT authentication rather than copying login tokens.
+Обработчики Codex запускают `codex exec` без командной оболочки, в отдельных рабочих каталогах с песочницей `workspace-write`. Коннекторы приложений, плагины, инструменты командной оболочки и делегирование агентам отключены. Переменные окружения `OPENAI_*` и `CODEX_API_KEY` отфильтровываются; приложение использует авторизацию через ChatGPT, которой управляет CLI, и не копирует токены входа.
 
-- [Current composition workflow and corrections](docs/COMPOSITION_ONLY_WORKFLOW.md)
-- [Aggregate composition planning](docs/AGGREGATE_COMPOSITION_PLANNING.md)
-- [Application architecture](docs/APPLICATION_ARCHITECTURE.md)
-- [Image-prompting requirements](docs/IMAGE_PROMPTING.md)
-- [Execution evidence and exports](docs/EXECUTION_LOG.md)
-- [Prepared knowledge and maintenance](docs/KNOWLEDGE_CATALOG.md)
+- [Текущий процесс проверки композиции и исправлений](docs/COMPOSITION_ONLY_WORKFLOW.md)
+- [Планирование композиции по сводной статистике](docs/AGGREGATE_COMPOSITION_PLANNING.md)
+- [Архитектура приложения](docs/APPLICATION_ARCHITECTURE.md)
+- [Требования к запросам генерации изображений](docs/IMAGE_PROMPTING.md)
+- [Материалы выполнения и экспорт](docs/EXECUTION_LOG.md)
+- [Подготовленная база знаний и обслуживание](docs/KNOWLEDGE_CATALOG.md)
 
-Research, implementation plans and earlier validation records in `docs/` preserve historical decisions and may describe superseded protocols. They are not instructions to enable old artistic scoring, review gates or HTTP providers for new runs.
+Исследования, планы реализации и ранние записи проверок в `docs/` сохраняют историю решений и могут описывать устаревшие протоколы. Они не являются указанием включать старые художественные оценки, блокирующие проверки или HTTP-провайдеры для новых проектов.
 
-Official provider documentation: [Codex CLI](https://learn.chatgpt.com/docs/codex/cli), [image generation and usage](https://learn.chatgpt.com/docs/image-generation), and [non-interactive execution](https://learn.chatgpt.com/docs/non-interactive-mode).
+Официальная документация провайдера: [Codex CLI](https://learn.chatgpt.com/docs/codex/cli), [генерация изображений и расход лимитов](https://learn.chatgpt.com/docs/image-generation), [неинтерактивное выполнение](https://learn.chatgpt.com/docs/non-interactive-mode).

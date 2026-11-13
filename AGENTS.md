@@ -2,7 +2,7 @@
 
 ## Scope and priorities
 
-These rules apply to this application, not to game-engine runtime modules. Follow explicit user instructions, then these project rules, existing contracts and parent/global guidance. Preserve source art, user data, existing changes and historical runs. Write comments and technical documentation in English; discuss work with Alex in Russian.
+These rules apply to this application, not to game-engine runtime modules. Follow explicit user instructions, then these project rules, existing contracts and parent/global guidance. Preserve source art, user data, existing changes and historical runs. Write project documentation and user-facing materials in Russian; keep code comments and commit messages in English. Preserve the bilingual Russian/English application interface. Discuss work with Alex in Russian.
 
 ## Architecture
 
