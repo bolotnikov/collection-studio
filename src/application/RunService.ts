@@ -52,8 +52,9 @@ export class RunService {
       run.stage = message;
       run.events.push({ at: new Date().toISOString(), message });
     }
-    await this.repository.save(run);
-    this.notify(structuredClone(run));
+    const snapshot = structuredClone(run);
+    await this.repository.save(snapshot);
+    this.notify(snapshot);
   }
   private async whenIdle<T>(action: () => Promise<T>): Promise<T> {
     if (this.active || this.transitioning) throw new Error('Wait until the active run finishes or pauses.');

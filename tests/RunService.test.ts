@@ -1443,6 +1443,59 @@ it('refuses export after selected image bytes change without changing the attemp
   await expect(fs.access(destination)).rejects.toThrow();
 });
 
+it('publishes only the saved pause state while the workflow is still saving its final state', async () => {
+  let releasePreparation = () => {};
+  const preparationGate = new Promise<void>((resolve) => {
+    releasePreparation = resolve;
+  });
+  let finalSaveStarted = () => {};
+  const finalSavePending = new Promise<void>((resolve) => {
+    finalSaveStarted = resolve;
+  });
+  let releaseFinalSave = () => {};
+  const finalSaveGate = new Promise<void>((resolve) => {
+    releaseFinalSave = resolve;
+  });
+  const initialize = vi.fn(() => preparationGate);
+  const h = await harness(new FixtureProvider(), {
+    initialize,
+    prepare: async () => {
+      throw new Error('Paused preparation must not generate cards');
+    },
+  });
+  const save = h.repository.save.bind(h.repository);
+  vi.spyOn(h.repository, 'save').mockImplementation(async (run) => {
+    if (run.status === 'paused') {
+      finalSaveStarted();
+      await finalSaveGate;
+    }
+    await save(run);
+    if (run.stage === 'Pausing the queue. Waiting for in-flight requests to finish.') {
+      releasePreparation();
+      await finalSavePending;
+    }
+  });
+  const run = await h.service.start({ ...brief, variants: 1 }, settings);
+  await vi.waitFor(() => expect(initialize).toHaveBeenCalledOnce());
+  let published: Run | undefined;
+  let persisted: Run | undefined;
+  try {
+    await h.service.pause(run.id);
+    published = h.snapshots.at(-1);
+    persisted = await h.repository.get(run.id);
+    await expect(h.service.remove(run.id)).rejects.toThrow('active run');
+  } finally {
+    releaseFinalSave();
+    await finished(h, run.id);
+  }
+  expect(published?.status).toBe('planning');
+  expect(published).toEqual(persisted);
+  expect((await h.repository.get(run.id)).status).toBe('paused');
+  expect(h.provider.calls).toBe(0);
+  await h.service.remove(run.id);
+  expect(await h.repository.list()).toEqual([]);
+});
+
 it('blocks deleting in-flight work and moves the entire paused project out of history', async () => {
   const provider = new FixtureProvider();
   let release = () => {};
@@ -1452,13 +1505,14 @@ it('blocks deleting in-flight work and moves the entire paused project out of hi
   const h = await harness(provider);
   const run = await h.service.start({ ...brief, variants: 1 }, settings);
   await expect(h.service.remove(run.id)).rejects.toThrow('active run');
+  await vi.waitFor(() => expect(provider.calls).toBeGreaterThan(0));
   await h.service.pause(run.id);
   await expect(h.service.remove(run.id)).rejects.toThrow('active run');
   release();
   await finished(h, run.id);
   await fs.writeFile(path.join(h.repository.directory(run.id), 'keep-with-project.txt'), 'fixture');
   await fs.writeFile(path.join(h.root, 'exported.zip'), 'independent export');
-  await h.service.remove(run.id);
+  await vi.waitFor(() => h.service.remove(run.id));
   expect(await h.repository.list()).toEqual([]);
   expect(
     await fs.readFile(
