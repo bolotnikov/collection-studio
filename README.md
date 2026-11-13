@@ -18,7 +18,7 @@ npm run build
 npm start
 ```
 
-A clone or GitHub source ZIP includes the prepared reference images and knowledge catalog under `resources/`. Raw `art/`, `Art Sources/`, root `references/`, private download manifests and developer caches are not required for a normal build or first launch. No preparation or source-analysis command is needed to use the supplied database.
+A clone or GitHub source ZIP includes the prepared reference images and knowledge catalog under `resources/`. Optional `local-sources/`, private download manifests and developer caches are not required for a normal build or first launch. No preparation or source-analysis command is needed to use the supplied database.
 
 `npm run dev` starts development mode with reloads. If dependency install scripts were disabled and Electron's binary is missing, run `node node_modules/electron/install.js` before launching.
 
@@ -121,7 +121,7 @@ Historical protocols may also include `quality-warnings.json`. Individual source
 | `resources/knowledge/visual-catalog.json`         | Published card, category and 16-set visual analysis                                                                        |
 | Other `resources/*.json` and `resources/prompts/` | Default profile, canonical rules, validated planning policies, layouts, taxonomies and prompt templates                    |
 
-Clean sheets and source screenshots serve different purposes; individual card membership points to the canonical card files. Raw `art/` / `Art/`, `Art Sources/`, and root `references/` / `References/` remain ignored maintenance inputs. The supplied art retains its original usage and redistribution restrictions.
+Clean sheets and source screenshots serve different purposes; individual card membership points to the canonical card files. Optional maintenance exports and research live only under the ignored `local-sources/` directory; see [local source layout](docs/LOCAL_SOURCES.md). Source PNG names there are symbolic links to canonical tracked assets, not additional image copies. The supplied art retains its original usage and redistribution restrictions.
 
 Electron user data holds settings, edited rules, working knowledge, imported references and project history. Runs default to its `runs/` directory. Set `COLLECTION_STUDIO_DATA=/absolute/path/to/runs` before launch to relocate runs and their worker evidence; this does **not** relocate all settings or knowledge edits.
 
@@ -154,7 +154,7 @@ These commands are not part of first launch:
 
 - `REFERENCE_ART_DIR=/absolute/path/to/originals npm run prepare:library` restores all catalogued card PNGs by SHA-256. Importing an updated full toolbar export instead uses `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:library`.
 - `SOURCE_EXPORT_DIR=/absolute/path/to/export npm run prepare:knowledge` imports source documents/context images and rebuilds clean-set sheets. The full export must contain `Файлы.json` and `Разделы.json`.
-- `npm run prepare:references` restores only the eight legacy curated anchors from local originals/manifest; it does not restore the full library or knowledge publication.
+- `npm run prepare:references` restores only the eight legacy curated anchors from the local export or an explicit originals/manifest override; it does not restore the full library or knowledge publication.
 - `npm run kb:sync` updates and publishes prepared visual analysis. The staged commands are `npm run kb:analyze-cards` and `npm run kb:analyze-sets`. These use Codex text/vision requests and subscription usage, but do not generate artwork. Preserve incremental checkpoints under `output/catalog/cache/` when continuing maintenance. See [prepared knowledge](docs/KNOWLEDGE_CATALOG.md).
 - `npm run calibrate:codex` uses GPT-6.1 Sol to generate one reference-guided calibration image and perform a legacy-style visual review. It consumes subscription usage, writes to `output/codex-calibration/`, and does not exercise the complete current set-production workflow.
 

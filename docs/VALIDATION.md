@@ -12,7 +12,7 @@ Date: 2026-11-12. Local macOS Apple Silicon environment.
 
 ## Source coverage and library analysis
 
-The full `Art Sources/Файлы.json` export contains 185 PNGs: 160 cards and 25 collection layouts, rule illustrations and result templates. All 185 hashes were verified. The application catalog now contains all 160 individual cards, preserving the earlier 120 source identities and adding stable SHA-derived IDs for the remaining 40. The old partial Miro API manifest is retained as historical evidence and is not represented as complete.
+The full `local-sources/miro/export/Файлы.json` export contains 185 PNGs: 160 cards and 25 collection layouts, rule illustrations and result templates. All 185 hashes were verified. The application catalog now contains all 160 individual cards, preserving the earlier 120 source identities and adding stable SHA-derived IDs for the remaining 40. The old partial Miro API manifest is retained as historical evidence and is not represented as complete.
 
 Full export import and portable restoration were repeated successfully. A partial legacy import cannot silently remove existing catalog entries.
 

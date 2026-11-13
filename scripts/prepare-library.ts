@@ -25,8 +25,8 @@ class LibraryPreparation {
     let exportRoot = process.env.REFERENCE_EXPORT_DIR ?? process.env.SOURCE_EXPORT_DIR;
     if (!exportRoot && !process.env.REFERENCE_ART_DIR && !process.env.REFERENCE_MANIFEST) {
       try {
-        await fs.access(path.join('Art Sources', 'Файлы.json'));
-        exportRoot = 'Art Sources';
+        await fs.access(path.join('local-sources/miro/export', 'Файлы.json'));
+        exportRoot = 'local-sources/miro/export';
       } catch (error) {
         if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
       }
@@ -40,7 +40,7 @@ class LibraryPreparation {
       await LibraryPreparation.restoreFromCatalog(sourceRoot);
       return;
     }
-    const inventoryPath = process.env.REFERENCE_MANIFEST ?? 'references/miro/asset-manifest.json';
+    const inventoryPath = process.env.REFERENCE_MANIFEST ?? 'local-sources/miro/api/asset-manifest.json';
     const inventory = LibraryPreparation.manifest.parse(JSON.parse(await fs.readFile(inventoryPath, 'utf8')));
     const profile = Contracts.profile.parse(
       JSON.parse(await fs.readFile('resources/style-profile.json', 'utf8')),
@@ -224,7 +224,10 @@ class LibraryPreparation {
     }
 
     const files = (await fs.readdir(sourceRoot, { recursive: true, withFileTypes: true }))
-      .filter((entry) => entry.isFile() && path.extname(entry.name).toLowerCase() === '.png')
+      .filter(
+        (entry) =>
+          (entry.isFile() || entry.isSymbolicLink()) && path.extname(entry.name).toLowerCase() === '.png',
+      )
       .map((entry) => path.join(entry.parentPath, entry.name))
       .sort();
     const sourcesByHash = new Map<string, string>();

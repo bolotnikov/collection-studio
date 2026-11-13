@@ -1,6 +1,6 @@
 # Style fidelity: inspected implementations and implementation constraints
 
-Research date: 2026-11-12. This record distinguishes inspected public source, documented product behavior, and recommendations for Collection Studio. Downloaded research copies are local-only under `references/style-architecture-source/`; application code does not copy third-party implementation.
+Research date: 2026-11-12. This record distinguishes inspected public source, documented product behavior, and recommendations for Collection Studio. Downloaded research copies are local-only under `local-sources/research/style-architecture/`; application code does not copy third-party implementation.
 
 ## Evidence boundary
 

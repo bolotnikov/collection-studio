@@ -1,8 +1,5 @@
-# Source artwork and reference material remain local.
-/art/
-/Art/
-/references/
-/References/
+# Optional source exports and research remain local.
+/local-sources/
 .DS_Store
 .env
 .env.*
@@ -15,4 +12,3 @@ release/
 /runs/
 /output/
 .npm-cache/
-/Art Sources/

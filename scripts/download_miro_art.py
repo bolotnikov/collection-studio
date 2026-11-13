@@ -4,12 +4,21 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import tempfile
 import urllib.parse
 import urllib.request
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCES = ROOT / 'local-sources' / 'miro'
+LIBRARY = json.loads((ROOT / 'resources/library.json').read_text())
+CARDS = {item['id']: ROOT / 'resources/references' / item['filename'] for item in LIBRARY}
+CANONICAL = {
+    hashlib.sha256(file.read_bytes()).hexdigest(): file
+    for directory in ('resources/references', 'resources/knowledge')
+    for file in (ROOT / directory).rglob('*.png')
+}
 SETS = {
     1: '01-unreviewed', 2: '02-sports', 3: '03-school', 4: '04-amusement-park',
     5: '05-cooling-off', 6: '06-garden', 7: '07-unreviewed', 8: '08-scout-camp',
@@ -30,25 +39,28 @@ def download(item):
     disposition = urllib.parse.parse_qs(urllib.parse.urlparse(url).query).get('response-content-disposition', [''])[0]
     match = re.search(r'filename="([^"]+)"', disposition)
     filename = Path(match.group(1)).name if match else item['id'] + '.png'
-    folder = ROOT / 'art' / 'miro' / item['group']
     card_match = re.search(r'CardC6_card_(\d+)\.png$', filename)
     if item['group'] == 'cards' and card_match:
         card_number = int(card_match.group(1))
         set_number = (card_number - 1) // 10 + 1
-        folder = folder / SETS[set_number]
         record['card_number'] = card_number
         record['inferred_set'] = SETS[set_number]
-    folder.mkdir(parents=True, exist_ok=True)
-    path = folder / (item['id'] + '__' + filename)
-    previous_path = ROOT / 'art' / 'miro' / item['group'] / path.name
-    if previous_path.exists() and previous_path != path and not path.exists():
-        previous_path.rename(path)
     try:
-        if not path.exists():
+        existing = CARDS.get(item['id'])
+        if existing and existing.exists():
+            data = existing.read_bytes()
+        else:
             with urllib.request.urlopen(url, timeout=60) as response:
                 data = response.read()
-            path.write_bytes(data)
-        data = path.read_bytes()
+        sha256 = hashlib.sha256(data).hexdigest()
+        # Reuse canonical images; new bytes have one content-addressed local file.
+        path = CANONICAL.get(sha256, SOURCES / 'downloads' / (sha256 + '.png'))
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as temporary:
+                temporary.write(data)
+                temporary_path = Path(temporary.name)
+            temporary_path.replace(path)
         with Image.open(path) as img:
             img.load()
             dimensions, mode, fmt = img.size, img.mode, img.format
@@ -60,10 +72,10 @@ def download(item):
 
 
 def main():
-    items = json.loads((ROOT / 'references/miro/download-urls.json').read_text())
+    items = json.loads((SOURCES / 'api/download-urls.json').read_text())
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         records = list(pool.map(download, items))
-    target = ROOT / 'references/miro/asset-manifest.json'
+    target = SOURCES / 'api/asset-manifest.json'
     target.write_text(json.dumps(records, indent=2, ensure_ascii=False) + '\n')
     counts = {s: sum(r['status'] == s for r in records) for s in sorted({r['status'] for r in records})}
     print(json.dumps(counts))

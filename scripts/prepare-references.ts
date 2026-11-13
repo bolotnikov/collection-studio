@@ -13,12 +13,25 @@ const inventorySchema = z.array(
     miro_url: z.string().optional(),
   }),
 );
-const sourceRoot = process.env.REFERENCE_ART_DIR;
+const sourceRoot =
+  process.env.REFERENCE_ART_DIR ??
+  (process.env.REFERENCE_MANIFEST
+    ? undefined
+    : (process.env.SOURCE_EXPORT_DIR ?? 'local-sources/miro/export'));
 const inventory = sourceRoot
   ? []
-  : inventorySchema.parse(JSON.parse(await fs.readFile('references/miro/asset-manifest.json', 'utf8')));
+  : inventorySchema.parse(
+      JSON.parse(
+        await fs.readFile(
+          process.env.REFERENCE_MANIFEST ?? 'local-sources/miro/api/asset-manifest.json',
+          'utf8',
+        ),
+      ),
+    );
 const sourceFiles = sourceRoot
-  ? (await fs.readdir(sourceRoot, { recursive: true, withFileTypes: true })).filter((entry) => entry.isFile())
+  ? (await fs.readdir(sourceRoot, { recursive: true, withFileTypes: true })).filter(
+      (entry) => entry.isFile() || entry.isSymbolicLink(),
+    )
   : [];
 const picks = [
   [21, '1', 'Graduation cap'],

@@ -35,7 +35,7 @@ Eight references are a bounded working budget, not proof that all reference vari
 | [ComfyUI IPAdapter Plus](https://github.com/cubiq/ComfyUI_IPAdapter_plus)                              | Separate style and composition weights; preserve reference roles              | Maintenance status and GPL licensing must be considered before redistribution                                 |
 | [Scenario workflows](https://help.scenario.com/articles/7094354401-building-workflows-in-scenario)     | Repeatable art workflows, reference selection and producer-facing abstraction | Additional service/account/cost; no account-backed benchmark was performed                                    |
 
-At the research snapshot, the two small app examples had roughly four stars each, while ComfyUI and the IP-Adapter ecosystem were widely used. Popularity is not proof of matching this specific card-art task. Saved source excerpts and observations are in the local `references/` evidence directory; no third-party implementation was copied into the application.
+At the research snapshot, the two small app examples had roughly four stars each, while ComfyUI and the IP-Adapter ecosystem were widely used. Popularity is not proof of matching this specific card-art task. Saved source excerpts and observations are in the local `local-sources/research/` evidence directory; no third-party implementation was copied into the application.
 
 ## Chosen solution
 

@@ -7,7 +7,7 @@ import { KnowledgeContracts, type SourceKnowledge } from '../src/shared/Knowledg
 /** Imports the full source corpus with explicit roles; no model-derived rule is treated as source text. */
 class KnowledgePreparation {
   static async run(): Promise<void> {
-    const root = path.resolve(process.env.SOURCE_EXPORT_DIR ?? 'Art Sources');
+    const root = path.resolve(process.env.SOURCE_EXPORT_DIR ?? 'local-sources/miro/export');
     const target = path.resolve('resources/knowledge');
     const sections = z
       .array(z.object({ folder: z.string(), item_id: z.string(), title: z.string() }))
@@ -99,7 +99,7 @@ class KnowledgePreparation {
     await fs.writeFile(catalogFile + '.tmp', JSON.stringify(validated, null, 2));
     await fs.rename(catalogFile + '.tmp', catalogFile);
     // Remove only verified flat prepared copies after their new paths and catalog exist.
-    // Original Art Sources and historical userData assets are never modified.
+    // Local source exports and historical userData assets are never modified.
     for (const old of previous?.images ?? []) {
       const current = validated.images.find((image) => image.id === old.id && image.sha256 === old.sha256);
       if (!current || current.filename === old.filename || !/^images\/[a-f0-9]{64}\.png$/.test(old.filename))
