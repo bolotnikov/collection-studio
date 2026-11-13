@@ -51,7 +51,11 @@ export class SlotFirstPlanningService {
     try {
       if (!draft.assignedSubjects) {
         await checkpoint('Designing the concept and subjects for the fixed slots');
-        draft.assignedSubjects = CompositionPlanningContracts.assignedSubjects.parse(
+        const schema =
+          profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
+            ? CompositionPlanningContracts.batchAssignedSubjects
+            : CompositionPlanningContracts.assignedSubjects;
+        draft.assignedSubjects = schema.parse(
           await provider.designSlotSet(brief, profile, draft.slotPlans, inputs, correction),
         );
         await checkpoint();

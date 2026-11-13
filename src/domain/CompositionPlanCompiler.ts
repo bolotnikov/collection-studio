@@ -50,6 +50,7 @@ export class CompositionPlanCompiler {
             if (!detail) throw new Error('Missing slot description.');
             return {
               subject: slot.subject.subject,
+              subjectType: slot.subject.subjectType,
               role: slot.subject.role,
               category: slot.target.category,
               description: detail.description,

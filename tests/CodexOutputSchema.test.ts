@@ -15,6 +15,7 @@ it.each([
   CompositionPlanningContracts.conceptProposal,
   CompositionPlanningContracts.descriptionProposal,
   CompositionPlanningContracts.assignedSubjects,
+  CompositionPlanningContracts.batchAssignedSubjects,
   Contracts.productionPlan,
   Contracts.preparedProductionPlan,
   Contracts.review,
@@ -42,6 +43,7 @@ it('restores a prepared plan with sparse composition constraints and no gold car
       );
       return {
         ...variant,
+        cards: variant.cards.map((card) => ({ ...card, subjectType: null })),
         artContract: {
           ...contract,
           warnings: null,

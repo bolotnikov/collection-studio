@@ -39,6 +39,7 @@ export class Contracts {
   });
   static readonly plannedCard = z.object({
     subject: z.string().min(2),
+    subjectType: CompositionPlanningContracts.subjectType.optional(),
     description: z.string().min(10),
     category: z.enum(['1', '2', '3', '4', '5']),
     role: z.string().min(3),
@@ -297,6 +298,7 @@ export class Contracts {
   });
   static readonly profile = z.object({
     productionRunId: z.string().uuid().optional(),
+    subjectUniqueness: z.literal('batch-unique-v1').optional(),
     id: z.string(),
     name: z.string(),
     rules: z.array(z.string()),

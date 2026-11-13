@@ -76,7 +76,14 @@ class FixtureProvider implements GenerationPort {
         cards: plan.slots.map((slot) => ({
           index: slot.index,
           id: 'subject-' + slot.index,
-          subject: 'New object ' + slot.index,
+          subject:
+            _profile.subjectUniqueness === 'batch-unique-v1'
+              ? `New object ${variantIndex} ${slot.index}`
+              : 'New object ' + slot.index,
+          subjectType:
+            _profile.subjectUniqueness === 'batch-unique-v1'
+              ? `object_${variantIndex}_${slot.index}`
+              : undefined,
           role: 'Distinct story role ' + slot.index,
           materials: ['wood'],
           silhouette: 'Rounded large form',
@@ -1510,6 +1517,106 @@ it('continues generation when independent checks are unavailable without fabrica
   expect(DeliveryReadiness.accepts(result, result.variants[0])).toBe(true);
 });
 
+function slotFirstProfile(): Profile {
+  const { catalog } = CompositionFixture.create();
+  const library = catalog.cards.map((card) =>
+    StyleContracts.libraryItem.parse({
+      ...card,
+      title: card.observation.subject,
+      category: card.observation.category,
+      source: 'fixture',
+    }),
+  );
+  return Contracts.profile.parse({
+    ...profile,
+    visualCatalog: catalog,
+    library,
+    references: library,
+    compositionPlanning: CompositionPlanningContracts.defaults,
+  });
+}
+
+it.each(['subject', 'subjectType', 'missing-type'] as const)(
+  'repairs multi-set %s conflicts before images while preserving slots and supplying the rejected design',
+  async (mode) => {
+    const provider = new FixtureProvider();
+    const h = await harness(provider, undefined, undefined, slotFirstProfile(), 'best-effort-v1');
+    const port: GenerationPort = provider;
+    const original = provider.designSlotSet.bind(provider);
+    let attempts = 0;
+    const design = vi.spyOn(port, 'designSlotSet').mockImplementation(async (input, supplied, slots) => {
+      expect(supplied.subjectUniqueness).toBe('batch-unique-v1');
+      expect(provider.calls).toBe(0);
+      const response = await original(input, supplied, slots);
+      if (++attempts === 1) {
+        const first = response.variants[0]?.cards[0];
+        const second = response.variants[1]?.cards[3];
+        if (!first || !second) throw new Error('Missing fixture subjects');
+        if (mode === 'subject') second.subject = first.subject;
+        else if (mode === 'subjectType') second.subjectType = first.subjectType;
+        else
+          return CompositionPlanningContracts.assignedSubjects.parse({
+            variants: response.variants.map((variant) => ({
+              ...variant,
+              cards: variant.cards.map((card) => ({ ...card, subjectType: undefined })),
+            })),
+          });
+      }
+      return response;
+    });
+    const started = await h.service.start({ ...brief, variants: 2, maxImageCalls: 20 }, settings);
+    const result = await finished(h, started.id);
+    expect(result.status).toBe('completed');
+    expect(design).toHaveBeenCalledTimes(2);
+    expect(design.mock.calls[1]?.[2]).toEqual(design.mock.calls[0]?.[2]);
+    expect(result.planHistory?.[0]?.errors.length).toBeGreaterThan(0);
+    if (mode !== 'missing-type') {
+      const feedback: unknown = JSON.parse(design.mock.calls[1]?.[4] ?? '{}');
+      expect(feedback).toMatchObject({
+        previousDesign: result.planHistory?.[0]?.compositionDraft?.assignedSubjects,
+      });
+      expect(design.mock.calls[1]?.[4]).toContain('set 2, slot 4');
+    }
+    const cards = result.variants.flatMap((variant) => variant.cards);
+    expect(new Set(cards.map((card) => card.subjectType)).size).toBe(20);
+    expect(provider.calls).toBe(20);
+    expect(provider.planReviewCalls).toBe(0);
+    expect((await h.repository.getProfile(result.id)).subjectUniqueness).toBe('batch-unique-v1');
+    const variant = result.variants[0];
+    if (!variant) throw new Error('Missing generated set');
+    const file = path.join(h.root, 'batch-unique.zip');
+    await new ExportService(h.images).export(result, variant.id, h.repository.directory(result.id), file);
+    const zip = new AdmZip(await fs.readFile(file));
+    expect(zip.readAsText('run.json')).toContain('"subjectType"');
+    expect(zip.readAsText('style-profile.json')).toContain('batch-unique-v1');
+  },
+);
+
+it('never falls back to a duplicate multi-set plan after the correction budget is exhausted', async () => {
+  const provider = new FixtureProvider();
+  const h = await harness(provider, undefined, undefined, slotFirstProfile(), 'best-effort-v1');
+  const port: GenerationPort = provider;
+  const original = provider.designSlotSet.bind(provider);
+  const design = vi.spyOn(port, 'designSlotSet').mockImplementation(async (input, supplied, slots) => {
+    const response = await original(input, supplied, slots);
+    const first = response.variants[0]?.cards[0];
+    const second = response.variants[1]?.cards[0];
+    if (!first || !second) throw new Error('Missing fixture subjects');
+    second.subjectType = first.subjectType;
+    return response;
+  });
+  const started = await h.service.start({ ...brief, variants: 2, maxImageCalls: 20 }, settings);
+  const result = await finished(h, started.id);
+  expect(result.status).toBe('failed');
+  expect(result.variants).toEqual([]);
+  expect(result.planHistory).toHaveLength(2);
+  expect(
+    result.planHistory?.every((entry) => entry.errors.some((error) => error.includes('Duplicate subjects'))),
+  ).toBe(true);
+  expect(design).toHaveBeenCalledTimes(2);
+  expect(provider.calls).toBe(0);
+});
+
 it('freezes slots and reference candidates before one design call, skips redundant planning LLMs and still checks all images', async () => {
   const { catalog } = CompositionFixture.create();
   const provider = new FixtureProvider();
@@ -1576,6 +1683,8 @@ it('freezes slots and reference candidates before one design call, skips redunda
   expect(Object.hasOwn(result.variants[0]?.artContract ?? {}, 'pilotIndex')).toBe(false);
   expect(result.qualityWarnings).toEqual([]);
   expect((await h.repository.getProfile(result.id)).referenceSelection).toBe('catalogue-v1');
+  expect((await h.repository.getProfile(result.id)).subjectUniqueness).toBeUndefined();
+  expect(result.variants[0]?.cards.every((card) => card.subjectType === undefined)).toBe(true);
 });
 
 it('freezes shuffled per-variant references across pause/resume and sends their saved order to image generation', async () => {
@@ -1625,6 +1734,10 @@ it('freezes shuffled per-variant references across pause/resume and sends their 
   expect(result.status).toBe('completed');
   expect(design).toHaveBeenCalledOnce();
   expect(result.compositionDraft?.slotPlans).toEqual(plans);
+  expect((await h.repository.getProfile(result.id)).subjectUniqueness).toBe('batch-unique-v1');
+  expect(
+    new Set(result.variants.flatMap((variant) => variant.cards.map((card) => card.subjectType))).size,
+  ).toBe(20);
   for (const [index, variant] of result.variants.entries()) {
     expect(variant.artContract?.composition?.targets.map((target) => target.selectedReferenceIds)).toEqual(
       selections[index],
@@ -1651,6 +1764,49 @@ it('freezes shuffled per-variant references across pause/resume and sends their 
       if (!reference) throw new Error('Missing selected original');
       return path.join('/test-references', reference.filename);
     }),
+  );
+});
+
+it('resumes historical multi-set drafts without adding the new policy or requiring subject types', async () => {
+  const provider = new FixtureProvider();
+  const h = await harness(provider, undefined, undefined, slotFirstProfile(), 'best-effort-v1');
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const original = provider.designSlotSet.bind(provider);
+  const design = vi.spyOn(provider, 'designSlotSet').mockImplementation(async (...args) => {
+    await gate;
+    return original(...args);
+  });
+  const started = await h.service.start({ ...brief, variants: 2, maxImageCalls: 20 }, settings);
+  await vi.waitFor(() => expect(design).toHaveBeenCalledOnce());
+  await h.service.pause(started.id);
+  release();
+  const paused = await finished(h, started.id);
+  const saved = await h.repository.getProfile(started.id);
+  delete saved.subjectUniqueness;
+  await h.repository.saveProfile(started.id, saved);
+  const assigned = paused.compositionDraft?.assignedSubjects;
+  if (!assigned) throw new Error('Missing historical slot design');
+  for (const variant of assigned.variants)
+    for (const card of variant.cards) {
+      delete card.subjectType;
+      card.subject = `Legacy object ${card.index}`;
+    }
+  await h.repository.save(paused);
+  h.snapshots.length = 0;
+  await h.service.resume(started.id);
+  const result = await finished(h, started.id);
+  expect(result.status).toBe('completed');
+  expect(design).toHaveBeenCalledOnce();
+  expect(provider.calls).toBe(20);
+  expect((await h.repository.getProfile(started.id)).subjectUniqueness).toBeUndefined();
+  expect(
+    result.variants.every((variant) => variant.cards.every((card) => card.subjectType === undefined)),
+  ).toBe(true);
+  expect(result.variants[0]?.cards.map((card) => card.subject)).toEqual(
+    result.variants[1]?.cards.map((card) => card.subject),
   );
 });
 

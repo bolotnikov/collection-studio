@@ -4,6 +4,7 @@ import type { GenerationPort } from './GenerationPort';
 import type { PlanningPolicy, PlanReview } from '../shared/SetContract';
 import { ProductionRules } from '../domain/ProductionRules';
 import { SetComposition } from '../domain/SetComposition';
+import { BatchSubjectRules } from '../domain/BatchSubjectRules';
 
 /** Persist each proposal and review before advancing; resume partially reviewed proposals. */
 export class SetPlanningService {
@@ -33,7 +34,13 @@ export class SetPlanningService {
           return this.fallback(history, policy);
         const previous = entry ?? history.at(-1);
         const correction = previous
-          ? JSON.stringify({ errors: previous.errors, reviews: previous.reviews })
+          ? JSON.stringify({
+              errors: previous.errors,
+              reviews: previous.reviews,
+              ...(profile.subjectUniqueness === 'batch-unique-v1'
+                ? { previousDesign: previous.compositionDraft?.assignedSubjects }
+                : {}),
+            })
           : '';
         const result = profile.compositionPlanning
           ? await new CompositionPlanningService().propose(
@@ -69,6 +76,8 @@ export class SetPlanningService {
           if (entry.errors.length) throw new Error(entry.errors[0]);
           Contracts.productionPlan.parse(plan);
           ProductionRules.validatePlan(plan, brief.variants, Boolean(brief.includeGold));
+          if (profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1)
+            BatchSubjectRules.validate(plan);
           ProductionRules.validateReferenceBindings(plan);
           if (profile.visualCatalog)
             SetComposition.validate(

@@ -31,6 +31,9 @@ export class CompositionPlanningPrompts {
         slots,
         correction,
       }) +
+      (profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
+        ? '\n' + new PromptCatalog(slotPrompts, slotPrompts).render('batchUniqueness')
+        : '') +
       (slots.some((plan) => plan.composition.rhythm) ? '\n' + rhythm.prompt : '') +
       (slots.some((plan) => plan.composition.positionPolicy) ? '\n' + positions.prompt : '')
     );

@@ -78,6 +78,9 @@ export class RunService {
         profile.contextOptimization ??= structuredClone(ContextOptimization.defaults);
       if (profile.compositionPlanning?.version === 'slots-first-v1')
         profile.referenceSelection = 'catalogue-v1';
+      if (brief.variants > 1 && profile.compositionPlanning?.version === 'slots-first-v1')
+        profile.subjectUniqueness = 'batch-unique-v1';
+      else delete profile.subjectUniqueness;
       policy = content.policy;
       if (profile.referenceSelection === 'catalogue-v1' && policy) policy = { ...policy, referenceLimit: 8 };
       const id = randomUUID();

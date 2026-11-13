@@ -54,7 +54,9 @@ export class CodexProvider implements GenerationPort, ArtDirectionPort {
     return (
       await this.planner.run(
         CompositionPlanningPrompts.design(brief, profile, slots, correction, references),
-        CompositionPlanningContracts.assignedSubjects,
+        profile.subjectUniqueness === 'batch-unique-v1' && brief.variants > 1
+          ? CompositionPlanningContracts.batchAssignedSubjects
+          : CompositionPlanningContracts.assignedSubjects,
         references,
         false,
         'CodexProvider.designSlotSet',

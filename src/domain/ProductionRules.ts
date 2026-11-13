@@ -59,7 +59,14 @@ export class ProductionRules {
       variant.title,
       variant.concept,
       variant.artContract,
-      variant.cards.map((c) => [c.subject, c.description, c.category, c.role, c.visual]),
+      variant.cards.map((c) => [
+        c.subject,
+        c.description,
+        c.category,
+        c.role,
+        c.visual,
+        ...(c.subjectType ? [c.subjectType] : []),
+      ]),
     ]);
   }
   static planMatches(variant: Variant): boolean {

@@ -14,6 +14,7 @@ import { CardProductionService } from './CardProductionService';
 import { SetReviewService } from './SetReviewService';
 import { CompositionRepairRules } from '../domain/CompositionRepairRules';
 import { SetCompositionVerificationService } from './SetCompositionVerificationService';
+import { BatchSubjectRules } from '../domain/BatchSubjectRules';
 
 export class ProductionWorkflow {
   private readonly cards: CardProductionService;
@@ -108,6 +109,8 @@ export class ProductionWorkflow {
       run.selectedVariantId = run.variants[0]?.id ?? null;
       await this.context.publish(run, 'Set plans validated');
     }
+    if (active.profile.subjectUniqueness === 'batch-unique-v1' && run.brief.variants > 1)
+      BatchSubjectRules.validate({ variants: run.variants });
     if (active.preparation) {
       await this.context.publish(
         run,
