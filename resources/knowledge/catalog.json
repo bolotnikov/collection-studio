@@ -1,0 +1,2382 @@
+{
+  "version": 1,
+  "documents": [
+    {
+      "id": "3458764679652501906",
+      "title": "Тестовое задание — AI-pilled продакшн-продюсер",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652501906",
+      "filename": "Тестовое задание/Описание.txt",
+      "sha256": "d955206e8700c350af278fc5fda0133f24fc5d006be8068cbac612a9f0ca2c4f",
+      "text": "Название на доске: Тестовое задание — AI-pilled продакшн-продюсер\nТип блока: Doc\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652501906\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nПолный текст задания: цель, требуемый инструмент для генерации коллекционных карточек, критерии оценки, формат результатов, предоставляемые материалы и принципы выполнения. Изображений нет.\n\nТЕКСТ НА ДОСКЕ\n\nТестовое задание — AI-pilled продакшн-продюсер\n\nЦель тестового - оценить:\n• умение быстро и качественно выполнять “продуктовый заказ” с помощь AI-инструментов и моделей;\n• умение осознанно создавать ai-пайплайн под задачу и доводить результат до продакшен-уровня.\n\nЗадание:\n• Проанализировать принципы (идейные и артовые) составления наборов для коллекций\n  ◦ Наборы представлены в отдельном фрейме. Также отдельный фрейм отведен под анализ.\n  ◦ Просим уделить внимание тому, как отдельные объекты организуются в стройный и логичный набор. Также, как и в каком стиле они рисуются.\n• На основе представленных текстовых и графических материалов создать инструмент / пайплайн автоматического производства графических материалов для коллекционных карточек.\n  ◦ Инструмент должен производить набор карточек \"под ключ\". (именно картинки объектов, как во фрейме \"Примеры карточек\", верстать окна не требуется, просим \"подставить\" карточки в итоговые наборы вручную)\n  ◦ Инструмент принимает на вход тематику набора и \"свободные пожелания\" от продюсера.\n  ◦ Инструмент отдаёт на выходе 3-5 вариантов заказанного набора (группы картинок / карточек) с учетом пожеланий продюсера.\n• С помощью созданного инструмента создать / нарисовать три новых набора карточек на тему “Кино-коллекция” (разные набора отражающие разные жанры фильмов, без золотых карточек).\n• Сравнить продуктово / визуально попадание ваших трех наборов в требования и референсные наборы и арт.\n• Мы осознанно не описываем конкретные шаги достижения пунктов выше. Считаем, что вариантов много. Хотим увидеть, какой (ие) вы выберите.\n\nКак мы оцениваем результат:\n1. Оцениваться будут как техническая часть, так и продуктовая / артовая (на сколько качественные получаются карточки и наборы).\n2. В рамках анализа оценивается умение извлекать из референса смыслообразующие принципы. Чтобы затем использовать эти же принципы в аи-инструменте для составления своих коллекций.\n3. В продуктовой / артовой части оценивается попадание в необходимый арт-стиль (предоставлен во фремах правее).\n   a. Проверочное упражнение: можно ли составленный вами набор вставлять в игру рядом с наборами из примеров, чтобы игроки не заметили разницы в идейной и артовой части?\n4. В части сравнения ваших наборов и референсных оценивается на сколько вы подмечаете принципы и тонкости идейной и артовой составляющией. (основываясь на своем же анализе)\n   a. Проверочное упражнение: вы видите \"смыслообразующие\" и \"визуальные\" принципы референсов, можете проследить их в ваших наборах.\n5. В технической части оценивается архитектура и автономность работы системы.\n   a. Проверочное упражнение: сможет ли гейм-дизайнер использовать скилл без вашей помощи для получения наборов карточек целевого качества?\n\nФормат результатов:\n• Все результаты и весь ход работы просим показать и рассказать на текущей Miro-доске.\n• Код / созданные скиллы / пайплайны просим прикрепить ссылкой на github-репозиторий.\n\nПредоставляемые материалы:\n• Описание коллекций – общая информация о том, что такое коллекция карточек.\n• Общие правила – принципы и виды арта в карточках коллекций.\n• Графические примеры карточек.\n• Графическией пример коллекции с несколькими наборами.\n\nПринципы выполнения тестового задания:\n• Максимальная автономность пайплайна. Чем меньше вам нужно вмешиваться в работу пайплайна, создающего наборы карточек, тем качественнее выполнена работа.\n• Исследование инструментов. Работайте с широким набором актуальных публичных моделей, подбирая подходящие под каждую задачу, — первый приемлемый результат не повод остановиться.\n• Прозрачность процесса. Прикладывайте все материалы и промежуточные итерации, фиксируйте, что пробовали и почему пришли к финальному решению. Это ваша возможность показать ход мыслей — для нас он не менее ценен, чем финалы.\n• Самостоятельный поиск. Собственные модели и LoRA мы не предоставляем: попасть в стилистику и качество игр доступными инструментами — часть задания.\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 0\nИзображений в этом блоке нет.\n",
+      "role": "assignment"
+    },
+    {
+      "id": "3458764679650208648",
+      "title": "Описание коллекций",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650208648",
+      "filename": "Описание коллекций/Описание.txt",
+      "sha256": "52d6df9fc7672ddb764e19efad9228db6f692218357dbf5d6cf7967d388df00a",
+      "text": "Название на доске: Описание коллекций\nТип блока: Doc\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650208648\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nОписание структуры коллекции и сетов, тематик, редкости, золотых карточек и гранд-сета. Изображений нет.\n\nТЕКСТ НА ДОСКЕ\n\nОписание коллекций\nКоллекция - это набор из тематических карточек, которые игрок собирает в разных игровых активностях. Коллекция состоит из 16 наборов, в каждом из которых по 10 карт.\nКаждая коллекция посвящена одной широкой теме например «Кино», «Путешествие», «Лето» и т.п.\nНаборы (сеты) - это подтемы коллекции. Они должны быть разнообразными и не повторяться. Например, для “Летней Коллекции”- это “Пляж”,“Сад”, “Спорт” и т.п.\nКарточки подбираются под тему набора (сета). Например, для набора “Пляж” - это надувной пляжный мячик, замок из песка, пляжная сумка и другое.\nКарточки с предметами имеют разную редкость. Редкость не влияет на визуальное отображение предмета.\nТакже есть золотые карточки - наиболее ценные карты с изображениями ключевых персонажей коллекции. Персонажи на карточках отыгрывают ироничную эмоциональную ситуацию. На одной золотой карточке, не больше 2 персонажей.\n\n16 сет - это гранд “сет”. Он содержит только золотые карточки, а тема сета является кульминационной в наборе. Например “Летняя вечеринка”\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 0\nИзображений в этом блоке нет.\n",
+      "role": "collection-structure"
+    },
+    {
+      "id": "3458764679650387256",
+      "title": "Пример коллекции",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256",
+      "filename": "Пример коллекции/Описание.txt",
+      "sha256": "8fd2e0cf91900716de3c0495f1e420d83f3f76d6c93921ca7d2474d72eee73eb",
+      "text": "Название на доске: Пример коллекции\nТип блока: Frame\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nФрейм Summer с 16 изображениями наборов летней коллекции в игровом оформлении. Сохранены все PNG, а также подписи фрейма.\n\nТЕКСТ НА ДОСКЕ\n\nКАРТОЧКИ В НАБОРАХ\n\nSummer\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 16\n01_Collection_Gardens.png\n02_Collection_Sports.png\n03_Collection_Finals.png\n04_Collection_Amusement.png\n05_Collection_Coolness.png\n06_Collection_Countrystead.png\n03_Collection_Seafaring_test_03_new.png\n08_Collection_Boyscoute.png\n09_Collection_Vacation.png\n10_Collection_Beach.png\n04_Collection_MusicFest_test_04.png\n12_Collection_Diving.png\n13_Collection_RoadTrip.png\n14_Collection_Poolside.png\n15_Collection_Tour.png\n16_Summer_Party.png\n",
+      "role": "reference-inventory"
+    },
+    {
+      "id": "3458764682355346114",
+      "title": "Анализ принципов составления коллекций (идеи / арт)",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764682355346114",
+      "filename": "Анализ принципов составления коллекций/Описание.txt",
+      "sha256": "bb28a942eaeed8126e565b4c1c95830a1fdfb40ab2d4dba675929248e7e728ab",
+      "text": "Название на доске: Анализ принципов составления коллекций (идеи / арт)\nТип блока: Frame\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764682355346114\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nФрейм для анализа идейных и артовых принципов. На момент экспорта содержит только надпись «Анализ»; другого текста и изображений нет.\n\nТЕКСТ НА ДОСКЕ\n\nАнализ\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 0\nИзображений в этом блоке нет.\n",
+      "role": "analysis-space"
+    },
+    {
+      "id": "3458764679650284128",
+      "title": "Общие правила для выбора объектов для выбора коллекций:",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128",
+      "filename": "Общие правила/Описание.txt",
+      "sha256": "a2940d8f3ea148885423f9119da618a09e7502d36f80e73ed897de360aa3b0b1",
+      "text": "Название на доске: Общие правила для выбора объектов для выбора коллекций:\nТип блока: Doc\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nДокумент с правилами выбора объектов и фонов для пяти категорий карточек, включая золотые. Сохранены полный текст и пять встроенных иллюстраций. В порядке документа: 10.35.12 — категория 1; 11.18.28 — категория 2; 11.18.41 — категория 3; 11.18.51 — категория 4; 11.19.00 — категория 5.\n\nТЕКСТ НА ДОСКЕ\n\nОбщие правила для выбора объектов для выбора коллекций:\nДля того, чтобы сет смотрелся гармонично объекты подбираются в соответствии с категориями. В каждом сете присутствуют все 4 категории вне зависимости от редкости карточек.\n\nКатегория 1\n• Объект без мелких деталей.\n• Объект висит в воздухе.\n• Фон — одноцветный с градиентом или простой узор (например, полосы, повторяющиеся объекты, равномерный цвет или световые лучи).\n\nКатегория 2\n• Объект без мелких деталей.\n• Простой фон: объект стоит на поверхности, позади — вертикальная поверхность, простая или одноцветная с градиентом, либо простой узор (например, полосы, повторяющиеся объекты, равномерный цвет или световые лучи).\n\nКатегория 3\n• Объект стоит на реалистичной поверхности.\n• Объёмный фон: объект стоит/вписан в простую реалистичную поверхность, позади — вертикальная поверхность, простая или одноцветная с градиентом, либо простой узор (например, полосы, повторяющиеся объекты, равномерный цвет или световые лучи).\n\nКатегория 4\n• Объект вписан в реалистичную окружающую обстановку, но остаётся центральным.\n\nКатегория 5 (золотые карты)\nСюжетная картинка с фоном из категории 4, на которой присутствует один или два персонажа, разыгрывающие сценку с очень простым нарративом. Персонажи вписаны в реалистичную окружающую обстановку, но остаются центральными.\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 5\nСнимок экрана 2026-08-03 в 10.35.12.png\nСнимок экрана 2026-08-03 в 11.18.28.png\nСнимок экрана 2026-08-03 в 11.18.41.png\nСнимок экрана 2026-08-03 в 11.18.51.png\nСнимок экрана 2026-08-03 в 11.19.00.png\n",
+      "role": "composition-rules"
+    },
+    {
+      "id": "3458764679650387171",
+      "title": "Примеры карточек",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171",
+      "filename": "Примеры карточек/Описание.txt",
+      "sha256": "a81ec44f535cf8139b957aca9e46f05a22a5e6b001ab3a00ea2b745401d1d0e7",
+      "text": "Название на доске: Примеры карточек\nТип блока: Frame\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nФрейм с 160 отдельными изображениями карточек CardC6_card_01.png — CardC6_card_160.png и подписью «ТОЛЬКО КАРТОЧКИ».\n\nТЕКСТ НА ДОСКЕ\n\nТОЛЬКО КАРТОЧКИ\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 160\nCardC6_card_01.png\nCardC6_card_02.png\nCardC6_card_03.png\nCardC6_card_04.png\nCardC6_card_05.png\nCardC6_card_06.png\nCardC6_card_07.png\nCardC6_card_08.png\nCardC6_card_09.png\nCardC6_card_10.png\nCardC6_card_11.png\nCardC6_card_12.png\nCardC6_card_13.png\nCardC6_card_14.png\nCardC6_card_15.png\nCardC6_card_16.png\nCardC6_card_17.png\nCardC6_card_18.png\nCardC6_card_19.png\nCardC6_card_20.png\nCardC6_card_21.png\nCardC6_card_22.png\nCardC6_card_23.png\nCardC6_card_24.png\nCardC6_card_25.png\nCardC6_card_26.png\nCardC6_card_27.png\nCardC6_card_28.png\nCardC6_card_29.png\nCardC6_card_30.png\nCardC6_card_31.png\nCardC6_card_32.png\nCardC6_card_33.png\nCardC6_card_34.png\nCardC6_card_35.png\nCardC6_card_36.png\nCardC6_card_37.png\nCardC6_card_38.png\nCardC6_card_39.png\nCardC6_card_40.png\nCardC6_card_41.png\nCardC6_card_42.png\nCardC6_card_43.png\nCardC6_card_44.png\nCardC6_card_45.png\nCardC6_card_46.png\nCardC6_card_47.png\nCardC6_card_48.png\nCardC6_card_49.png\nCardC6_card_50.png\nCardC6_card_51.png\nCardC6_card_52.png\nCardC6_card_53.png\nCardC6_card_54.png\nCardC6_card_55.png\nCardC6_card_56.png\nCardC6_card_57.png\nCardC6_card_58.png\nCardC6_card_59.png\nCardC6_card_60.png\nCardC6_card_61.png\nCardC6_card_62.png\nCardC6_card_63.png\nCardC6_card_64.png\nCardC6_card_65.png\nCardC6_card_66.png\nCardC6_card_67.png\nCardC6_card_68.png\nCardC6_card_69.png\nCardC6_card_70.png\nCardC6_card_71.png\nCardC6_card_72.png\nCardC6_card_73.png\nCardC6_card_74.png\nCardC6_card_75.png\nCardC6_card_76.png\nCardC6_card_77.png\nCardC6_card_78.png\nCardC6_card_79.png\nCardC6_card_80.png\nCardC6_card_81.png\nCardC6_card_82.png\nCardC6_card_83.png\nCardC6_card_84.png\nCardC6_card_85.png\nCardC6_card_86.png\nCardC6_card_87.png\nCardC6_card_88.png\nCardC6_card_89.png\nCardC6_card_90.png\nCardC6_card_91.png\nCardC6_card_92.png\nCardC6_card_93.png\nCardC6_card_94.png\nCardC6_card_95.png\nCardC6_card_96.png\nCardC6_card_97.png\nCardC6_card_98.png\nCardC6_card_99.png\nCardC6_card_100.png\nCardC6_card_101.png\nCardC6_card_102.png\nCardC6_card_103.png\nCardC6_card_104.png\nCardC6_card_105.png\nCardC6_card_106.png\nCardC6_card_107.png\nCardC6_card_108.png\nCardC6_card_109.png\nCardC6_card_110.png\nCardC6_card_111.png\nCardC6_card_112.png\nCardC6_card_113.png\nCardC6_card_114.png\nCardC6_card_115.png\nCardC6_card_116.png\nCardC6_card_117.png\nCardC6_card_118.png\nCardC6_card_119.png\nCardC6_card_120.png\nCardC6_card_121.png\nCardC6_card_122.png\nCardC6_card_123.png\nCardC6_card_124.png\nCardC6_card_125.png\nCardC6_card_126.png\nCardC6_card_127.png\nCardC6_card_128.png\nCardC6_card_129.png\nCardC6_card_130.png\nCardC6_card_131.png\nCardC6_card_132.png\nCardC6_card_133.png\nCardC6_card_134.png\nCardC6_card_135.png\nCardC6_card_136.png\nCardC6_card_137.png\nCardC6_card_138.png\nCardC6_card_139.png\nCardC6_card_140.png\nCardC6_card_141.png\nCardC6_card_142.png\nCardC6_card_143.png\nCardC6_card_144.png\nCardC6_card_145.png\nCardC6_card_146.png\nCardC6_card_147.png\nCardC6_card_148.png\nCardC6_card_149.png\nCardC6_card_150.png\nCardC6_card_151.png\nCardC6_card_152.png\nCardC6_card_153.png\nCardC6_card_154.png\nCardC6_card_155.png\nCardC6_card_156.png\nCardC6_card_157.png\nCardC6_card_158.png\nCardC6_card_159.png\nCardC6_card_160.png\n",
+      "role": "reference-inventory"
+    },
+    {
+      "id": "3458764679652659682",
+      "title": "Фрейм для описания хода работы и результатов",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682",
+      "filename": "Фрейм для описания хода работы и результатов/Описание.txt",
+      "sha256": "229cfe393ab5ec8d1a0c83136d9f95d93671784a50f45ed2cbc3ca0adc8d8a7d",
+      "text": "Название на доске: Фрейм для описания хода работы и результатов\nТип блока: Frame\nИсточник: https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682\n\nСОДЕРЖИМОЕ БЛОКА (описание экспорта)\n\nФрейм с областями «Итоговые наборы» и «Описание хода работы» и четырьмя изображениями Orange.png, Pink.png, Violet.png, blue.png. Другого текста на момент экспорта нет.\n\nТЕКСТ НА ДОСКЕ\n\nИтоговые наборы\n\nОписание хода работы\n\nИЗОБРАЖЕНИЯ В ЭТОМ БЛОКЕ\n\nКоличество: 4\nOrange.png\nPink.png\nViolet.png\nblue.png\n",
+      "role": "delivery"
+    }
+  ],
+  "images": [
+    {
+      "id": "knowledge-0fd0ea48f08dba17aa1cfbfa",
+      "title": "01_Collection_Gardens.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F01_Collection_Gardens.png",
+      "filename": "images/sets/0fd0ea48f08dba17aa1cfbfa2daece4b15699da95a56a59d237d9042320d15ee.png",
+      "sha256": "0fd0ea48f08dba17aa1cfbfa2daece4b15699da95a56a59d237d9042320d15ee",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-2ba68af4c57518cf34d3b7d7",
+      "title": "02_Collection_Sports.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F02_Collection_Sports.png",
+      "filename": "images/sets/2ba68af4c57518cf34d3b7d7ff1d4c3881404ca09d0f745ece50a53c05858477.png",
+      "sha256": "2ba68af4c57518cf34d3b7d7ff1d4c3881404ca09d0f745ece50a53c05858477",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-7216b20012575345acd931e2",
+      "title": "03_Collection_Finals.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F03_Collection_Finals.png",
+      "filename": "images/sets/7216b20012575345acd931e2fd8f456ad205eec65d7aec56d353136c584b4cd6.png",
+      "sha256": "7216b20012575345acd931e2fd8f456ad205eec65d7aec56d353136c584b4cd6",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-efb88c2e722a53eda54e312c",
+      "title": "04_Collection_Amusement.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F04_Collection_Amusement.png",
+      "filename": "images/sets/efb88c2e722a53eda54e312cedd5f1b3c8917bd0d93b1939250da3bb536a676d.png",
+      "sha256": "efb88c2e722a53eda54e312cedd5f1b3c8917bd0d93b1939250da3bb536a676d",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-f700e412acfbb486e1f18772",
+      "title": "05_Collection_Coolness.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F05_Collection_Coolness.png",
+      "filename": "images/sets/f700e412acfbb486e1f18772193bce4eb4cddc1d20a093eba57e98b982dad23d.png",
+      "sha256": "f700e412acfbb486e1f18772193bce4eb4cddc1d20a093eba57e98b982dad23d",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-32dba68f98160b5fb9c27474",
+      "title": "06_Collection_Countrystead.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F06_Collection_Countrystead.png",
+      "filename": "images/sets/32dba68f98160b5fb9c274742c354c2a5a9fd9972b2935ad639fbd72c2e9a329.png",
+      "sha256": "32dba68f98160b5fb9c274742c354c2a5a9fd9972b2935ad639fbd72c2e9a329",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-315a6f5655fb3f51c11ffd8a",
+      "title": "03_Collection_Seafaring_test_03_new.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F03_Collection_Seafaring_test_03_new.png",
+      "filename": "images/sets/315a6f5655fb3f51c11ffd8aac7d84eb47af1d4ad5a8c1cb7bd71d89c804c5c3.png",
+      "sha256": "315a6f5655fb3f51c11ffd8aac7d84eb47af1d4ad5a8c1cb7bd71d89c804c5c3",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-1b24d6829346f4048d243b3a",
+      "title": "08_Collection_Boyscoute.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F08_Collection_Boyscoute.png",
+      "filename": "images/sets/1b24d6829346f4048d243b3a6a319f5c4ac65af6dcea00f1848a214525bf5950.png",
+      "sha256": "1b24d6829346f4048d243b3a6a319f5c4ac65af6dcea00f1848a214525bf5950",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-6dfaf5fcd7c588392e46f70d",
+      "title": "09_Collection_Vacation.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F09_Collection_Vacation.png",
+      "filename": "images/sets/6dfaf5fcd7c588392e46f70d9290548b25a9fdf0b7b641aa441dcc0711dc2868.png",
+      "sha256": "6dfaf5fcd7c588392e46f70d9290548b25a9fdf0b7b641aa441dcc0711dc2868",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-4a21e67659bb0f45444e2123",
+      "title": "10_Collection_Beach.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F10_Collection_Beach.png",
+      "filename": "images/sets/4a21e67659bb0f45444e2123238642e2c041fb0d8a6a7c28ebbe9207727953f9.png",
+      "sha256": "4a21e67659bb0f45444e2123238642e2c041fb0d8a6a7c28ebbe9207727953f9",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-f3ed803d84f8a2a2b363cfe6",
+      "title": "04_Collection_MusicFest_test_04.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F04_Collection_MusicFest_test_04.png",
+      "filename": "images/sets/f3ed803d84f8a2a2b363cfe6e2cc4254dbb419cf05ec9751989826ae9845da98.png",
+      "sha256": "f3ed803d84f8a2a2b363cfe6e2cc4254dbb419cf05ec9751989826ae9845da98",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-2f5f7e72672497b5ce205eb9",
+      "title": "12_Collection_Diving.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F12_Collection_Diving.png",
+      "filename": "images/sets/2f5f7e72672497b5ce205eb92bbff18aec8debe258bd1744f97e5eb66559d5d7.png",
+      "sha256": "2f5f7e72672497b5ce205eb92bbff18aec8debe258bd1744f97e5eb66559d5d7",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-ce9bb219e96ed8818b610e48",
+      "title": "13_Collection_RoadTrip.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F13_Collection_RoadTrip.png",
+      "filename": "images/sets/ce9bb219e96ed8818b610e482711380bbe7354a16c74219a30d2c2658a7c0455.png",
+      "sha256": "ce9bb219e96ed8818b610e482711380bbe7354a16c74219a30d2c2658a7c0455",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-2155903ae0badde06e810b45",
+      "title": "14_Collection_Poolside.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F14_Collection_Poolside.png",
+      "filename": "images/sets/2155903ae0badde06e810b45c03643709c42122d6df81480d311965ff1660b77.png",
+      "sha256": "2155903ae0badde06e810b45c03643709c42122d6df81480d311965ff1660b77",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-088e3bbda46d70287dfa5776",
+      "title": "15_Collection_Tour.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F15_Collection_Tour.png",
+      "filename": "images/sets/088e3bbda46d70287dfa57768b5143a4e0121a097c3111b67d9ad1cab7334b59.png",
+      "sha256": "088e3bbda46d70287dfa57768b5143a4e0121a097c3111b67d9ad1cab7334b59",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-ca056a3759c876638d4eebc1",
+      "title": "16_Summer_Party.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387256#file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8%2F16_Summer_Party.png",
+      "filename": "images/sets/ca056a3759c876638d4eebc19ad09480a201fef8c8c11b973a36c020d614db05.png",
+      "sha256": "ca056a3759c876638d4eebc19ad09480a201fef8c8c11b973a36c020d614db05",
+      "role": "collection-example",
+      "category": null
+    },
+    {
+      "id": "knowledge-eb04528db97249f09f894b18",
+      "title": "Снимок экрана 2026-08-03 в 10.35.12.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128#file=%D0%9E%D0%B1%D1%89%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%B0%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-08-03%20%D0%B2%2010.35.12.png",
+      "filename": "images/categories/1/eb04528db97249f09f894b18c720892ddd9214d9c2e3cb17eb71c5378f2d0c08.png",
+      "sha256": "eb04528db97249f09f894b18c720892ddd9214d9c2e3cb17eb71c5378f2d0c08",
+      "role": "category-example",
+      "category": "1"
+    },
+    {
+      "id": "knowledge-8110c8d4c3efd12da321bb17",
+      "title": "Снимок экрана 2026-08-03 в 11.18.28.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128#file=%D0%9E%D0%B1%D1%89%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%B0%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-08-03%20%D0%B2%2011.18.28.png",
+      "filename": "images/categories/2/8110c8d4c3efd12da321bb17bba773c4204832d39cc7607bb9ae665dcada7f84.png",
+      "sha256": "8110c8d4c3efd12da321bb17bba773c4204832d39cc7607bb9ae665dcada7f84",
+      "role": "category-example",
+      "category": "2"
+    },
+    {
+      "id": "knowledge-f8c560a31af72357420777a9",
+      "title": "Снимок экрана 2026-08-03 в 11.18.41.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128#file=%D0%9E%D0%B1%D1%89%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%B0%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-08-03%20%D0%B2%2011.18.41.png",
+      "filename": "images/categories/3/f8c560a31af72357420777a9c3816472af7f794b963830c3897474dd00dbb1e5.png",
+      "sha256": "f8c560a31af72357420777a9c3816472af7f794b963830c3897474dd00dbb1e5",
+      "role": "category-example",
+      "category": "3"
+    },
+    {
+      "id": "knowledge-92de74a440f2982b41bea10b",
+      "title": "Снимок экрана 2026-08-03 в 11.18.51.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128#file=%D0%9E%D0%B1%D1%89%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%B0%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-08-03%20%D0%B2%2011.18.51.png",
+      "filename": "images/categories/4/92de74a440f2982b41bea10b5bd145c9bd8522b3d0007b11b69f56b4e631e91c.png",
+      "sha256": "92de74a440f2982b41bea10b5bd145c9bd8522b3d0007b11b69f56b4e631e91c",
+      "role": "category-example",
+      "category": "4"
+    },
+    {
+      "id": "knowledge-f6efd424a6704794d429c11c",
+      "title": "Снимок экрана 2026-08-03 в 11.19.00.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650284128#file=%D0%9E%D0%B1%D1%89%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%B0%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-08-03%20%D0%B2%2011.19.00.png",
+      "filename": "images/categories/5/f6efd424a6704794d429c11c0ae122595c75435a4c017847f20c0c6f93678fee.png",
+      "sha256": "f6efd424a6704794d429c11c0ae122595c75435a4c017847f20c0c6f93678fee",
+      "role": "category-example",
+      "category": "5"
+    },
+    {
+      "id": "knowledge-4568c7a864ee5c1652635f6a",
+      "title": "Orange.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682#file=%D0%A4%D1%80%D0%B5%D0%B9%D0%BC%20%D0%B4%D0%BB%D1%8F%20%D0%BE%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D1%8F%20%D1%85%D0%BE%D0%B4%D0%B0%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B%20%D0%B8%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D0%BE%D0%B2%2FOrange.png",
+      "filename": "images/delivery/4568c7a864ee5c1652635f6aeb6b481aa054f541172d809a389a37fb4296c868.png",
+      "sha256": "4568c7a864ee5c1652635f6aeb6b481aa054f541172d809a389a37fb4296c868",
+      "role": "delivery-template",
+      "category": null
+    },
+    {
+      "id": "knowledge-c075437a86d3cd8a8e7e2b17",
+      "title": "Pink.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682#file=%D0%A4%D1%80%D0%B5%D0%B9%D0%BC%20%D0%B4%D0%BB%D1%8F%20%D0%BE%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D1%8F%20%D1%85%D0%BE%D0%B4%D0%B0%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B%20%D0%B8%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D0%BE%D0%B2%2FPink.png",
+      "filename": "images/delivery/c075437a86d3cd8a8e7e2b178f70cb4b5e5c3286f2a828016c33da27318a1bbc.png",
+      "sha256": "c075437a86d3cd8a8e7e2b178f70cb4b5e5c3286f2a828016c33da27318a1bbc",
+      "role": "delivery-template",
+      "category": null
+    },
+    {
+      "id": "knowledge-620eecfc822e0e706ec8328a",
+      "title": "Violet.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682#file=%D0%A4%D1%80%D0%B5%D0%B9%D0%BC%20%D0%B4%D0%BB%D1%8F%20%D0%BE%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D1%8F%20%D1%85%D0%BE%D0%B4%D0%B0%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B%20%D0%B8%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D0%BE%D0%B2%2FViolet.png",
+      "filename": "images/delivery/620eecfc822e0e706ec8328afe2f425da296004156fdf9f1c7deeee768f44d93.png",
+      "sha256": "620eecfc822e0e706ec8328afe2f425da296004156fdf9f1c7deeee768f44d93",
+      "role": "delivery-template",
+      "category": null
+    },
+    {
+      "id": "knowledge-2444586dd894d6cced7f90b1",
+      "title": "blue.png",
+      "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679652659682#file=%D0%A4%D1%80%D0%B5%D0%B9%D0%BC%20%D0%B4%D0%BB%D1%8F%20%D0%BE%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D1%8F%20%D1%85%D0%BE%D0%B4%D0%B0%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B%20%D0%B8%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%D0%BE%D0%B2%2Fblue.png",
+      "filename": "images/delivery/2444586dd894d6cced7f90b109452b1ff18667671ebcc1e1285a162137d24674.png",
+      "sha256": "2444586dd894d6cced7f90b109452b1ff18667671ebcc1e1285a162137d24674",
+      "role": "delivery-template",
+      "category": null
+    }
+  ],
+  "cleanSets": [
+    {
+      "sourceImageId": "knowledge-0fd0ea48f08dba17aa1cfbfa",
+      "sourceSha256": "0fd0ea48f08dba17aa1cfbfa2daece4b15699da95a56a59d237d9042320d15ee",
+      "filename": "images/clean-sets/07ab04e5a775d74f1d04a78d63d17bb1816dd341ae8e6cd1127f1c0dddce5e89.png",
+      "sha256": "07ab04e5a775d74f1d04a78d63d17bb1816dd341ae8e6cd1127f1c0dddce5e89",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "source-ab6d35e5bfbde16d737dd748",
+          "filename": "source-ab6d35e5bfbde16d737dd748.png",
+          "sha256": "ab6d35e5bfbde16d737dd74824f43212ec2e2891ba489d1b448124e737a8c5e5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_01.png",
+          "match": {
+            "error": 1818.6253703703703,
+            "runnerUpError": 7515.98462962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "source-cf87f02074ccbff155710258",
+          "filename": "source-cf87f02074ccbff155710258.png",
+          "sha256": "cf87f02074ccbff155710258c44dc83860e1e1e7f5bef1c33f3bf644b77ff6d0",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_02.png",
+          "match": {
+            "error": 62.742777777777775,
+            "runnerUpError": 4684.695925925926
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "source-b636a656867f5add2fa2c715",
+          "filename": "source-b636a656867f5add2fa2c715.png",
+          "sha256": "b636a656867f5add2fa2c7155925de250455fce4def08a6cd7abbf8a46908afd",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_03.png",
+          "match": {
+            "error": 1470.645,
+            "runnerUpError": 8742.741666666667
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "source-089536668de70c042e368309",
+          "filename": "source-089536668de70c042e368309.png",
+          "sha256": "089536668de70c042e36830937487b6d76e8fa15e98e8a637ec38490d1a0f168",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_04.png",
+          "match": {
+            "error": 38.013888888888886,
+            "runnerUpError": 5129.417037037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "source-7046856c94161f6449c6744f",
+          "filename": "source-7046856c94161f6449c6744f.png",
+          "sha256": "7046856c94161f6449c6744f325c40f154e12e087a075b4dea65eaf37f42c948",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_05.png",
+          "match": {
+            "error": 3019.8977777777777,
+            "runnerUpError": 7441.77037037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "source-e87f007d49d788a329a93c1f",
+          "filename": "source-e87f007d49d788a329a93c1f.png",
+          "sha256": "e87f007d49d788a329a93c1fc2a05157b846029020e13362677073e68d0663af",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_06.png",
+          "match": {
+            "error": 172.86074074074074,
+            "runnerUpError": 6624.548703703704
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "source-2dd4079ed5e35f634804b5ab",
+          "filename": "source-2dd4079ed5e35f634804b5ab.png",
+          "sha256": "2dd4079ed5e35f634804b5abddab35f7a5e9060fb0c8970c098aca7457f1f367",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_07.png",
+          "match": {
+            "error": 2489.2064814814817,
+            "runnerUpError": 6402.289074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "source-96b873f051f383830cddf488",
+          "filename": "source-96b873f051f383830cddf488.png",
+          "sha256": "96b873f051f383830cddf48863224f8463b42bff119a34bb9dc9a03320d7b02d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_08.png",
+          "match": {
+            "error": 571.0575925925926,
+            "runnerUpError": 7350.776111111111
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "source-9e0b17076b88c80587991c22",
+          "filename": "source-9e0b17076b88c80587991c22.png",
+          "sha256": "9e0b17076b88c80587991c22db37dcef1039a61fbd6e6f6501b52bcaeb6e8d16",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_09.png",
+          "match": {
+            "error": 440.707037037037,
+            "runnerUpError": 6533.281851851852
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "source-853c349c215e26c01a36fa9a",
+          "filename": "source-853c349c215e26c01a36fa9a.png",
+          "sha256": "853c349c215e26c01a36fa9a98f94de36bb7e802095b010cf817652f2124ca41",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_10.png",
+          "match": {
+            "error": 2349.8088888888888,
+            "runnerUpError": 6303.382407407407
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-2ba68af4c57518cf34d3b7d7",
+      "sourceSha256": "2ba68af4c57518cf34d3b7d7ff1d4c3881404ca09d0f745ece50a53c05858477",
+      "filename": "images/clean-sets/28d0fd318b6ca008468183606c1d6ddcd46d1c0b0210edb21c6fa8c226fbdc62.png",
+      "sha256": "28d0fd318b6ca008468183606c1d6ddcd46d1c0b0210edb21c6fa8c226fbdc62",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006668",
+          "filename": "source-3458764679576006668.png",
+          "sha256": "dfc6074782a01f7babd170d6b35984934c61a17f319fa8118bc84b9cafe7637e",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006668",
+          "match": {
+            "error": 860.4687037037037,
+            "runnerUpError": 6321.677777777778
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006669",
+          "filename": "source-3458764679576006669.png",
+          "sha256": "e3582d3b8d1d5c453aa7451eb32af68bf5cbe135592d59c6086e703fd43f38e8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006669",
+          "match": {
+            "error": 3177.9666666666667,
+            "runnerUpError": 7789.757407407407
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006671",
+          "filename": "reference-13.png",
+          "sha256": "46b055210f415a7e29750b91ba8978b7a82fe51b131ed9b5f38d7023b43471d0",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006671",
+          "match": {
+            "error": 1056.1996296296297,
+            "runnerUpError": 8521.386666666667
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006672",
+          "filename": "reference-14.png",
+          "sha256": "f7c207c15d3dfc3f8be0a63f0744f9c0e5c69c8772750f4e4f9f588306560e7d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006672",
+          "match": {
+            "error": 2371.6603703703704,
+            "runnerUpError": 6377.725185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006675",
+          "filename": "source-3458764679576006675.png",
+          "sha256": "f0e60ade600ec7200c9ee25792b58474de9ab8416212392291dc0153486fb38b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006675",
+          "match": {
+            "error": 375.7951851851852,
+            "runnerUpError": 6342.009074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006676",
+          "filename": "source-3458764679576006676.png",
+          "sha256": "70965a16b00ffad3a485d6c33b649dc82790c1301b412566e42b3ee4bc5f8546",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006676",
+          "match": {
+            "error": 92.5062962962963,
+            "runnerUpError": 5755.380370370371
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006678",
+          "filename": "source-3458764679576006678.png",
+          "sha256": "15d11c0849e7e4ff1f44b1ad14a4b2babf3b094c5bf7a9f23a5139af0ad420b8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006678",
+          "match": {
+            "error": 1424.8105555555555,
+            "runnerUpError": 9526.85351851852
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006680",
+          "filename": "source-3458764679576006680.png",
+          "sha256": "073234c728918823a1c4f1977777b71a6ae677d9e3b2b4b3153beab12884484f",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006680",
+          "match": {
+            "error": 910.1520370370371,
+            "runnerUpError": 6610.218703703704
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576006681",
+          "filename": "source-3458764679576006681.png",
+          "sha256": "8369c19391d1f98cdde93aa9f9aa47a32127020c81ce1eb3ebec67b98edfec37",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006681",
+          "match": {
+            "error": 1444.9005555555555,
+            "runnerUpError": 6179.34462962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "3458764679576006682",
+          "filename": "source-3458764679576006682.png",
+          "sha256": "a64a3fb43405fd3176cb76de7f183b63a3579c8f2062a139f86d83b7b7bae638",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006682",
+          "match": {
+            "error": 1821.5437037037036,
+            "runnerUpError": 6367.177037037037
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-7216b20012575345acd931e2",
+      "sourceSha256": "7216b20012575345acd931e2fd8f456ad205eec65d7aec56d353136c584b4cd6",
+      "filename": "images/clean-sets/f3ff8e57320e63d654b57fa0eb31a1f44b7d2ff677899b687cda405d54be2703.png",
+      "sha256": "f3ff8e57320e63d654b57fa0eb31a1f44b7d2ff677899b687cda405d54be2703",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006333",
+          "filename": "reference-21.png",
+          "sha256": "e5fd84a3eae5908ade5fb0505cc1457989ee7e9c86a589bf6718d0a8617a9e39",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006333",
+          "match": {
+            "error": 2553.2514814814813,
+            "runnerUpError": 6167.182777777778
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006335",
+          "filename": "source-3458764679576006335.png",
+          "sha256": "81c4981890da10f19efcfead7a7cf6609e30c892d6369de802dbb28acbd0e974",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006335",
+          "match": {
+            "error": 160.31185185185186,
+            "runnerUpError": 6526.502222222222
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006336",
+          "filename": "source-3458764679576006336.png",
+          "sha256": "37f29c16538d3f447bc93b5c8809d294800f34ee9116efd95d0fc245bb42e3aa",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006336",
+          "match": {
+            "error": 1144.2066666666667,
+            "runnerUpError": 5899.481851851852
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006337",
+          "filename": "reference-24.png",
+          "sha256": "6242149b15fc110a55826dc2e76ea861cec10ef379b7a64b76b9493c4fb884c7",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006337",
+          "match": {
+            "error": 36.67111111111111,
+            "runnerUpError": 7306.800185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006338",
+          "filename": "source-3458764679576006338.png",
+          "sha256": "c80c45d144914e10e3187478ba7eff19a5f1a89860637e22f6ce671571e95778",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006338",
+          "match": {
+            "error": 1282.8857407407406,
+            "runnerUpError": 5767.304074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006339",
+          "filename": "source-3458764679576006339.png",
+          "sha256": "7f4d7c6f76cba3ced6dbaeb581f4803b69d02af69761959c792e63d49f16ca21",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006339",
+          "match": {
+            "error": 670.6496296296297,
+            "runnerUpError": 6722.961111111111
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006342",
+          "filename": "source-3458764679576006342.png",
+          "sha256": "d757a3ad198bacde52c5c6dcfdc34da84bc98cff6375dfc94c58aac2f485163f",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006342",
+          "match": {
+            "error": 1209.8566666666666,
+            "runnerUpError": 8999.221111111112
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006345",
+          "filename": "source-3458764679576006345.png",
+          "sha256": "cfe21a5ed5ec810dbb0c2cc2c4f52f37ed1819585e0f41902fab68f0fe97b27b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006345",
+          "match": {
+            "error": 895.3446296296296,
+            "runnerUpError": 7923.193703703703
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576006348",
+          "filename": "source-3458764679576006348.png",
+          "sha256": "b59e4c6ce8a635e4be623b1bb16fff21aadf08943b918dc9ad1536163b68ba76",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006348",
+          "match": {
+            "error": 1719.375,
+            "runnerUpError": 8853.91111111111
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "3458764679576006351",
+          "filename": "source-3458764679576006351.png",
+          "sha256": "695a2e9f4be1002c08e6e3fe728965566c489eac6f262c2bc32ddd1bf31843de",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006351",
+          "match": {
+            "error": 2826.29,
+            "runnerUpError": 7881.733888888889
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-efb88c2e722a53eda54e312c",
+      "sourceSha256": "efb88c2e722a53eda54e312cedd5f1b3c8917bd0d93b1939250da3bb536a676d",
+      "filename": "images/clean-sets/f1b4f1f50ad584581924a435cc107398695c2011771d19a4194c7eb95f3f1b4f.png",
+      "sha256": "f1b4f1f50ad584581924a435cc107398695c2011771d19a4194c7eb95f3f1b4f",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006755",
+          "filename": "source-3458764679576006755.png",
+          "sha256": "7b5011039159dadb78efc08b2df8ab34640fe17546caf35735d53d613c092880",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006755",
+          "match": {
+            "error": 108.71796296296296,
+            "runnerUpError": 8104.960740740741
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006756",
+          "filename": "source-3458764679576006756.png",
+          "sha256": "b1d875cb6be491ec1ebdf26a8a8f5c0ae7d060fcdb27e3bc07b728e6422719fb",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006756",
+          "match": {
+            "error": 3086.507037037037,
+            "runnerUpError": 8501.95925925926
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006757",
+          "filename": "source-3458764679576006757.png",
+          "sha256": "ea1f419e0d10c05a754c23c7e8f8db3a2ff59f69460f9dc9309de5188bfa225a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006757",
+          "match": {
+            "error": 650.1455555555556,
+            "runnerUpError": 7243.130185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006759",
+          "filename": "source-3458764679576006759.png",
+          "sha256": "b64456f01920a60cc13ed9ec33d457eda894da4ed544a62a50b7c5cdba96a05e",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006759",
+          "match": {
+            "error": 1289.5757407407407,
+            "runnerUpError": 7991.328333333333
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006760",
+          "filename": "source-3458764679576006760.png",
+          "sha256": "66dcc10616d69aa50ed7862f5c5bce5faba150a6ad68ce94e153dbcccff61286",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006760",
+          "match": {
+            "error": 2139.0764814814816,
+            "runnerUpError": 7816.454629629629
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006761",
+          "filename": "source-3458764679576006761.png",
+          "sha256": "728131eb25b29f35a1a41317b2b95dcb1ed69690cba668105792700b175aa6df",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006761",
+          "match": {
+            "error": 449.53092592592594,
+            "runnerUpError": 7038.525555555556
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006762",
+          "filename": "source-3458764679576006762.png",
+          "sha256": "3956fd06957a9dd5ca8642f126c00fb4eea3b6b39a5e2dc3db4d3cbfe6ee9d78",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006762",
+          "match": {
+            "error": 2671.0416666666665,
+            "runnerUpError": 7101.334074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006764",
+          "filename": "source-3458764679576006764.png",
+          "sha256": "9be3de3107738170499fe5910186cb02d6e9b5292be3e7cc580559426e004703",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006764",
+          "match": {
+            "error": 364.3081481481481,
+            "runnerUpError": 7746.992592592593
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576006765",
+          "filename": "source-3458764679576006765.png",
+          "sha256": "ffd563be57ac9ffcd7a7ab68aed206f0372b54dfd81d99cccbb2d797759e4ff6",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006765",
+          "match": {
+            "error": 878.4168518518519,
+            "runnerUpError": 8993.617962962962
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "3458764679576006766",
+          "filename": "source-3458764679576006766.png",
+          "sha256": "92b1d5bb54c1bf88b983dbda06e49fe82d9b274b5461c281bab6baab1fd1c48b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006766",
+          "match": {
+            "error": 1524.7818518518518,
+            "runnerUpError": 5761.058703703704
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-f700e412acfbb486e1f18772",
+      "sourceSha256": "f700e412acfbb486e1f18772193bce4eb4cddc1d20a093eba57e98b982dad23d",
+      "filename": "images/clean-sets/ce9b17ee9b909d9c345fc66a69599694752c9410e76e84ffe1d7ee67bc3799c4.png",
+      "sha256": "ce9b17ee9b909d9c345fc66a69599694752c9410e76e84ffe1d7ee67bc3799c4",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006389",
+          "filename": "source-3458764679576006389.png",
+          "sha256": "c66319b505527fc662eb950e1b69b7e19c9b0e1147d84a397b7d3b54538f9a81",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006389",
+          "match": {
+            "error": 1308.2148148148149,
+            "runnerUpError": 5943.121296296296
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006381",
+          "filename": "source-3458764679576006381.png",
+          "sha256": "2d731586564da0bdf4e382cd964a777f0abb807b9893502ba09208e27db1ff49",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006381",
+          "match": {
+            "error": 1855.2744444444445,
+            "runnerUpError": 5695.077037037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006382",
+          "filename": "source-3458764679576006382.png",
+          "sha256": "309388b5569e402ce39eb7c2ada96daba8b57b7127e67235a3ff8c2d3a0c9cbb",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006382",
+          "match": {
+            "error": 250.2062962962963,
+            "runnerUpError": 6129.5692592592595
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006383",
+          "filename": "source-3458764679576006383.png",
+          "sha256": "09f3c6ce8e4e3303c1bedc68253a75a78c260c1eb59dac59edaf5fb9e6ebd202",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006383",
+          "match": {
+            "error": 118.53333333333333,
+            "runnerUpError": 4884.267962962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006385",
+          "filename": "source-3458764679576006385.png",
+          "sha256": "e3696820a1cf33c37c9094ba41b204cd5fecdd5ad101e3e42729231f0d6aa390",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006385",
+          "match": {
+            "error": 2349.6731481481484,
+            "runnerUpError": 8508.926851851851
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006386",
+          "filename": "source-3458764679576006386.png",
+          "sha256": "a9669f9cd99650edcb4631f7199bb4e124787114ea0304504acbec39ef0920dd",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006386",
+          "match": {
+            "error": 697.2918518518519,
+            "runnerUpError": 6820.750185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006390",
+          "filename": "source-3458764679576006390.png",
+          "sha256": "0e1b5c669153d840f14827536931902cce81f21d62395982abf6de84c07601bb",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006390",
+          "match": {
+            "error": 450.2037037037037,
+            "runnerUpError": 7403.748518518519
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006387",
+          "filename": "reference-48.png",
+          "sha256": "be28de04cb995ef077eb5b03a831cba108bdca191104287c178ba5956fe58c85",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006387",
+          "match": {
+            "error": 2262.701111111111,
+            "runnerUpError": 5881.014814814815
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576006391",
+          "filename": "source-3458764679576006391.png",
+          "sha256": "22b9b525ef5d2251fbe7d928a5d62a9424886293ffb6e21fdb35c5081f56dc1d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006391",
+          "match": {
+            "error": 4033.390185185185,
+            "runnerUpError": 7012.8822222222225
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "3458764679576006388",
+          "filename": "source-3458764679576006388.png",
+          "sha256": "1058d429f10e1107535e51ab0577e883c78b992cab84fc217c3139f557ea837e",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006388",
+          "match": {
+            "error": 580.2187037037037,
+            "runnerUpError": 8066.631296296297
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-32dba68f98160b5fb9c27474",
+      "sourceSha256": "32dba68f98160b5fb9c274742c354c2a5a9fd9972b2935ad639fbd72c2e9a329",
+      "filename": "images/clean-sets/54d290b30c54a68f5156109bbba8a6833a4b4e20102df99e3e6df1b5d07e7495.png",
+      "sha256": "54d290b30c54a68f5156109bbba8a6833a4b4e20102df99e3e6df1b5d07e7495",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": true,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006862",
+          "filename": "source-3458764679576006862.png",
+          "sha256": "b902b11d6771321ad41ffca8217d0fe33d4990b22806b52fad3a6ad3f14e7e7a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006862",
+          "match": {
+            "error": 4994.3516666666665,
+            "runnerUpError": 7684.967777777778
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006863",
+          "filename": "source-3458764679576006863.png",
+          "sha256": "a5a735309ed4b632f53dd2122789dc6f6fd6b2da3c988ff8040b64cf5b3a2c36",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006863",
+          "match": {
+            "error": 734.4835185185185,
+            "runnerUpError": 5853.155740740741
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006866",
+          "filename": "reference-53.png",
+          "sha256": "8484d8d4d99523f7651f1ef4d06318e9fe55dfac59c6db2a1d8a232150fd676e",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006866",
+          "match": {
+            "error": 1623.092037037037,
+            "runnerUpError": 7394.204259259259
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006868",
+          "filename": "source-3458764679576006868.png",
+          "sha256": "860744c84384d63444dab4ace3d7f9cf8447b191b95d00222734251daf0728a7",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006868",
+          "match": {
+            "error": 229.39907407407406,
+            "runnerUpError": 7298.66
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006870",
+          "filename": "source-3458764679576006870.png",
+          "sha256": "71f83981107f4a35d2772713692f16e685a0f9cb6b88633de061c6c3c7ff357a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006870",
+          "match": {
+            "error": 2153.658703703704,
+            "runnerUpError": 7308.121481481481
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006871",
+          "filename": "source-3458764679576006871.png",
+          "sha256": "6a785f7d3fadc9226638af96d84a8895acb7d7f44eafa5590f3bc8ec6a69a8d1",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006871",
+          "match": {
+            "error": 2414.7925925925924,
+            "runnerUpError": 6017.802407407407
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006872",
+          "filename": "source-3458764679576006872.png",
+          "sha256": "8db5b2e1fd3b1121ff27f5adf32ece8340839c75903b19f74c47be7e15331246",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006872",
+          "match": {
+            "error": 186.91037037037037,
+            "runnerUpError": 5805.970370370371
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006874",
+          "filename": "source-3458764679576006874.png",
+          "sha256": "e7abfb6a785128383186d1a8c864b696d93980ef460765b4a98aaee567056a74",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006874",
+          "match": {
+            "error": 2569.332037037037,
+            "runnerUpError": 8227.018703703703
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576006875",
+          "filename": "source-3458764679576006875.png",
+          "sha256": "3949323850f477a19a8652d31975b1c20016d3e18c14574bb589863123dff369",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006875",
+          "match": {
+            "error": 1463.6298148148148,
+            "runnerUpError": 4117.47537037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 10,
+          "id": "3458764679576006878",
+          "filename": "reference-60.png",
+          "sha256": "58ebd298caff0885f186306ef4a538f7208b79606e9aff3a7b36d60aa453f280",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006878",
+          "match": {
+            "error": 3969.215925925926,
+            "runnerUpError": 7058.327777777778
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-315a6f5655fb3f51c11ffd8a",
+      "sourceSha256": "315a6f5655fb3f51c11ffd8aac7d84eb47af1d4ad5a8c1cb7bd71d89c804c5c3",
+      "filename": "images/clean-sets/71b9241501f7d7da81de52918d9e9c718c657f3c4e9c02bf9414156a4bd55d5c.png",
+      "sha256": "71b9241501f7d7da81de52918d9e9c718c657f3c4e9c02bf9414156a4bd55d5c",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "source-bc316a0c80adb6c9a7143d48",
+          "filename": "source-bc316a0c80adb6c9a7143d48.png",
+          "sha256": "bc316a0c80adb6c9a7143d48b303b6e8c7c57c41febaa79530bf115d8b0d021e",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_61.png",
+          "match": {
+            "error": 1905.262962962963,
+            "runnerUpError": 9404.680740740741
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "source-f28a403dbeb611adb4c3a243",
+          "filename": "source-f28a403dbeb611adb4c3a243.png",
+          "sha256": "f28a403dbeb611adb4c3a243cb171d01db66ab16d12a2cbaaef6debbc7ae8cdc",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_62.png",
+          "match": {
+            "error": 1900.9953703703704,
+            "runnerUpError": 6975.435185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "source-03f12fc303f20bf6662a2d2c",
+          "filename": "source-03f12fc303f20bf6662a2d2c.png",
+          "sha256": "03f12fc303f20bf6662a2d2cfea4afa34fa563bd7c9810195e7203eda60b56b6",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_63.png",
+          "match": {
+            "error": 1619.420925925926,
+            "runnerUpError": 5813.30074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "source-48ccb1eda5d25c0572eb9a9f",
+          "filename": "source-48ccb1eda5d25c0572eb9a9f.png",
+          "sha256": "48ccb1eda5d25c0572eb9a9f3c2d7fc3f796eb0deaa15a69489212f699fc81b4",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_64.png",
+          "match": {
+            "error": 93.39185185185185,
+            "runnerUpError": 5590.858888888889
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "source-2487cf39077ff25deebc7726",
+          "filename": "source-2487cf39077ff25deebc7726.png",
+          "sha256": "2487cf39077ff25deebc772684e2c74ca9d2fc1fa61744c5e6644b0e487b5043",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_65.png",
+          "match": {
+            "error": 1979.1564814814815,
+            "runnerUpError": 7893.6781481481485
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "source-5d6c7264cc08b7d54acedfdc",
+          "filename": "source-5d6c7264cc08b7d54acedfdc.png",
+          "sha256": "5d6c7264cc08b7d54acedfdce3be631a479ff9b2ba4691bbb234dbeb242a9d31",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_66.png",
+          "match": {
+            "error": 477.06018518518516,
+            "runnerUpError": 6321.14462962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "source-370714873bed6a6886c81768",
+          "filename": "source-370714873bed6a6886c81768.png",
+          "sha256": "370714873bed6a6886c817687e7cdb7523e2ce80b23a8395507c3266a6d8d1e1",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_67.png",
+          "match": {
+            "error": 3901.5027777777777,
+            "runnerUpError": 6878.118518518519
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "source-96c05c6983b6bb759d15f322",
+          "filename": "source-96c05c6983b6bb759d15f322.png",
+          "sha256": "96c05c6983b6bb759d15f322b1135475c3a0962d5164c7e2287a6f58b1568298",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_68.png",
+          "match": {
+            "error": 838.5437037037037,
+            "runnerUpError": 7389.572407407408
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "source-d30942cff0c02254a1aa6497",
+          "filename": "source-d30942cff0c02254a1aa6497.png",
+          "sha256": "d30942cff0c02254a1aa6497b19c4c6057087c3e946ced4763b6f090665e024c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_69.png",
+          "match": {
+            "error": 481.19981481481483,
+            "runnerUpError": 5013.302222222223
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "source-538aa6a3554b92c28b36d1da",
+          "filename": "source-538aa6a3554b92c28b36d1da.png",
+          "sha256": "538aa6a3554b92c28b36d1da09ed71eec2db3b41fbdbced0f843e0c88c14fabe",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_70.png",
+          "match": {
+            "error": 2133.5427777777777,
+            "runnerUpError": 5310.8694444444445
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-1b24d6829346f4048d243b3a",
+      "sourceSha256": "1b24d6829346f4048d243b3a6a319f5c4ac65af6dcea00f1848a214525bf5950",
+      "filename": "images/clean-sets/b0b7060f9c2aef593b0d2272f1bbc0a1527b80343ce9b0a77eb732ac6e9cd652.png",
+      "sha256": "b0b7060f9c2aef593b0d2272f1bbc0a1527b80343ce9b0a77eb732ac6e9cd652",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576193978",
+          "filename": "source-3458764679576193978.png",
+          "sha256": "f368f5de9c9df6d2c060b43688215c332a6a5dcd73c10650ad89f677f64cf4f8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193978",
+          "match": {
+            "error": 2400.471666666667,
+            "runnerUpError": 5894.253518518519
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576193979",
+          "filename": "source-3458764679576193979.png",
+          "sha256": "ffb3e57873b2bca751b74fc87f0e0d0e1647fd8af6275e2cc1d362c9e4c522f1",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193979",
+          "match": {
+            "error": 404.76814814814816,
+            "runnerUpError": 5156.923148148148
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576193980",
+          "filename": "source-3458764679576193980.png",
+          "sha256": "80cd2ec4ac167edca7f5b026c93265e21a19f319f6b9d1fdc82f6bf04f04686a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193980",
+          "match": {
+            "error": 2884.4755555555557,
+            "runnerUpError": 5902.874814814815
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576193981",
+          "filename": "source-3458764679576193981.png",
+          "sha256": "169353170258c5db8fbe263fa04e25b504b9ab16f45b31677f83274fd8a92c1d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193981",
+          "match": {
+            "error": 298.93444444444447,
+            "runnerUpError": 6317.121481481481
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576193982",
+          "filename": "source-3458764679576193982.png",
+          "sha256": "24eae38abbfc09e01cce41970db0a2725cc40cf5f86c154eea30211e170002ff",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193982",
+          "match": {
+            "error": 1550.7022222222222,
+            "runnerUpError": 10142.160740740741
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576193983",
+          "filename": "source-3458764679576193983.png",
+          "sha256": "a342a64f05b6c928afe60d644553b9cf73f9c0d2b275071b0ff4e6dccb3a5448",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193983",
+          "match": {
+            "error": 609.8994444444445,
+            "runnerUpError": 5161.760185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576193984",
+          "filename": "source-3458764679576193984.png",
+          "sha256": "80eaf64a5d8df202dd5181a43d37d1ab3a3ea6e7e0c41efa59dc90738bfa1a46",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193984",
+          "match": {
+            "error": 548.8329629629629,
+            "runnerUpError": 6220.323888888889
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576193985",
+          "filename": "source-3458764679576193985.png",
+          "sha256": "f2e38f99f88548da88b54fb9744f209c1646054ae4d7bb545b0571c96aa9a0c5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193985",
+          "match": {
+            "error": 1939.9307407407407,
+            "runnerUpError": 11048.048333333334
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 9,
+          "id": "3458764679576193987",
+          "filename": "source-3458764679576193987.png",
+          "sha256": "4a062b0e80310b0f5b6266f8b74737831075e1b334eacfb739ff85dda76fce82",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193987",
+          "match": {
+            "error": 2296.8757407407406,
+            "runnerUpError": 6947.275555555556
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576193988",
+          "filename": "source-3458764679576193988.png",
+          "sha256": "aa84ba3fcea28bdc1cb7b8510f4f67aa72200124ffe74f098c5e927de19ff7b5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576193988",
+          "match": {
+            "error": 1071.8753703703703,
+            "runnerUpError": 6496.969444444445
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-6dfaf5fcd7c588392e46f70d",
+      "sourceSha256": "6dfaf5fcd7c588392e46f70d9290548b25a9fdf0b7b641aa441dcc0711dc2868",
+      "filename": "images/clean-sets/dd0947870169c81b4397bb5e3548c1644c7b1d1f12b718e21a4a3baf5c1c8ef4.png",
+      "sha256": "dd0947870169c81b4397bb5e3548c1644c7b1d1f12b718e21a4a3baf5c1c8ef4",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "source-fc400fe91d54a615569a4448",
+          "filename": "source-fc400fe91d54a615569a4448.png",
+          "sha256": "fc400fe91d54a615569a4448a10458702bc04738bc71c31788cbc479a77dac97",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_81.png",
+          "match": {
+            "error": 476.3037037037037,
+            "runnerUpError": 5365.664629629629
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "source-d52a8cb1c77b670b906c08ea",
+          "filename": "source-d52a8cb1c77b670b906c08ea.png",
+          "sha256": "d52a8cb1c77b670b906c08eab7ace764f31ed154e68011bc1ded2f2a74b58ea8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_82.png",
+          "match": {
+            "error": 3853.3974074074076,
+            "runnerUpError": 4804.123148148148
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "source-5de9c17ed04fe7296c8d23ae",
+          "filename": "source-5de9c17ed04fe7296c8d23ae.png",
+          "sha256": "5de9c17ed04fe7296c8d23ae53a130c72c3dc0ff3bd872bae9046ff9589d2957",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_83.png",
+          "match": {
+            "error": 2388.126111111111,
+            "runnerUpError": 9673.358148148149
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "source-a46413d9b0ad964c9535797e",
+          "filename": "source-a46413d9b0ad964c9535797e.png",
+          "sha256": "a46413d9b0ad964c9535797e1bc6353361655c293386a6740157d1d5e6889850",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_84.png",
+          "match": {
+            "error": 240.97185185185185,
+            "runnerUpError": 5540.017777777778
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "source-5c94299995fcf9e697f5ec01",
+          "filename": "source-5c94299995fcf9e697f5ec01.png",
+          "sha256": "5c94299995fcf9e697f5ec0117756afafd4f4abbe389b20e8fcf5d44dd51082f",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_85.png",
+          "match": {
+            "error": 308.0407407407407,
+            "runnerUpError": 7874.233888888889
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "source-b3a638b051511b38b3a52217",
+          "filename": "source-b3a638b051511b38b3a52217.png",
+          "sha256": "b3a638b051511b38b3a5221796ef0c376d599255358d8b56720e59e2551be848",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_86.png",
+          "match": {
+            "error": 1350.2224074074074,
+            "runnerUpError": 5249.87037037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "source-1734623ccb10b6968a86b137",
+          "filename": "source-1734623ccb10b6968a86b137.png",
+          "sha256": "1734623ccb10b6968a86b137d3c1adb2f2d6409777c7661a5ecaef40f74c2ccf",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_87.png",
+          "match": {
+            "error": 691.7683333333333,
+            "runnerUpError": 7126.033333333334
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "source-6904cb845b16b197e42e2c8b",
+          "filename": "source-6904cb845b16b197e42e2c8b.png",
+          "sha256": "6904cb845b16b197e42e2c8b888f103780f593411792d4e53c1d3afe249703c8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_88.png",
+          "match": {
+            "error": 1384.2985185185184,
+            "runnerUpError": 7291.529814814815
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "source-604f87eb3140cf3514831547",
+          "filename": "source-604f87eb3140cf3514831547.png",
+          "sha256": "604f87eb3140cf35148315478014f8ab77d0b8b53d7ab5d34558a634079bae87",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_89.png",
+          "match": {
+            "error": 1837.1781481481482,
+            "runnerUpError": 7076.996481481481
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "source-71ab16ba395bad832f2b27e5",
+          "filename": "source-71ab16ba395bad832f2b27e5.png",
+          "sha256": "71ab16ba395bad832f2b27e51b4a0dc10c6bd5eb991494b13cc12acca123d7b6",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_90.png",
+          "match": {
+            "error": 2531.216851851852,
+            "runnerUpError": 4945.4825925925925
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-4a21e67659bb0f45444e2123",
+      "sourceSha256": "4a21e67659bb0f45444e2123238642e2c041fb0d8a6a7c28ebbe9207727953f9",
+      "filename": "images/clean-sets/dff5eb9c72343cbcb3d7c4a7bd2e44718b8b24c87d5f93d52a5cc072d87a31f9.png",
+      "sha256": "dff5eb9c72343cbcb3d7c4a7bd2e44718b8b24c87d5f93d52a5cc072d87a31f9",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006454",
+          "filename": "reference-91.png",
+          "sha256": "b3ec2323a3621aaa9b3222bbc85a136dc94fa1891801e8e97445929026e32f1c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006454",
+          "match": {
+            "error": 1510.7607407407406,
+            "runnerUpError": 5785.210185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006459",
+          "filename": "source-3458764679576006459.png",
+          "sha256": "d1c35f678a18a032c8220d8fcafcab07fa223eecb102d1c28f1cabdb25982fd0",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006459",
+          "match": {
+            "error": 853.0805555555555,
+            "runnerUpError": 6570.947592592593
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006456",
+          "filename": "source-3458764679576006456.png",
+          "sha256": "800e451f54147d787949902bfd6749647feb55be6751615de3d12fd0247843e5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006456",
+          "match": {
+            "error": 1724.5616666666667,
+            "runnerUpError": 7811.625370370371
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006457",
+          "filename": "source-3458764679576006457.png",
+          "sha256": "c3b69c59d26d8d51a24c8b66679b896418f331a022774182afa5cf1205e6aef5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006457",
+          "match": {
+            "error": 2408.4431481481483,
+            "runnerUpError": 7356.125370370371
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006458",
+          "filename": "source-3458764679576006458.png",
+          "sha256": "419f9eb1370d1e98a0ad79fe066177e64fcca8626e951a8518ad8099efdb1959",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006458",
+          "match": {
+            "error": 1850.957037037037,
+            "runnerUpError": 7060.31462962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006455",
+          "filename": "source-3458764679576006455.png",
+          "sha256": "6f89e7991f04cea0179abfb157b5582c05f3f74fd8b5df60f6dfd08956d9ce74",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006455",
+          "match": {
+            "error": 789.3394444444444,
+            "runnerUpError": 10110.417777777779
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006460",
+          "filename": "source-3458764679576006460.png",
+          "sha256": "cf69ef687f66eb00d58164cd5c8071cad99f1e0aeb9d4795a65bf04dcf0273bb",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006460",
+          "match": {
+            "error": 585.7422222222223,
+            "runnerUpError": 5018.169074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576006461",
+          "filename": "source-3458764679576006461.png",
+          "sha256": "fda554b238c22bfb5436f6e5e95666314cd1f66b561fe1614f6e6ce4d2f7df55",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006461",
+          "match": {
+            "error": 932.4614814814814,
+            "runnerUpError": 6865.339814814814
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "3458764679576006462",
+          "filename": "source-3458764679576006462.png",
+          "sha256": "388e0c3d17917ac780a1ad880a65f8e9f0da7e895a2e98c457eda9e95acaeaf2",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006462",
+          "match": {
+            "error": 2045.3896296296296,
+            "runnerUpError": 8651.65537037037
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576006463",
+          "filename": "source-3458764679576006463.png",
+          "sha256": "157b76e6b535645acbff61be3157de725c1bb583bc8ad73bcbdbe9b317d18df8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006463",
+          "match": {
+            "error": 1074.7575925925926,
+            "runnerUpError": 6012.171111111111
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-f3ed803d84f8a2a2b363cfe6",
+      "sourceSha256": "f3ed803d84f8a2a2b363cfe6e2cc4254dbb419cf05ec9751989826ae9845da98",
+      "filename": "images/clean-sets/d1614c38c66c914bdf4ea3aded16ede9f7b6ba52a18c1839a540759872f4d548.png",
+      "sha256": "d1614c38c66c914bdf4ea3aded16ede9f7b6ba52a18c1839a540759872f4d548",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576194041",
+          "filename": "source-3458764679576194041.png",
+          "sha256": "1cb93d4b7f989f8bcac42705f65dba8f0539e6527d7a1794510f62fa65cc1164",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194041",
+          "match": {
+            "error": 2120.4616666666666,
+            "runnerUpError": 6793.282962962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576194042",
+          "filename": "source-3458764679576194042.png",
+          "sha256": "3d9d9e7d899a02d1f6a6081316ad3783a335573e6a26188c468a9fe5990418c5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194042",
+          "match": {
+            "error": 1896.2816666666668,
+            "runnerUpError": 7368.467407407407
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576194043",
+          "filename": "source-3458764679576194043.png",
+          "sha256": "93aa5c93cf48d0624ca32ac447ee9660570fdabc1f96c75562fbe9ad7e9f87d2",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194043",
+          "match": {
+            "error": 4194.787777777778,
+            "runnerUpError": 8755.457037037037
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576194044",
+          "filename": "source-3458764679576194044.png",
+          "sha256": "955e5dbc7104222cf22ff088a41e7aedcd353f82a402358b29ec5888143fe7d3",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194044",
+          "match": {
+            "error": 985.7016666666667,
+            "runnerUpError": 7958.405740740741
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576194045",
+          "filename": "source-3458764679576194045.png",
+          "sha256": "d6987ecfba9b7ca29c63b84eda3f18c50b2275c53bf8b177935c3d9a61db42ab",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194045",
+          "match": {
+            "error": 2135.79,
+            "runnerUpError": 9989.820925925926
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576194046",
+          "filename": "source-3458764679576194046.png",
+          "sha256": "2842a158e69dac774ca4d7a22fa9686a8169b939a339803fccbd275144544c3d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194046",
+          "match": {
+            "error": 695.395,
+            "runnerUpError": 7723.297962962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576194048",
+          "filename": "source-3458764679576194048.png",
+          "sha256": "5048ce07434fac30efdde7cbe95f944750771c85a06b8cced67c463faf79fb8a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194048",
+          "match": {
+            "error": 5885.55,
+            "runnerUpError": 8785.50462962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "3458764679576194049",
+          "filename": "source-3458764679576194049.png",
+          "sha256": "2e6db55682e42129d358a2192266489bd102179b026546d2617bb8c2d23f9866",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194049",
+          "match": {
+            "error": 862.1588888888889,
+            "runnerUpError": 9686.336666666666
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "3458764679576194050",
+          "filename": "source-3458764679576194050.png",
+          "sha256": "2e3ca7362801c64b9ff719a98c0e99da291b197f98051c53f9f72a31ff31c5af",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194050",
+          "match": {
+            "error": 2420.252037037037,
+            "runnerUpError": 6639.142037037037
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576194051",
+          "filename": "source-3458764679576194051.png",
+          "sha256": "3a4ac42d732c0710359acb7ebfb45a951bc1ea3d6f652704e7ee4e1190656f5d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194051",
+          "match": {
+            "error": 168.10166666666666,
+            "runnerUpError": 5979.351481481482
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-2f5f7e72672497b5ce205eb9",
+      "sourceSha256": "2f5f7e72672497b5ce205eb92bbff18aec8debe258bd1744f97e5eb66559d5d7",
+      "filename": "images/clean-sets/5be9fcbe08a0a96298d6ee06d826608d7cffd2260c7d60a154e73faa8102915b.png",
+      "sha256": "5be9fcbe08a0a96298d6ee06d826608d7cffd2260c7d60a154e73faa8102915b",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "source-aa4e711101b82b77e8c9bbc7",
+          "filename": "source-aa4e711101b82b77e8c9bbc7.png",
+          "sha256": "aa4e711101b82b77e8c9bbc707cc462fa109c52f63f5bcb85ffd21ffe90fc94b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_111.png",
+          "match": {
+            "error": 2831.73537037037,
+            "runnerUpError": 7596.800925925926
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "source-8f094262a4eef7faad5fb443",
+          "filename": "source-8f094262a4eef7faad5fb443.png",
+          "sha256": "8f094262a4eef7faad5fb443b0d11102db795249722bf9cd41b0e1faa7090549",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_112.png",
+          "match": {
+            "error": 1230.4625925925925,
+            "runnerUpError": 6098.796666666667
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "source-98a870b7146897b0ee680af4",
+          "filename": "source-98a870b7146897b0ee680af4.png",
+          "sha256": "98a870b7146897b0ee680af4ebf659611ff8d78f3f00877cb538cc1fe4160b0b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_113.png",
+          "match": {
+            "error": 2054.8174074074072,
+            "runnerUpError": 6997.819444444444
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "source-78faa3971e573e998c565d6d",
+          "filename": "source-78faa3971e573e998c565d6d.png",
+          "sha256": "78faa3971e573e998c565d6d72cdb8336ea8162997d476f4d7f89f0af603392c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_114.png",
+          "match": {
+            "error": 2057.3551851851853,
+            "runnerUpError": 6446.83962962963
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "source-841dc4e1a81d6a762f01fb05",
+          "filename": "source-841dc4e1a81d6a762f01fb05.png",
+          "sha256": "841dc4e1a81d6a762f01fb0566368a7a328cc8959b1bdc4f039590abdd8f5e0d",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_115.png",
+          "match": {
+            "error": 1694.535,
+            "runnerUpError": 8062.8694444444445
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "source-40b3eafb68609c7f5ca82f4b",
+          "filename": "source-40b3eafb68609c7f5ca82f4b.png",
+          "sha256": "40b3eafb68609c7f5ca82f4bf11db9693631af1441d13b2e52681a9736bbc28b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_116.png",
+          "match": {
+            "error": 1117.7775925925926,
+            "runnerUpError": 6805.045185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "source-689d7f1c80897856827ec0f8",
+          "filename": "source-689d7f1c80897856827ec0f8.png",
+          "sha256": "689d7f1c80897856827ec0f8c4dd05ca1679aad617fff573c7ac13168ed74d6b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_117.png",
+          "match": {
+            "error": 857.7201851851852,
+            "runnerUpError": 7882.921851851852
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 8,
+          "id": "source-900d93795c6172492bcde836",
+          "filename": "source-900d93795c6172492bcde836.png",
+          "sha256": "900d93795c6172492bcde836c6c4dcc712f766b92a474bf637ed6ea3ffdbb741",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_118.png",
+          "match": {
+            "error": 748.1924074074074,
+            "runnerUpError": 5113.542407407407
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "source-2dbbe3896e0d7861ffcea5fe",
+          "filename": "source-2dbbe3896e0d7861ffcea5fe.png",
+          "sha256": "2dbbe3896e0d7861ffcea5fe23d311d51f16b56b92c597e90d58e5c1ffaf2ca9",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_119.png",
+          "match": {
+            "error": 1362.1577777777777,
+            "runnerUpError": 7330.585925925926
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "source-ff2344f61f7d5eb373479909",
+          "filename": "source-ff2344f61f7d5eb373479909.png",
+          "sha256": "ff2344f61f7d5eb37347990928253d5513dab9dc4972a13376446f691e596a66",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679650387171#source-file=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%B5%D0%BA%2FCardC6_card_120.png",
+          "match": {
+            "error": 1140.7383333333332,
+            "runnerUpError": 7432.579259259259
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-ce9bb219e96ed8818b610e48",
+      "sourceSha256": "ce9bb219e96ed8818b610e482711380bbe7354a16c74219a30d2c2658a7c0455",
+      "filename": "images/clean-sets/bc130eced6417229ac1312e682825680b5be895622fe190ed7b76f2d7242c291.png",
+      "sha256": "bc130eced6417229ac1312e682825680b5be895622fe190ed7b76f2d7242c291",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576006575",
+          "filename": "source-3458764679576006575.png",
+          "sha256": "1ccd5010bb0cf641646d66a9a8d497857af8ada902647c47722866ccabe4dace",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006575",
+          "match": {
+            "error": 1894.9281481481482,
+            "runnerUpError": 7283.112222222222
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576006584",
+          "filename": "source-3458764679576006584.png",
+          "sha256": "1de2b6169eb9c842b40cf98046de8ddb5812ff6363bd95029c16f8d201067293",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006584",
+          "match": {
+            "error": 1760.33,
+            "runnerUpError": 6215.405
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576006577",
+          "filename": "source-3458764679576006577.png",
+          "sha256": "b0e72cf7ceb39751a455ccc589e57cd7d7bf2d3cb577a766135bb13a1ad4cf3c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006577",
+          "match": {
+            "error": 1342.5938888888888,
+            "runnerUpError": 5638.463518518519
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576006580",
+          "filename": "source-3458764679576006580.png",
+          "sha256": "19cd27c37e070fc2c79e97eb9dab86d863dc52c165068da1389b5439a6afdda1",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006580",
+          "match": {
+            "error": 2531.0775925925927,
+            "runnerUpError": 7989.400555555556
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576006576",
+          "filename": "source-3458764679576006576.png",
+          "sha256": "caa3babe34513561ccef118368155414c64056f528c1663ba6414c1913a6a9d8",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006576",
+          "match": {
+            "error": 1927.8801851851852,
+            "runnerUpError": 5549.755185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576006587",
+          "filename": "source-3458764679576006587.png",
+          "sha256": "e4c21b118775ffde4700f3b9f0eae09b3aa321aa46795f17e611b678f3e913a6",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006587",
+          "match": {
+            "error": 2086.5720370370373,
+            "runnerUpError": 7915.886296296297
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576006588",
+          "filename": "source-3458764679576006588.png",
+          "sha256": "4d89080238ea8c34434cd233636039f4fd61feb7d30ef1801cf8f2ef50999cb5",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006588",
+          "match": {
+            "error": 1482.1048148148147,
+            "runnerUpError": 6625.503518518519
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 8,
+          "id": "3458764679576006590",
+          "filename": "source-3458764679576006590.png",
+          "sha256": "098e73cce6921f915fa86f9a712593a822307cc4816b66c275a573a6f3ac2658",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006590",
+          "match": {
+            "error": 1893.331111111111,
+            "runnerUpError": 7507.051296296297
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "3458764679576006591",
+          "filename": "source-3458764679576006591.png",
+          "sha256": "c31d0fb9bcece0f4e77d8a8313aea501a9dea9ee0641f280a0e696dd46c29945",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006591",
+          "match": {
+            "error": 290.6275925925926,
+            "runnerUpError": 5971.311851851852
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576006593",
+          "filename": "source-3458764679576006593.png",
+          "sha256": "3999de60ebfef27086856b1918375cb5ffcbbc0f51c9659fc2e92f2c16ed0eca",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576006593",
+          "match": {
+            "error": 743.9027777777778,
+            "runnerUpError": 8556.359814814814
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-2155903ae0badde06e810b45",
+      "sourceSha256": "2155903ae0badde06e810b45c03643709c42122d6df81480d311965ff1660b77",
+      "filename": "images/clean-sets/5d010283cb2df6d879117f555022b99eb082c7074d9f2fa377f45771fd2fdffa.png",
+      "sha256": "5d010283cb2df6d879117f555022b99eb082c7074d9f2fa377f45771fd2fdffa",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576194110",
+          "filename": "source-3458764679576194110.png",
+          "sha256": "2704cfbbeb712eecc15570b930924c21adc1fe9e727704952af00887b54c38ce",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194110",
+          "match": {
+            "error": 3081.528333333333,
+            "runnerUpError": 8648.913518518519
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576194111",
+          "filename": "source-3458764679576194111.png",
+          "sha256": "c776bb3afb2f9d40a8928d3ad9f4c819deb181802d593f85bba99d8bb137b0a0",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194111",
+          "match": {
+            "error": 804.5566666666666,
+            "runnerUpError": 7501.517222222222
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576194114",
+          "filename": "source-3458764679576194114.png",
+          "sha256": "3d87d5eccdc206966a7fff38bb8b80253a1059042e0bcc6e943efffe3a055c66",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194114",
+          "match": {
+            "error": 1251.7185185185185,
+            "runnerUpError": 7552.711666666667
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576194115",
+          "filename": "source-3458764679576194115.png",
+          "sha256": "6058457533a3772844b7c313d7503a047bd7bd629df1f61368921e2ad487e95a",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194115",
+          "match": {
+            "error": 749.4383333333334,
+            "runnerUpError": 5716.925185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576194116",
+          "filename": "source-3458764679576194116.png",
+          "sha256": "5643fd86f199c569a63fc79db6c2e441ba4724699c30c95ee4c07ee535a8325f",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194116",
+          "match": {
+            "error": 1977.1605555555554,
+            "runnerUpError": 6928.7037037037035
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576194118",
+          "filename": "source-3458764679576194118.png",
+          "sha256": "6c1450fd1fe7f486e9e4925ba2b89915c83732651271c649836b269f1dace423",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194118",
+          "match": {
+            "error": 1246.1790740740742,
+            "runnerUpError": 7269.952407407407
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 7,
+          "id": "3458764679576194119",
+          "filename": "source-3458764679576194119.png",
+          "sha256": "034822c28017d8e849148288571ba1bde50a3f724f0385b40397366d86666267",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194119",
+          "match": {
+            "error": 423.0090740740741,
+            "runnerUpError": 4054.253888888889
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 8,
+          "id": "3458764679576194121",
+          "filename": "source-3458764679576194121.png",
+          "sha256": "850bc1eec51b87e875606f56a702f79c0388cd3e0e2a1e5f479c3f4a4ccb378b",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194121",
+          "match": {
+            "error": 607.1031481481482,
+            "runnerUpError": 5855.4468518518515
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "3458764679576194122",
+          "filename": "source-3458764679576194122.png",
+          "sha256": "854d46005605af0449c14dec602d2686a49cdf388a0c0464e1952dfc764595d4",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194122",
+          "match": {
+            "error": 1047.2712962962962,
+            "runnerUpError": 6912.835185185185
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576194123",
+          "filename": "source-3458764679576194123.png",
+          "sha256": "c97b8762edf06e22ab62536f8f8c5f61fb001040a1180ad9a031241f7487fbb4",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194123",
+          "match": {
+            "error": 1230.3096296296296,
+            "runnerUpError": 7872.121481481481
+          }
+        }
+      ]
+    },
+    {
+      "sourceImageId": "knowledge-088e3bbda46d70287dfa5776",
+      "sourceSha256": "088e3bbda46d70287dfa57768b5143a4e0121a097c3111b67d9ad1cab7334b59",
+      "filename": "images/clean-sets/8a868cd66d6ea5a63ed3bdf7afc78875497943e29ac3957f5f72bbc7fdf13bcb.png",
+      "sha256": "8a868cd66d6ea5a63ed3bdf7afc78875497943e29ac3957f5f72bbc7fdf13bcb",
+      "layout": {
+        "columns": 5,
+        "rows": 2,
+        "cardWidth": 430,
+        "cardHeight": 480,
+        "gap": 16,
+        "margin": 16,
+        "background": "#eceae5"
+      },
+      "method": "original-card-assembly-v1",
+      "primaryEligible": false,
+      "cards": [
+        {
+          "use": "ordinary",
+          "slot": 1,
+          "id": "3458764679576194230",
+          "filename": "source-3458764679576194230.png",
+          "sha256": "c180badf35cfc8874aa9077bc3c17809946dc29bd126151f572fc26fea674764",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194230",
+          "match": {
+            "error": 2789.822777777778,
+            "runnerUpError": 7370.456296296296
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 2,
+          "id": "3458764679576194231",
+          "filename": "source-3458764679576194231.png",
+          "sha256": "fcf1f2a09073b09322feda0905f9db62d3b581b3f4fa808b859e4b0433fe6346",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194231",
+          "match": {
+            "error": 1999.8,
+            "runnerUpError": 7213.537592592593
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 3,
+          "id": "3458764679576194232",
+          "filename": "source-3458764679576194232.png",
+          "sha256": "9d3a956b4bc48ba37448fb065321c9bdf7d0d0cf0fd3432cde4b629002758c98",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194232",
+          "match": {
+            "error": 1928.2664814814814,
+            "runnerUpError": 7387.565
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 4,
+          "id": "3458764679576194233",
+          "filename": "source-3458764679576194233.png",
+          "sha256": "6de2926c67ea6728c69b7ee3e8d5511d32a25b758e13f6631718b162a1d0c61f",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194233",
+          "match": {
+            "error": 960.7359259259259,
+            "runnerUpError": 5718.344074074074
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 5,
+          "id": "3458764679576194234",
+          "filename": "source-3458764679576194234.png",
+          "sha256": "8ced81f6be46cd7d1b21ecfa6ef8441c8eb0eeb854bb69b81efc10c1b61e7e3c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194234",
+          "match": {
+            "error": 1883.8524074074073,
+            "runnerUpError": 6344.040185185185
+          }
+        },
+        {
+          "use": "ordinary",
+          "slot": 6,
+          "id": "3458764679576194235",
+          "filename": "source-3458764679576194235.png",
+          "sha256": "3f6520a3afe681f18bb3c622985c8e5f15f572f6e288801f1b8254664eb0879c",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194235",
+          "match": {
+            "error": 3945.685925925926,
+            "runnerUpError": 6914.889259259259
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 7,
+          "id": "3458764679576194236",
+          "filename": "source-3458764679576194236.png",
+          "sha256": "bd16bc4e6de61e4024e74669829c664c8e08ef763975f2c41baff280701ee9d1",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194236",
+          "match": {
+            "error": 723.6561111111112,
+            "runnerUpError": 6554.77537037037
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 8,
+          "id": "3458764679576194238",
+          "filename": "source-3458764679576194238.png",
+          "sha256": "463dac77183e9a9e3e6df1cbab4afda35b0327260fcb135168b986cc2dd9af30",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194238",
+          "match": {
+            "error": 1289.8124074074074,
+            "runnerUpError": 6467.024074074074
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 9,
+          "id": "3458764679576194239",
+          "filename": "source-3458764679576194239.png",
+          "sha256": "3728b754042c5efc252e2e7dc2ec120f0c6e62a0c18bed9313b70fbe965a9d32",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194239",
+          "match": {
+            "error": 1085.5396296296296,
+            "runnerUpError": 6932.962592592593
+          }
+        },
+        {
+          "use": "excluded-gold-character",
+          "slot": 10,
+          "id": "3458764679576194240",
+          "filename": "source-3458764679576194240.png",
+          "sha256": "fc41404c0d7e61f212fc2dbe54f242e407d913ca66934ad75bace54772abd379",
+          "source": "https://miro.com/app/board/uXjVEOqNGVA=/?moveToWidget=3458764679576194240",
+          "match": {
+            "error": 1011.3601851851852,
+            "runnerUpError": 4827.824814814815
+          }
+        }
+      ]
+    }
+  ]
+}
