@@ -60,6 +60,11 @@ export function SettingsView({
       >
         <section className="settings-card">
           <h2>Codex CLI · ChatGPT</h2>
+          <p>
+            {t(
+              'Install Codex CLI and run codex login in Terminal, choosing Sign in with ChatGPT. Then select Test connection. No source build or Node.js installation is needed to open this app.',
+            )}
+          </p>
           <label htmlFor="codex-model">{t('Codex model · images & composition checks')}</label>
           <select
             id="codex-model"

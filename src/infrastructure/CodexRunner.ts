@@ -3,6 +3,7 @@ import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { randomUUID, createHash } from 'node:crypto';
 import { z } from 'zod';
 import { ReferenceImagePacker } from './ReferenceImagePacker';
@@ -40,6 +41,9 @@ export class CodexRunner {
       : [
           '/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex',
           '/Applications/Codex.app/Contents/Resources/codex',
+          '/opt/homebrew/bin/codex',
+          '/usr/local/bin/codex',
+          path.join(os.homedir(), '.local/bin/codex'),
           ...(process.env.PATH ?? '')
             .split(path.delimiter)
             .filter(Boolean)
@@ -48,24 +52,58 @@ export class CodexRunner {
     for (const candidate of candidates) {
       try {
         await fs.access(candidate, fs.constants.X_OK);
-        return candidate;
+        if ((await fs.stat(candidate)).isFile()) return candidate;
       } catch {
         /* Try the next supported installation path. */
       }
     }
-    throw new Error('Codex CLI was not found. Set its executable path in Settings.');
-  }
-  private static environment(): NodeJS.ProcessEnv {
-    return Object.fromEntries(
-      Object.entries(process.env).filter(([key]) => !key.startsWith('OPENAI_') && key !== 'CODEX_API_KEY'),
+    throw new Error(
+      'Codex CLI was not found. Install Codex CLI, then select Test connection in Settings. If already installed, set its executable path there.',
     );
   }
+  private static environment(): NodeJS.ProcessEnv {
+    const environment = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => !key.startsWith('OPENAI_') && key !== 'CODEX_API_KEY'),
+    );
+    // Finder-launched apps do not inherit the user's shell PATH.
+    environment.PATH = [environment.PATH, '/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin']
+      .filter(Boolean)
+      .join(path.delimiter);
+    return environment;
+  }
   static async check(executable: string): Promise<string> {
-    const { stdout, stderr } = await promisify(execFile)(executable, ['login', 'status'], {
-      env: CodexRunner.environment(),
-      timeout: 15000,
-    });
-    if (!/ChatGPT/i.test(stdout + stderr))
+    let status: string;
+    try {
+      const { stdout, stderr } = await promisify(execFile)(executable, ['login', 'status'], {
+        env: CodexRunner.environment(),
+        timeout: 15000,
+        killSignal: 'SIGKILL',
+      });
+      status = stdout + stderr;
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
+        throw new Error(
+          'Codex CLI could not start. Check its executable path in Settings and reinstall Codex CLI if needed.',
+          { cause: error },
+        );
+      if (error instanceof Error && 'killed' in error && error.killed)
+        throw new Error(
+          'Codex CLI did not respond within 15 seconds. Try Test connection again or reinstall Codex CLI.',
+          { cause: error },
+        );
+      if (
+        error instanceof Error &&
+        ['stdout', 'stderr'].some(
+          (key) => key in error && /not logged in/i.test(String(Reflect.get(error, key))),
+        )
+      )
+        throw new Error('Run codex login and choose Sign in with ChatGPT.', { cause: error });
+      throw new Error(
+        'Codex CLI connection could not be checked. Run codex login in Terminal, then select Test connection in Settings. Check the executable path if the problem persists.',
+        { cause: error },
+      );
+    }
+    if (!/^Logged in using ChatGPT\b/im.test(status))
       throw new Error('Run codex login and choose Sign in with ChatGPT.');
     return 'Codex CLI is signed in with ChatGPT. Uses subscription limits; no API key is passed.';
   }

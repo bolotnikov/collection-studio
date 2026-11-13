@@ -13,7 +13,7 @@
     "lint": "eslint src tests scripts/*.ts",
     "test": "vitest run",
     "prepare:references": "tsx scripts/prepare-references.ts",
-    "package:mac": "npm run build && electron-builder --mac --dir",
+    "package:mac": "npm run build && tsx scripts/package-mac.ts",
     "format": "prettier --write src tests scripts/*.ts docs/*.md README.md",
     "calibrate:codex": "tsx scripts/calibrate-codex.ts",
     "prepare:icon": "tsx scripts/prepare-icon.ts",

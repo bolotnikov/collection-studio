@@ -1,0 +1,35 @@
+COLLECTION STUDIO — FIRST LAUNCH / ПЕРВЫЙ ЗАПУСК
+
+ENGLISH
+
+Platform: macOS 13 Ventura or later, on Intel or Apple Silicon (M1 or newer). This universal application contains both architectures. Older macOS and Windows are not supported.
+
+1. Unzip the download and move Collection Studio.app to Applications.
+2. Open Collection Studio.app. No source build, npm install or separate Electron/Node.js runtime is needed to open the app. The prepared reference library is included.
+3. This preview is ad-hoc signed, without Apple Developer ID signing or notarization. macOS may block its first launch. If you trust this download, follow Apple's instructions: https://support.apple.com/102445 (System Settings → Privacy & Security → Open Anyway after attempting to launch).
+4. Image generation requires a separately installed Codex CLI and ChatGPT sign-in. Install instructions: https://developers.openai.com/codex/cli/ . A native CLI download avoids installing Node.js solely for Codex.
+5. In Terminal, run: codex login . Choose Sign in with ChatGPT. Open Settings in Collection Studio, then select Test connection. If detection fails, set the full Codex executable path there, save settings, and test again.
+
+Missing CLI or sign-in does not prevent browsing the bundled library. Generation stays disabled, with setup instructions in New set and Settings. The connection check does not generate images or validate image-tool/model access. Generation uses your account's available Codex limits.
+
+Illustrated first-launch guide: https://github.com/bolotnikov/collection-studio/blob/main/docs/MACOS_FIRST_LAUNCH.md
+You can always build from source using the repository README. A local build normally avoids the downloaded ZIP quarantine prompt, but remains subject to macOS security policy.
+
+Download page: https://github.com/bolotnikov/collection-studio/releases
+
+РУССКИЙ
+
+Платформа: macOS 13 Ventura и новее, Intel или Apple Silicon (M1 и новее). Универсальная сборка содержит обе архитектуры. Старые версии macOS и Windows не поддерживаются.
+
+1. Распакуйте архив и переместите Collection Studio.app в «Программы».
+2. Откройте Collection Studio.app. Собирать исходники, запускать npm install или отдельно устанавливать Electron/Node.js для открытия приложения не нужно. Подготовленная библиотека референсов уже включена.
+3. Это предварительная сборка с локальной ad-hoc подписью, без подписи Apple Developer ID и нотарификации. macOS может заблокировать первый запуск. Если вы доверяете файлу, следуйте инструкции Apple: https://support.apple.com/102445 («Системные настройки» → «Конфиденциальность и безопасность» → «Всё равно открыть» после попытки запуска).
+4. Для генерации отдельно нужен Codex CLI с входом через ChatGPT. Инструкция установки: https://developers.openai.com/codex/cli/ . Готовый нативный CLI позволяет обойтись без установки Node.js только ради Codex.
+5. Выполните в Терминале: codex login . Выберите вход через ChatGPT. В приложении откройте «Настройки» и нажмите «Проверить подключение». Если CLI не найден, укажите полный путь к нему, сохраните настройки и повторите проверку.
+
+Отсутствие CLI или авторизации не мешает просмотру встроенной библиотеки. Генерация недоступна, а экраны нового набора и настроек показывают инструкцию подключения. Проверка подключения не генерирует изображения и не подтверждает доступ к выбранной модели или инструменту изображений. Генерация расходует доступные лимиты вашей учётной записи Codex.
+
+Инструкция со скриншотами: https://github.com/bolotnikov/collection-studio/blob/main/docs/MACOS_FIRST_LAUNCH.md
+Всегда можно собрать приложение из исходников по README репозитория. Локальная сборка обычно не вызывает проверку карантина скачанного ZIP, но остаётся под действием правил безопасности macOS.
+
+Страница загрузки: https://github.com/bolotnikov/collection-studio/releases

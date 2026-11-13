@@ -4,9 +4,31 @@ A desktop art-production tool for collectible mobile-game card sets, built with 
 
 The interface supports English and Russian, device-language detection with English fallback, and persistent dark/light themes. Generator rules have one canonical Russian source, independent of interface language.
 
-## Requirements and first launch
+## Download the application
 
-- The validated desktop platform is macOS on Apple Silicon. Other platforms are not established as supported releases.
+[**Download Collection Studio for macOS · Intel and Apple Silicon**](https://github.com/bolotnikov/collection-studio/releases/latest/download/Collection-Studio-mac-universal.zip)
+
+Download the ZIP, extract it, move `Collection Studio.app` to Applications, and open it. The Electron runtime and prepared reference library are included. Opening the packaged app requires no source checkout, build tools, npm, or separate Node.js installation. [All releases and checksums](https://github.com/bolotnikov/collection-studio/releases).
+
+This universal preview targets Intel and Apple Silicon Macs running **macOS 13 Ventura or later**. Older macOS and Windows are not supported. It is ad-hoc signed and **not Apple-notarized**. macOS may block the first launch; see [Apple's first-launch instructions](https://support.apple.com/102445) and the bilingual `START-HERE.txt` inside the archive. A Developer ID certificate and notarization are needed before promising a launch without this security exception.
+
+**Generation still requires Codex CLI and ChatGPT sign-in.** The app opens without them, shows setup guidance in New set and Settings, and disables generation until connected. Follow [Connect Codex](#connect-codex). The connection test checks local sign-in, not model/image-tool availability or remaining subscription limits.
+
+Release files are hosted as GitHub Release assets; the documentation website can link directly to the download above. See [distribution and packaging](docs/DISTRIBUTION.md) for release maintenance.
+
+### If macOS blocks the first launch
+
+After attempting to open the downloaded app, go to **System Settings → Privacy & Security**, scroll to **Security**, and choose **Open Anyway** for Collection Studio. Confirm **Open** and enter your Mac password if asked. This creates an exception for this app; leave the system's general security protections enabled. Managed Macs may restrict this action.
+
+![Apple's screenshot: Open Anyway in macOS Privacy & Security](https://cdsassets.apple.com/live/7WUAS350/images/macos/sequoia/macos-sequoia-system-settings-privacy-and-security-open-app-anyway.png)
+
+Screenshot: [Apple Support](https://support.apple.com/en-by/102445), using an example app name. See the [illustrated first-launch guide](docs/MACOS_FIRST_LAUNCH.md) for English/Russian labels and troubleshooting. A message about an unverified developer is a Gatekeeper check, not an insecure network connection.
+
+You can always [build from source](#building-from-source). A local build normally does not carry the downloaded release's internet-quarantine flag, so that particular first-download prompt usually does not appear. Local builds are still subject to macOS security policy; this is not a guarantee of bypassing every check, and Codex installation/sign-in is still needed for generation.
+
+## Building from source
+
+- The release targets macOS 13 Ventura or later on Intel and Apple Silicon. Runtime checks on Apple Silicon and Intel execution through Rosetta do not substitute for testing every physical Mac and macOS version.
 - Use Node.js 22.13 or later in the 22.x line, or Node.js 24+, with npm. Earlier Node 22 versions do not satisfy the locked development tools.
 - Image generation and model-assisted editing require an installed Codex CLI signed in with ChatGPT. Browsing the prepared knowledge base does not require a model request.
 
@@ -32,6 +54,8 @@ A clone or GitHub source ZIP includes the prepared reference images and knowledg
 The adapter was calibrated with CLI `0.167.0-alpha.4.1`. Compatibility with another installation should be checked using the optional [live calibration](#maintenance-and-live-calibration) before production work.
 
 Codex uses its saved login and subscription limits. Image requests, planning and visual analysis all consume provider usage. Image quality is a prompt preference, not a guaranteed low/medium/high image API parameter. The application has no API-key generation provider.
+
+Official [Codex CLI installation instructions](https://developers.openai.com/codex/cli/) include native binaries; installing the CLI that way does not require Node.js. The app also discovers standard Homebrew and `~/.local/bin` locations when launched from Finder. A connection check has a 15-second timeout and provides localized setup instructions on failure.
 
 ## Producer workflow
 
@@ -146,7 +170,7 @@ Offline tests cover planning contracts, reference identity and resource complete
 npm run package:mac
 ```
 
-On the validated Apple Silicon platform this creates `release/mac-arm64/Collection Studio.app`, including the prepared resources. It is an unsigned local build; notarized distribution and clean-machine installation are not established. Keep one current bundle at that path. Perform temporary packaging outside `release/` and replace the canonical bundle only after successful checks.
+On the validated Apple Silicon platform this creates `release/mac-arm64/Collection Studio.app`, `release/Collection-Studio-mac-universal.zip`, and `release/SHA256SUMS.txt`, including the prepared resources. Packaging verifies the ad-hoc signature and ZIP before replacing the canonical local release. Developer ID signing, notarization and clean-machine installation are not established. See [distribution](docs/DISTRIBUTION.md).
 
 ### Maintenance and live calibration
 

@@ -370,6 +370,7 @@ export type Bootstrap = {
   profile: Profile;
   settings: Settings;
   codexReady: boolean;
+  codexMessage?: string;
   referenceCount: number;
   dataPath: string;
   productionPolicy: ProductionPolicy;

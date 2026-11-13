@@ -104,6 +104,11 @@ export function BriefForm({
               <ArrowUpRight size={18} />
             </button>
           </div>
+          {!data.codexReady && (
+            <p role="status" className="form-note">
+              {text(data.codexMessage || 'Connect Codex CLI with ChatGPT in Settings.')}
+            </p>
+          )}
           {data.catalogReady === false && (
             <p
               role={data.catalogState?.status === 'failed' ? 'alert' : 'status'}

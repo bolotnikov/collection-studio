@@ -698,5 +698,10 @@
   "Slot tags changed. Reopen the editor.": "Slot tags changed. Reopen the editor.",
   "Choose a pattern geometry for a patterned backdrop.": "Choose a pattern geometry for a patterned backdrop.",
   "Pattern geometry requires a patterned backdrop.": "Pattern geometry requires a patterned backdrop.",
-  "The selected tags need at least two matching original references.": "The selected tags need at least two matching original references."
+  "The selected tags need at least two matching original references.": "The selected tags need at least two matching original references.",
+  "Codex CLI was not found. Install Codex CLI, then select Test connection in Settings. If already installed, set its executable path there.": "Codex CLI was not found. Install Codex CLI, then select Test connection in Settings. If already installed, set its executable path there.",
+  "Codex CLI could not start. Check its executable path in Settings and reinstall Codex CLI if needed.": "Codex CLI could not start. Check its executable path in Settings and reinstall Codex CLI if needed.",
+  "Codex CLI did not respond within 15 seconds. Try Test connection again or reinstall Codex CLI.": "Codex CLI did not respond within 15 seconds. Try Test connection again or reinstall Codex CLI.",
+  "Codex CLI connection could not be checked. Run codex login in Terminal, then select Test connection in Settings. Check the executable path if the problem persists.": "Codex CLI connection could not be checked. Run codex login in Terminal, then select Test connection in Settings. Check the executable path if the problem persists.",
+  "Install Codex CLI and run codex login in Terminal, choosing Sign in with ChatGPT. Then select Test connection. No source build or Node.js installation is needed to open this app.": "Install Codex CLI and run codex login in Terminal, choosing Sign in with ChatGPT. Then select Test connection. No source build or Node.js installation is needed to open this app."
 }

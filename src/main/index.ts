@@ -64,15 +64,19 @@ class DesktopApplication {
     const settings = new SettingsStore(app.getPath('userData'));
     await settings.init();
     let codexExecutable = '',
-      codexReady = false;
+      codexReady = false,
+      codexMessage = '';
     const refreshCodex = async () => {
       try {
         codexExecutable = await CodexRunner.locate(settings.settings.codexPath);
-        await CodexRunner.check(codexExecutable);
+        codexMessage = await CodexRunner.check(codexExecutable);
         codexReady = true;
-      } catch {
+      } catch (error) {
+        codexExecutable = '';
         codexReady = false;
+        codexMessage = this.message(error);
       }
+      return { ok: codexReady, message: codexMessage };
     };
     await refreshCodex();
     const knowledgeStore = new SourceKnowledgeStore(path.join(app.getPath('userData'), 'knowledge-assets'));
@@ -389,6 +393,7 @@ class DesktopApplication {
         profile,
         settings: settings.settings,
         codexReady,
+        codexMessage,
         referenceCount,
         dataPath: runsRoot,
         productionPolicy: library.policy,
@@ -536,17 +541,14 @@ class DesktopApplication {
         .catch(() => {});
     });
     this.handle('checkConnection', z.tuple([]), async () => {
-      try {
-        await refreshCodex();
-        const message = await CodexRunner.check(codexExecutable);
+      const result = await refreshCodex();
+      if (result.ok) {
         void catalogWorkspace
           .ensure()
           .then(() => knowledgeWorkspace.ensureCards())
           .catch(() => {});
-        return { ok: true, message };
-      } catch (error) {
-        return { ok: false, message: this.message(error) };
       }
+      return result;
     });
     this.createWindow();
     app.on('activate', () => {

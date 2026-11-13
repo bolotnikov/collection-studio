@@ -9,7 +9,9 @@ export function useSettingsViewModel(
   refresh: () => Promise<void>,
 ) {
   const [settings, setSettings] = useState<Settings>(data.settings);
-  const [connection, setConnection] = useState<{ ok: boolean; message: string } | null>(null);
+  const [connection, setConnection] = useState<{ ok: boolean; message: string } | null>(
+    data.codexMessage ? { ok: data.codexReady, message: data.codexMessage } : null,
+  );
   const setRepairLimit = (field: 'maxCardRegenerations' | 'maxSetRegenerationRounds', input: number) => {
     const value = GenerationRepairContracts.limit.safeParse(input);
     if (value.success) setSettings((settings) => ({ ...settings, [field]: value.data }));
