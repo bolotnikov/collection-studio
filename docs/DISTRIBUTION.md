@@ -1,32 +1,50 @@
-# Desktop distribution
+# Подготовка и публикация приложения
 
-The downloadable application is a GitHub Release asset, separate from Git source history and the documentation website. GitHub permits individual release assets below 2 GiB, which accommodates this application. See [GitHub's release limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases#storage-and-bandwidth-quotas).
+Готовое приложение распространяется через GitHub Releases. В README и на сайте используется прямая ссылка на ZIP.
 
-Use this stable asset name for every release:
+## Файл и ссылка на скачивание
+
+Для каждого релиза используйте имя:
 
 ```text
 Collection-Studio-mac-universal.zip
 ```
 
-The README and any website download button can use:
+Постоянная ссылка на последнюю опубликованную обычную версию:
 
 ```text
 https://github.com/bolotnikov/collection-studio/releases/latest/download/Collection-Studio-mac-universal.zip
 ```
 
-This URL follows the latest published non-prerelease release. A draft is not a public download. Each published release also has an immutable version-specific asset URL. Keep its tag and assets unchanged after delivery. Never add packaged archives to Git, Git LFS, or the website's static assets.
+Правила хранения релизов:
 
-## Platform and first launch
+- ZIP и `SHA256SUMS.txt` прикрепляются к релизу.
+- Каждая версия сохраняет свой тег и отдельную ссылку на файл.
+- После передачи пользователям архив и тег этой версии сохраняются в исходном виде.
+- Следующая сборка получает новую версию.
+- Для GitHub действует [ограничение 2 ГиБ на один файл релиза](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases#storage-and-bandwidth-quotas).
 
-The universal target is macOS 13 Ventura or later on Intel and Apple Silicon. Electron 45 requires macOS 13+; see [Electron compatibility](https://www.electronjs.org/docs/latest/breaking-changes#removed-macos-12-support). Older Macs that cannot run macOS 13 are outside this release target. The archive contains `Collection Studio.app` and the bilingual `START-HERE.txt`, sourced from [FIRST_LAUNCH.txt](FIRST_LAUNCH.txt). Electron, native production dependencies, and the prepared reference/knowledge resources ship inside the app. No source compilation is needed by the recipient.
+## Что получает пользователь
 
-Generation requires a separately installed Codex CLI, ChatGPT sign-in, account/model/image-tool access, and available limits. The app can open and display its bundled library without CLI authentication. New set and Settings display localized connection guidance; generation remains disabled. The connection test makes no model request and does not establish model or image-tool compatibility.
+Архив содержит:
 
-Current packages use ad-hoc signing for bundle integrity. **They do not have a trusted Apple Developer ID signature or notarization.** macOS may require an explicit first-launch exception. Do not present this preview as a universally frictionless installation. Follow [Apple's instructions](https://support.apple.com/102445); do not instruct recipients to disable Gatekeeper or remove quarantine recursively. A trusted release requires access to the publisher's Apple Developer ID certificate and notarization credentials, a separately approved signing configuration, and verification of the notarized downloaded artifact.
+- `Collection Studio.app` — приложение для Intel и Apple Silicon;
+- Electron и нативные библиотеки обработки изображений;
+- подготовленную библиотеку референсов и базу знаний;
+- `START-HERE.txt` — краткую инструкцию, источник которой хранится в [FIRST_LAUNCH.txt](FIRST_LAUNCH.txt).
 
-## Verify and package
+Условия работы:
 
-Run on an Apple Silicon Mac:
+- **Система:** macOS 13 Ventura или новее — требование [Electron 45](https://www.electronjs.org/docs/latest/breaking-changes#removed-macos-12-support).
+- **Генерация:** установленный Codex CLI, вход через ChatGPT, доступ к модели и инструменту изображений, доступные лимиты.
+- **Просмотр библиотеки:** доступен сразу после открытия приложения.
+- **Первый запуск:** текущая сборка использует подпись ad-hoc без нотарификации Apple. Порядок подтверждения описан в [инструкции со скриншотами](MACOS_FIRST_LAUNCH.md) и [руководстве Apple](https://support.apple.com/102445).
+
+Для сборки с подтверждённым разработчиком нужны сертификат Apple Developer ID, доступ к нотарификации и настроенная процедура подписи. После неё следует проверить скачанный пользователем файл.
+
+## Проверить и собрать
+
+На Apple Silicon выполните в корне репозитория:
 
 ```sh
 npm ci
@@ -36,7 +54,17 @@ npm test
 npm run package:mac
 ```
 
-`package:mac` builds production code and packages into a temporary directory outside `release/`, explicitly disabling publishing. The script installs isolated production dependencies and integrity-checks the two locked Intel native image packages, then builds both Electron architectures into one universal app. It verifies both executable slices, both native image-library variants, the ad-hoc signature and required resources, creates and tests the ZIP, and computes SHA-256. Build dependencies and the working node_modules directory are not changed. Only then does it replace `release/` with:
+Команда `package:mac` выполняет шаги по порядку:
+
+1. Собирает код приложения для выпуска.
+2. Создаёт временный каталог и устанавливает в него зависимости.
+3. Загружает библиотеки обработки изображений для Intel и сверяет их с версиями и контрольными суммами из lock-файла.
+4. Объединяет версии Electron для Intel и Apple Silicon в универсальное приложение.
+5. Проверяет обе архитектуры, библиотеки изображений, локальную подпись и наличие ресурсов.
+6. Создаёт ZIP, проверяет его и рассчитывает SHA-256.
+7. Заменяет текущую локальную сборку готовым результатом.
+
+Файлы после сборки:
 
 ```text
 release/
@@ -45,23 +73,40 @@ release/
   SHA256SUMS.txt
 ```
 
-The canonical app directory retains its historical `mac-arm64` name, but now contains the universal app. The previous local release is retained until replacement succeeds; obsolete outputs and temporary packaging files are removed. The entire release directory remains ignored by Git. Do not run generation or resume historical runs to validate packaging. Local signature/archive validation does not establish Gatekeeper acceptance on another computer.
+Каталог `mac-arm64` сохраняет прежнее имя и содержит универсальное приложение. Предыдущая сборка хранится до успешной замены. Затем временные файлы и старый результат удаляются.
 
-## Publish a verified version
+Исходные зависимости проекта остаются на месте. Каталог `release/` исключён из Git. Для проверки упаковки достаточно локальных проверок файлов и запуска приложения.
 
-Commit only intended source, documentation, and packaging changes after verification. Create the release against that exact pushed commit; do not tag unrelated uncommitted website work. Attach the ZIP and `SHA256SUMS.txt`. Release notes must identify the target platform, CLI/login dependency, signing/notarization status, and validation limits.
+## Опубликовать новую версию
 
-Stage a draft first, using an unused tag matching the application's package version and the verified commit SHA:
+1. Проверьте изменения и создайте коммит с нужными исходниками, документацией и скриптом упаковки.
+2. Отправьте этот коммит в GitHub.
+3. Подготовьте описание релиза: система и процессоры, установка, подключение Codex, подпись приложения и выполненные проверки.
+4. Создайте черновик релиза и прикрепите ZIP с контрольной суммой.
+5. Проверьте файлы черновика и опубликуйте его после согласования.
+6. Откройте прямую ссылку на скачивание и сверьте контрольную сумму файла.
+
+В шаблоне команды замените:
+
+- `VERSION_TAG` — новый свободный тег, совпадающий с версией в `package.json`;
+- `VERIFIED_COMMIT_SHA` — хеш проверенного коммита;
+- `RELEASE_NOTES_PATH` — путь к файлу описания релиза.
 
 ```sh
-gh release create v0.1.0 \
+gh release create VERSION_TAG \
   release/Collection-Studio-mac-universal.zip \
   release/SHA256SUMS.txt \
   --repo bolotnikov/collection-studio \
   --target VERIFIED_COMMIT_SHA \
-  --title 'Collection Studio 0.1.0 · macOS Universal' \
+  --title 'Collection Studio · macOS' \
   --notes-file RELEASE_NOTES_PATH \
   --draft
 ```
 
-After publication is authorized, publish the draft with `gh release edit v0.1.0 --draft=false --latest`. Confirm the public release and asset URLs and verify the published asset digest against `SHA256SUMS.txt`. Keep the app version and Git tag aligned for subsequent releases, and retain earlier release assets for existing recipients.
+Чтобы опубликовать согласованный черновик:
+
+```sh
+gh release edit VERSION_TAG --repo bolotnikov/collection-studio --draft=false --latest
+```
+
+Описание проверки должно содержать конкретные действия и среду: например, запуск на Apple Silicon, проверку x64 через Rosetta, открытие библиотеки и создание тестового PNG.
