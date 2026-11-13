@@ -12,6 +12,12 @@ When whole-set verification is enabled, the actual selected images are assembled
 
 A producer can still request a new image from the drawer. An empty instruction generates a new version; a nonempty instruction uses the selected immutable master as its revision base. Earlier files remain available. Manual selection does not silently start verification or reset automatic limits. Archived protocols, prompts, scores and policies are preserved; current adapters explicitly record protocol/policy activation on user-requested resume or regeneration. Existing active jobs are not modified.
 
+## Исправление похожих силуэтов
+
+Общая проверка записывает подтверждённые одинаковые и близкие силуэты в `silhouetteConflicts` с точными идентификаторами пары, свидетельством и инструкцией для одной карточки. Приложение преобразует эти наблюдения в обязательные исправления `duplicate-silhouette`, даже если модель вернула пустой `corrections`. Разные названия, материалы, цвета и зеркальная постановка не устраняют конфликт. Исправление формы и постановки имеет приоритет над прежним описанием силуэта; смысл предмета, категория, обязательные параметры слота и требования пользователя сохраняются.
+
+При `maxSetRegenerationRounds=0` общая проверка и исправления отключены. При положительном лимите конфликт запускает раунд исправлений с последующей проверкой обновлённой сетки. Лимит отдельной карточки независим. Блокировки, общий бюджет запросов и сохранение всех исходных версий остаются в силе. Исторические наблюдения без `silhouetteConflicts` читаются без изменений; прежние промпты и завершённые запуски сохраняются.
+
 ## Technical image recovery
 
 Technical image recovery is independent of the optional composition verifier. `ImageGenerationService` retries provider and image-validation/storage failures with the identical prompt and references, reserving and persisting each request against the shared image budget. Failed requests do not create candidate versions or consume another composition correction allowance. Pausing prevents another request; persistent failures stop at the request budget. Per-card `generationFailures` retain the request number, timestamp, phase and sanitized error through save/reopen/export.

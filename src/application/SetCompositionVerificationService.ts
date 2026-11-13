@@ -43,15 +43,14 @@ export class SetCompositionVerificationService {
       if (
         active.stop ||
         review.error ||
-        !review.observation?.corrections.length ||
+        !review.observation ||
+        !CompositionRepairRules.setCorrections(review.observation, variant).length ||
         rounds.filter((round) => currentHistory.some((entry) => entry.id === round.reviewId)).length >=
           policy.maxSetRegenerationRounds
       )
         return;
-      const targets = review.observation.corrections.filter(
-        (correction) =>
-          !variant.cards.find((card) => card.id === correction.cardId)?.locked &&
-          SlotTagRules.gridCorrectionAllowed(variant, correction.cardId, correction.kind),
+      const targets = CompositionRepairRules.setCorrections(review.observation, variant).filter(
+        (correction) => !variant.cards.find((card) => card.id === correction.cardId)?.locked,
       );
       if (!targets.length || !CompositionRepairRules.hasImageBudget(active.run)) return;
       const round = {
@@ -83,6 +82,7 @@ export class SetCompositionVerificationService {
             cards: variant.cards.map((card, index) => ({
               index: index + 1,
               cardId: card.id,
+              locked: card.locked,
               subject: card.subject,
               depictedEntities: card.depictedEntities,
               visual: card.visual,
@@ -117,7 +117,14 @@ export class SetCompositionVerificationService {
         await provider.verifySetComposition(review.prompt, sheet),
       );
       const ids = observation.corrections.map((correction) => correction.cardId);
-      if (new Set(ids).size !== ids.length || ids.some((id) => !variant.cards.some((card) => card.id === id)))
+      const conflicts = observation.silhouetteConflicts ?? [];
+      const conflictIds = conflicts.map((conflict) => conflict.cardId);
+      const allIds = [...ids, ...conflictIds, ...conflicts.map((conflict) => conflict.similarToCardId)];
+      if (
+        new Set(ids).size !== ids.length ||
+        conflicts.some((conflict) => conflict.cardId === conflict.similarToCardId) ||
+        allIds.some((id) => !variant.cards.some((card) => card.id === id))
+      )
         throw new Error('Set composition corrections must identify distinct existing cards.');
       review.observation = observation;
       delete review.error;
@@ -149,7 +156,11 @@ export class SetCompositionVerificationService {
         const cardId = round.targetCardIds[next++];
         if (!cardId) return;
         const card = variant.cards.find((card) => card.id === cardId);
-        const correction = review.observation?.corrections.find((correction) => correction.cardId === cardId);
+        const correction = review.observation
+          ? CompositionRepairRules.setCorrections(review.observation, variant).find(
+              (correction) => correction.cardId === cardId,
+            )
+          : undefined;
         if (!card || !correction) throw new Error('Invalid set repair target.');
         if (card.locked || card.repairRequests?.some((request) => request.roundId === round.id)) continue;
         if (!CompositionRepairRules.hasImageBudget(active.run)) continue;

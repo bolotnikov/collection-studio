@@ -6,10 +6,43 @@ import { SettingsStore } from '../src/main/SettingsStore';
 import { Contracts } from '../src/shared/Contracts';
 import { CompositionRepairRules } from '../src/domain/CompositionRepairRules';
 import { CompositionFixture } from './fixtures/CompositionFixture';
+import { GenerationRepairContracts } from '../src/shared/GenerationRepairContracts';
 
 const folders: string[] = [];
 afterEach(async () => {
   await Promise.all(folders.splice(0).map((folder) => fs.rm(folder, { recursive: true, force: true })));
+});
+
+it('requires a repair for an observed silhouette conflict even without a model correction, and combines changes to one card', () => {
+  const { variant } = CompositionFixture.create();
+  const observation = GenerationRepairContracts.setObservation.parse({
+    findings: ['Сейф и тайник различаются материалами, но имеют близкие силуэты.'],
+    corrections: [],
+    silhouetteConflicts: [
+      {
+        cardId: 'compartment',
+        similarToCardId: 'safe',
+        evidence: 'Открытые прямоугольные ниши с боковой створкой.',
+        instruction: 'Измени форму деревянного тайника.',
+      },
+    ],
+  });
+  const corrections = CompositionRepairRules.setCorrections(observation, variant);
+  expect(corrections).toMatchObject([{ cardId: 'compartment', kind: 'duplicate-silhouette' }]);
+  expect(observation.corrections).toEqual([]);
+  observation.corrections.push({
+    cardId: 'compartment',
+    kind: 'adjacent-color',
+    evidence: 'Соседние фоны совпали.',
+    instruction: 'Восстанови назначенный коричневый фон.',
+  });
+  const combined = CompositionRepairRules.setCorrections(observation, variant);
+  expect(combined).toHaveLength(1);
+  expect(combined[0]?.instruction).toContain('Измени форму деревянного тайника.');
+  expect(combined[0]?.instruction).toContain('Восстанови назначенный коричневый фон.');
+  const legacy = { findings: ['Historical note'], corrections: [] };
+  expect(GenerationRepairContracts.setObservation.parse(legacy)).toEqual(legacy);
+  expect(CompositionRepairRules.setCorrections(legacy, variant)).toEqual([]);
 });
 it('defaults to Terra and disabled verification at both stages, and migrates legacy settings without reading credentials', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'studio-settings-'));

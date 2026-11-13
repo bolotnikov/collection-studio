@@ -2403,6 +2403,106 @@ it.each([0, 1, 2])(
   },
 );
 
+it.each([
+  { limit: 0, cardLimit: 1, persistent: true },
+  { limit: 1, cardLimit: 0, persistent: false },
+  { limit: 1, cardLimit: 1, persistent: true },
+  { limit: 2, cardLimit: 1, persistent: true },
+])(
+  'repairs observed close silhouettes with independent limits $limit/$cardLimit (persistent=$persistent)',
+  async ({ limit, cardLimit, persistent }) => {
+    const provider = new BoundedCompositionProvider();
+    const instruction =
+      'Измени прямоугольный деревянный тайник на округлую нишу с поднятой панелью, сохранив предмет и обязательный слот.';
+    const verify = vi.spyOn(provider, 'verifySetComposition').mockImplementation(async (prompt) => {
+      provider.setChecks++;
+      const ids = [...prompt.matchAll(/"cardId":"([^"]+)"/g)].map((match) => match[1]);
+      if (!ids[8] || !ids[9]) throw new Error('Missing silhouette pair');
+      return {
+        findings: ['Сейф и деревянный тайник имеют близкие силуэты открытой пустой ниши со створкой.'],
+        corrections: [],
+        silhouetteConflicts:
+          persistent || provider.setChecks === 1
+            ? [
+                {
+                  cardId: ids[9],
+                  similarToCardId: ids[8],
+                  evidence:
+                    'Разные материалы и сторона открывания сохраняют одинаковую конструкцию и постановку.',
+                  instruction,
+                },
+              ]
+            : [],
+      };
+    });
+    const h = await harness(provider);
+    const started = await h.service.start(
+      { ...brief, variants: 1, maxImageCalls: 30 },
+      { ...settings, maxCardRegenerations: cardLimit, maxSetRegenerationRounds: limit },
+    );
+    const result = await finished(h, started.id);
+    const variant = result.variants[0],
+      card = variant?.cards[9];
+    if (!variant || !card) throw new Error('Missing repaired card');
+    expect(result.status).toBe('completed');
+    expect(result.imageCalls).toBe(10 + limit);
+    expect(card.attempts).toHaveLength(1 + limit);
+    expect(verify).toHaveBeenCalledTimes(limit === 0 ? 0 : limit + 1);
+    expect(variant.gridRepairRounds ?? []).toHaveLength(limit);
+    expect(variant.cards.slice(0, 9).every((card) => card.attempts.length === 1)).toBe(true);
+    expect((card.repairRequests ?? []).every((request) => request.scope === 'set')).toBe(true);
+    for (const [index, attempt] of card.attempts.entries()) {
+      await h.images.read(h.repository.directory(result.id), attempt, 'master');
+      if (index === 0) continue;
+      expect(attempt.prompt).toContain(instruction);
+      expect(attempt.revisionOf).toBe(card.attempts[index - 1]?.id);
+      expect(attempt.generationInputManifest?.at(-1)).toMatchObject({
+        role: 'previous-candidate',
+        id: attempt.revisionOf,
+      });
+    }
+    if (limit > 0) {
+      expect(variant.gridReviewHistory?.[0]?.observation?.corrections).toEqual([]);
+      expect(variant.gridReviewHistory?.[0]?.observation?.silhouetteConflicts).toHaveLength(1);
+      expect(variant.gridReviewHistory?.at(-1)?.attemptIds).toEqual(
+        variant.cards.map((card) => card.selectedAttemptId),
+      );
+      expect(card.attempts.at(-1)?.compositionCheckSkipped).toBe(
+        cardLimit === 0 ? 'disabled-by-policy' : undefined,
+      );
+    }
+  },
+);
+
+it.each(['unknown-peer', 'same-card'] as const)(
+  'does not spend image requests on an invalid silhouette pair: %s',
+  async (mode) => {
+    const provider = new BoundedCompositionProvider();
+    vi.spyOn(provider, 'verifySetComposition').mockImplementation(async (prompt) => {
+      provider.setChecks++;
+      const ids = [...prompt.matchAll(/"cardId":"([^"]+)"/g)].map((match) => match[1]);
+      if (!ids[8] || !ids[9]) throw new Error('Missing silhouette pair');
+      const conflict = {
+        cardId: ids[9],
+        similarToCardId: mode === 'unknown-peer' ? 'missing' : mode === 'same-card' ? ids[9] : ids[8],
+        evidence: 'Близкие силуэты',
+        instruction: 'Измени силуэт',
+      };
+      return {
+        findings: [],
+        corrections: [],
+        silhouetteConflicts: [conflict],
+      };
+    });
+    const h = await harness(provider);
+    const started = await h.service.start({ ...brief, variants: 1 }, settings);
+    const result = await finished(h, started.id);
+    expect(result.imageCalls).toBe(10);
+    expect(result.variants[0]?.gridRepairRounds).toEqual([]);
+    expect(result.variants[0]?.gridReviewHistory?.[0]?.error).toContain('distinct existing cards');
+  },
+);
+
 it('rejects unknown whole-set correction targets without generating any replacement', async () => {
   const provider = new BoundedCompositionProvider();
   provider.setTargets = [0];

@@ -33,6 +33,17 @@ export class GenerationRepairContracts {
   });
   static readonly setObservation = z.object({
     findings: z.array(z.string()),
+    silhouetteConflicts: z
+      .array(
+        z.object({
+          cardId: z.string().min(1),
+          similarToCardId: z.string().min(1),
+          evidence: z.string().trim().min(1),
+          instruction: z.string().trim().min(1),
+        }),
+      )
+      .max(10)
+      .optional(),
     corrections: z
       .array(
         z.object({
@@ -72,3 +83,4 @@ export class GenerationRepairContracts {
 
 export type RepairRequest = z.infer<typeof GenerationRepairContracts.request>;
 export type GridRepairRound = z.infer<typeof GenerationRepairContracts.round>;
+export type SetCompositionObservation = z.infer<typeof GenerationRepairContracts.setObservation>;

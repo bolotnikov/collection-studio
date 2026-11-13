@@ -1,6 +1,6 @@
 {
   "name": "collection-studio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Reference-guided production of collectible card sets",
   "main": "out/main/index.js",

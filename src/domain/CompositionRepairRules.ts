@@ -1,12 +1,36 @@
 import type { Attempt, Card, Run, Variant } from '../shared/Contracts';
 import { SetComposition } from './SetComposition';
 import { SlotTagRules } from './SlotTagRules';
+import type { SetCompositionObservation } from '../shared/GenerationRepairContracts';
 
-/** Only explicit, observation-backed mandatory defects may spend a card repair request. */
+/** Explicit, observation-backed defects drive bounded card and whole-set repairs. */
 export class CompositionRepairRules {
+  static setCorrections(
+    observation: SetCompositionObservation,
+    variant: Variant,
+  ): SetCompositionObservation['corrections'] {
+    const corrections = new Map(
+      observation.corrections
+        .filter((correction) =>
+          SlotTagRules.gridCorrectionAllowed(variant, correction.cardId, correction.kind),
+        )
+        .map((correction) => [correction.cardId, correction]),
+    );
+    for (const conflict of observation.silhouetteConflicts ?? []) {
+      const previous = corrections.get(conflict.cardId);
+      corrections.set(conflict.cardId, {
+        cardId: conflict.cardId,
+        kind: 'duplicate-silhouette',
+        evidence: [previous?.evidence, conflict.evidence].filter(Boolean).join('\n'),
+        instruction: [previous?.instruction, conflict.instruction].filter(Boolean).join('\n'),
+      });
+    }
+    return [...corrections.values()];
+  }
   static violations(variant: Variant, card: Card, attempt: Attempt) {
     const check = attempt.compositionCheck;
-    if (!check || attempt.compositionCheckError || !SlotTagRules.reviewCurrent(card, attempt.slotTagRevision)) return [];
+    if (!check || attempt.compositionCheckError || !SlotTagRules.reviewCurrent(card, attempt.slotTagRevision))
+      return [];
     const target = SetComposition.target(variant, card);
     return (check.confirmedViolations ?? []).filter((violation) => {
       switch (violation.kind) {
