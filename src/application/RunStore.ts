@@ -6,4 +6,5 @@ export interface RunStore {
   get(id: string): Promise<Run>;
   saveProfile(id: string, profile: Profile): Promise<void>;
   getProfile(id: string): Promise<Profile>;
+  remove(id: string): Promise<void>;
 }

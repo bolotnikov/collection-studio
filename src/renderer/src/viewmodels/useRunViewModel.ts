@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { SetRules } from '../../../domain/SetRules';
-import { ProductionRules } from '../../../domain/ProductionRules';
+import { DeliveryReadiness } from '../../../domain/DeliveryReadiness';
 import type { Run, StudioApi } from '../../../shared/Contracts';
 import { Assets } from '../Assets';
 
@@ -10,6 +9,7 @@ export function useRunViewModel(
   perform: (action: () => Promise<unknown>) => Promise<void>,
   onLibraryChanged: () => Promise<void>,
 ) {
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [tab, setTab] = useState<string | null>(null);
   const [cardId, setCardId] = useState<string | null>(null);
   const [instruction, setInstruction] = useState('');
@@ -23,29 +23,13 @@ export function useRunViewModel(
   const total = run.brief.variants * 10,
     done = run.variants.flatMap((v) => v.cards).filter((c) => c.selectedAttemptId).length;
   const active = Assets.active(run);
-  const complete =
-    variant?.cards.length === 10 &&
-    (run.reviewProtocol !== 'set-v3' || SetRules.hasCleanSetEvidence(variant)) &&
-    (!run.workflowVersion ||
-      ProductionRules.readyForExport(
-        variant,
-        run.productionPolicy?.styleThreshold ?? 4,
-        run.planningPolicy,
-      )) &&
-    SetRules.acceptsSetReview(
-      variant.review,
-      run.productionPolicy?.styleThreshold ?? 4,
-      Boolean(run.reviewProtocol),
-    ) &&
-    SetRules.reviewMatchesSelection(variant, Boolean(run.reviewProtocol)) &&
-    !variant.reviewError &&
-    variant.cards.every(
-      (c) =>
-        SetRules.acceptsReview(Assets.selected(c)?.review, run.productionPolicy?.styleThreshold ?? 4) &&
-        !Assets.selected(c)?.reviewError,
-    );
+  const complete = DeliveryReadiness.accepts(run, variant);
   const action = (task: () => Promise<unknown>) => void perform(task);
   return {
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    exportDiagnostics: () => action(() => api.exportDiagnostics(run.id)),
+    exportExecutionLog: () => action(() => api.exportExecutionLog(run.id)),
     tab,
     setTab,
     cardId,

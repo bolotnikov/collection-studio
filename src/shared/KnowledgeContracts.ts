@@ -33,7 +33,7 @@ export class KnowledgeContracts {
     filename: z.string(),
     sha256: z.string().length(64),
     layout: SetSheetLayout.schema,
-    method: z.literal('original-card-assembly-v1'),
+    method: z.enum(['original-card-assembly-v1', 'user-declared-card-assembly-v1']),
     primaryEligible: z.boolean(),
     cards: z
       .array(
@@ -44,7 +44,9 @@ export class KnowledgeContracts {
           filename: z.string(),
           sha256: z.string().length(64),
           source: z.string(),
-          match: z.object({ error: z.number().nonnegative(), runnerUpError: z.number().positive() }),
+          match: z
+            .object({ error: z.number().nonnegative(), runnerUpError: z.number().positive() })
+            .optional(),
         }),
       )
       .length(10),

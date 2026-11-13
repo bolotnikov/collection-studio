@@ -33,7 +33,8 @@ export class GenerationRequestBuilder {
         role:
           evidence?.origin === 'user'
             ? 'supplemental'
-            : category === input.card.category
+            : category === input.card.category &&
+                (!evidence?.purposes || evidence.purposes.includes('category'))
               ? 'original-category'
               : 'original-rendering',
         category,
@@ -63,7 +64,11 @@ export class GenerationRequestBuilder {
       ],
       prompt: prompts.render('generation.context.v1', {
         prompt: input.prompt,
-        producerRequirements: { theme: input.brief.theme, wishes: input.brief.wishes },
+        producerRequirements: {
+          theme: input.brief.theme,
+          wishes: input.brief.wishes,
+          currentSetState: profile.compositionState,
+        },
         attachments: [
           ...attachments,
           ...sourceAttachments,

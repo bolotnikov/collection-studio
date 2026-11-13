@@ -167,10 +167,12 @@ it('uses every source set/category for analysis, retrieves complete sets and exc
   expect(PromptBuilder.planning(f.brief, f.profile)).toContain(JSON.stringify(f.brief));
   expect(text).not.toContain('Place results here.');
 });
-it('reuses visual source analysis across instances while rerunning query-specific selection', async () => {
+it('reuses completed source analysis and selection across instances; a changed brief reruns selection', async () => {
   const f = await fixture();
   await f.create().prepare('planning', f.brief, f.profile);
   await f.create().prepare('planning', f.brief, f.profile);
+  expect(f.calls).toHaveBeenCalledTimes(3);
+  await f.create().prepare('planning', { ...f.brief, theme: 'Gardening' }, f.profile);
   expect(f.calls).toHaveBeenCalledTimes(4);
 });
 it('rejects changed source images before sending them to a model', async () => {
@@ -413,11 +415,84 @@ it('invalidates source-set analysis when active category definitions or renderin
   await f.create().prepare('planning', f.brief, f.profile);
   const first = f.calls.mock.calls.length;
   await f.create().prepare('planning', f.brief, f.profile);
-  expect(f.calls.mock.calls.length).toBe(first + 1);
+  expect(f.calls.mock.calls.length).toBe(first);
   f.profile.categories['1'] = 'A floating subject on a plain white background.';
   await f.create().prepare('planning', f.brief, f.profile);
-  expect(f.calls.mock.calls.length).toBe(first + 4);
+  expect(f.calls.mock.calls.length).toBe(first + 3);
   f.profile.rules = ['Use broad painted highlights and matte surfaces.'];
   await f.create().prepare('planning', f.brief, f.profile);
-  expect(f.calls.mock.calls.length).toBe(first + 7);
+  expect(f.calls.mock.calls.length).toBe(first + 6);
+});
+
+it('pins the accepted prototype first in final clean-sheet comparison even if retrieval prefers another set', async () => {
+  const f = await cleanFixture();
+  const { CompositionFixture } = await import('./fixtures/CompositionFixture');
+  const { variant } = CompositionFixture.create();
+  const composition = variant.artContract?.composition;
+  if (!composition) throw new Error('Fixture');
+  composition.selection = {
+    version: 'source-prototype-v1',
+    sourceSetId: 'set-b',
+    slots: composition.targets.map((target) => ({
+      index: target.index,
+      sourceCardId: `member-${target.index}`,
+      sourceRequired: target.required,
+      adaptedFacets: [],
+    })),
+  };
+  const context = await f.create().prepare('set-review', f.brief, f.profile, variant);
+  expect(context.evidence.cleanSets?.map((sheet) => sheet.sourceImageId)).toEqual(['set-b', 'set-a']);
+  expect(context.referencePaths[0]).toBe(path.join(f.root, 'images/clean-sets/set-b.png'));
+  composition.selection.sourceSetId = 'missing-source';
+  await expect(f.create().prepare('set-review', f.brief, f.profile, variant)).rejects.toThrow(
+    'prototype is unavailable',
+  );
+});
+
+it('builds card and final comparison context from the shipped catalog with zero model calls', async () => {
+  const { ContextOptimization } = await import('../src/shared/ContextOptimization');
+  const { VisualCatalogStore } = await import('../src/infrastructure/VisualCatalogStore');
+  const { CompositionFixture } = await import('./fixtures/CompositionFixture');
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'prepared-comparison-'));
+  folders.push(root);
+  const catalog = await new VisualCatalogStore('resources/knowledge/visual-catalog.json').read();
+  const corpus = KnowledgeContracts.corpus.parse(
+    JSON.parse(await fs.readFile('resources/knowledge/catalog.json', 'utf8')),
+  );
+  const profile = Contracts.profile.parse({
+    ...JSON.parse(await fs.readFile('resources/style-profile.json', 'utf8')),
+    knowledge: corpus,
+    visualCatalog: catalog,
+    contextOptimization: ContextOptimization.defaults,
+  });
+  const runner = new CodexRunner('/unused', root, 'fixture');
+  const calls = vi.spyOn(runner, 'run').mockRejectedValue(new Error('No model calls allowed'));
+  const { variant } = CompositionFixture.create();
+  const brief = Contracts.brief.parse({
+    theme: 'Prepared comparisons',
+    wishes: '',
+    variants: 1,
+    quality: 'low',
+    maxImageCalls: 30,
+    autoRepair: true,
+  });
+  for (const includeGold of [false, true]) {
+    const context = new CodexSourceContext(runner, path.resolve('resources/knowledge'), root, 'fixture');
+    const input = { ...brief, includeGold };
+    const card = variant.cards[0];
+    if (!card) throw new Error('Fixture');
+    const prepared = await context.prepare('card', input, profile, variant, card);
+    expect(
+      prepared.evidence.images
+        .filter((image) => image.role === 'category-example' && image.attached)
+        .map((image) => image.category),
+    ).toEqual([card.category]);
+    const result = await context.prepare('set-review', input, profile, variant);
+    expect(result.evidence.cleanSets?.length).toBeGreaterThanOrEqual(2);
+    expect(result.evidence.cleanSets?.length).toBeLessThanOrEqual(4);
+    expect(result.evidence.cleanSets?.some((sheet) => !sheet.primaryEligible)).toBe(includeGold);
+    const repeat = await context.prepare('set-review', input, profile, variant);
+    expect(repeat.referencePaths).toEqual(result.referencePaths);
+  }
+  expect(calls).not.toHaveBeenCalled();
 });

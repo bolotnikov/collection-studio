@@ -220,6 +220,7 @@ it.each([false, true])(
         get: async () => run,
         saveProfile: async () => {},
         getProfile: async () => f.profile,
+        remove: async () => {},
       },
       {
         save: async (_folder, id) => ({ master: `${id}-master.png`, preview: `${id}.png` }),
@@ -250,6 +251,12 @@ it.each([false, true])(
       };
     });
     const provider: GenerationPort = {
+      proposeSubjects: async () => {
+        throw new Error('Unexpected semantic planning');
+      },
+      describeComposition: async () => {
+        throw new Error('Unexpected composition description');
+      },
       image,
       review,
       plan: async () => {

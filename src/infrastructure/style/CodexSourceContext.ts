@@ -1,3 +1,5 @@
+import { ComparisonSetSelector } from '../../domain/ComparisonSetSelector';
+import { PreparationCache } from '../PreparationCache';
 import { SourceDocumentText } from '../../application/style/SourceDocumentText';
 import legacyPrompts from '../../../resources/legacy-analysis-prompts.json';
 import { PromptCatalog } from '../../application/prompts/PromptCatalog';
@@ -55,6 +57,45 @@ export class CodexSourceContext implements SourceContextPort {
   private async index(profile: Profile): Promise<void> {
     const corpus = profile.knowledge;
     if (!corpus) throw new Error('Source knowledge is required.');
+    if (profile.visualCatalog) {
+      for (const image of corpus.images.filter((image) => image.role !== 'delivery-template')) {
+        await this.verify(image);
+        const set = profile.visualCatalog.sets.find(
+          (set) => set.id === image.id && set.sourceSha256 === image.sha256,
+        );
+        const category = profile.visualCatalog.categoryProfiles.find((entry) => entry.id === image.id);
+        if (!set && !category) throw new Error('Prepared catalog lacks source-image evidence.');
+        const analysis = set
+          ? {
+              summary: set.analysis.story,
+              theme: set.analysis.theme,
+              semanticPrinciples: [set.analysis.story],
+              visualPrinciples: [
+                set.analysis.paletteRhythm,
+                set.analysis.backgroundRhythm,
+                set.analysis.scaleAndCameraRhythm,
+              ],
+              objectRoles: set.analysis.semanticRoles,
+              avoidTransferring: set.analysis.cautions,
+              ordinarySetExample: set.cards.some(
+                (member) =>
+                  profile.visualCatalog?.cards.find((card) => card.id === member.id)?.observation.category !==
+                  '5',
+              ),
+            }
+          : {
+              summary: category?.permittedVariations.join(' '),
+              theme: '',
+              semanticPrinciples: [],
+              visualPrinciples: category?.permittedVariations,
+              objectRoles: [],
+              avoidTransferring: category?.cautions,
+              ordinarySetExample: false,
+            };
+        this.analyses.set(image.id, KnowledgeContracts.analysis.parse(analysis));
+      }
+      return;
+    }
     const ruleHashes = corpus.documents
       .filter((d) => ['composition-rules', 'collection-structure'].includes(d.role))
       .map((d) => d.sha256)
@@ -188,50 +229,125 @@ export class CodexSourceContext implements SourceContextPort {
         this.analyses.get(i.id)?.ordinarySetExample &&
         (!corpus.cleanSets ||
           corpus.cleanSets.some(
-            (sheet) => sheet.sourceImageId === i.id && (stage !== 'set-review' || sheet.primaryEligible),
+            (sheet) =>
+              sheet.sourceImageId === i.id &&
+              (stage !== 'set-review' ||
+                sheet.primaryEligible ||
+                (brief.includeGold && sheet.cards.some((card) => card.use === 'ordinary'))),
           )),
     );
     if (collections.length < 2) throw new Error('Insufficient ordinary collection examples.');
+    const optimized = profile.contextOptimization;
+    if (optimized && (!profile.visualCatalog || !variant?.artContract?.composition))
+      throw new Error('Prepared comparison context requires a catalog and an accepted slot plan.');
+    const prototype = variant?.artContract?.composition?.selection?.sourceSetId;
+    if (prototype && !collections.some((image) => image.id === prototype))
+      throw new Error('The accepted source prototype is unavailable for this stage.');
     const key = JSON.stringify([
+      'source-selection-v1',
+      ...(optimized
+        ? [
+            optimized,
+            profile.visualCatalog?.dependencyHash,
+            variant?.artContract?.composition,
+            variant?.cards.map((card) => [card.subject, card.role, card.visual]),
+          ]
+        : []),
+      ...(prototype ? ['source-prototype-v1', prototype] : []),
+      this.model,
+      this.prompts.values['CodexSourceContext.prepare'],
+      profile.categories,
+      profile.rules,
       brief.theme,
       brief.wishes,
+      brief.includeGold,
       variant?.concept,
-      collections.map((i) => i.sha256),
+      ...(brief.includeGold && stage === 'set-review' ? ['gold-set-review'] : []),
+      collections.map((i) => [i.id, i.sha256, this.analyses.get(i.id)]),
     ]);
     let task = this.selections.get(key);
     if (!task) {
-      const schema = z.object({
-        selections: z
-          .array(z.object({ id: z.string(), reason: z.string().min(1) }))
-          .min(2)
-          .max(4),
-        guidance: z.string().min(1),
-      });
-      task = this.runner
-        .run(
-          this.prompts.render('CodexSourceContext.prepare', {
-            brief: JSON.stringify({ theme: brief.theme, wishes: brief.wishes, concept: variant?.concept }),
-            candidateAnalyses: JSON.stringify(
-              collections.map((i) => ({ id: i.id, analysis: this.analyses.get(i.id) })),
-            ),
-          }),
-          schema,
-        )
-        .then(({ value }) => {
-          if (
-            new Set(value.selections.map((s) => s.id)).size !== value.selections.length ||
-            value.selections.some((s) => !collections.some((i) => i.id === s.id))
-          )
-            throw new Error('Invalid source-set selection.');
-          return {
-            ids: value.selections.map((s) => s.id),
-            reasons: value.selections.map((s) => s.reason),
-            guidance: value.guidance,
-          };
-        });
+      if (optimized && profile.visualCatalog && variant) {
+        task = Promise.resolve(
+          new ComparisonSetSelector(optimized).select(
+            variant,
+            profile.visualCatalog,
+            collections.map((image) => image.id),
+            Boolean(brief.includeGold),
+          ),
+        );
+      } else {
+        const schema = z
+          .object({
+            selections: z
+              .array(z.object({ id: z.string(), reason: z.string().min(1) }))
+              .min(2)
+              .max(4),
+            guidance: z.string().min(1),
+          })
+          .superRefine((value, context) => {
+            if (
+              new Set(value.selections.map((item) => item.id)).size !== value.selections.length ||
+              value.selections.some((item) => !collections.some((image) => image.id === item.id))
+            )
+              context.addIssue({ code: 'custom', message: 'Invalid source-set selection.' });
+            if (
+              brief.includeGold &&
+              stage === 'set-review' &&
+              !prototype &&
+              !value.selections.some((entry) =>
+                corpus.cleanSets
+                  ?.find((sheet) => sheet.sourceImageId === entry.id)
+                  ?.cards.some((card) => card.use === 'excluded-gold-character'),
+              )
+            )
+              context.addIssue({
+                code: 'custom',
+                message: 'Mixed-set verification requires a mixed source example.',
+              });
+          });
+        task = new PreparationCache(path.join(this.cache, 'selections'))
+          .getOrCreate(key, schema, async () => {
+            const { value } = await this.runner.run(
+              this.prompts.render('CodexSourceContext.prepare', {
+                brief: JSON.stringify({
+                  theme: brief.theme,
+                  wishes: brief.wishes,
+                  includeGold: brief.includeGold,
+                  concept: variant?.concept,
+                }),
+                candidateAnalyses: JSON.stringify(
+                  collections.map((i) => ({ id: i.id, analysis: this.analyses.get(i.id) })),
+                ),
+              }),
+              schema,
+            );
+            return value;
+          })
+          .then((value) => {
+            return {
+              ids: value.selections.map((s) => s.id),
+              reasons: value.selections.map((s) => s.reason),
+              guidance: value.guidance,
+            };
+          });
+      }
       this.selections.set(key, task);
+      void task.catch(() => this.selections.delete(key));
     }
-    const choice = await task;
+    const retrieved = await task;
+    const ids = prototype
+      ? [prototype, ...retrieved.ids.filter((id) => id !== prototype)].slice(0, 4)
+      : retrieved.ids;
+    const choice = {
+      ...retrieved,
+      ids,
+      reasons: ids.map((id) =>
+        id === prototype
+          ? (variant?.artContract?.composition?.rationale ?? id)
+          : (retrieved.reasons[retrieved.ids.indexOf(id)] ?? id),
+      ),
+    };
     const cleanSets =
       stage === 'set-review' && corpus.cleanSets
         ? choice.ids.map((id, index) => {
@@ -257,10 +373,12 @@ export class CodexSourceContext implements SourceContextPort {
       selected.push({
         image,
         reason:
-          image.category === '5'
+          image.category === '5' && !brief.includeGold
             ? 'Negative example: excluded character narrative category'
             : 'Authoritative composition category example',
-        attached: image.category !== '5' && (stage !== 'card' || image.category === card?.category),
+        attached:
+          (image.category !== '5' || Boolean(brief.includeGold)) &&
+          (stage !== 'card' || image.category === card?.category),
       });
     const evidenceImages: KnowledgeEvidence['images'] = [];
     for (const entry of selected) {
@@ -282,7 +400,7 @@ export class CodexSourceContext implements SourceContextPort {
     const evidence = KnowledgeContracts.evidence.parse({
       version: 1,
       stage,
-      model: this.model,
+      model: optimized ? `deterministic:${optimized.version}` : this.model,
       documents: corpus.documents.filter((d) =>
         ['assignment', 'collection-structure', 'composition-rules'].includes(d.role),
       ),

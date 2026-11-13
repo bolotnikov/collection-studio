@@ -14,11 +14,17 @@ export class SetRules {
       sheets.length >= 2 &&
       sheets.length <= 4 &&
       new Set(sheets.map((sheet) => sheet.sourceImageId)).size === sheets.length &&
+      (!variant.cards.some((card) => card.category === '5') ||
+        sheets.some((sheet) => sheet.cards.some((card) => card.use === 'excluded-gold-character'))) &&
       sheets.every(
         (sheet) =>
-          sheet.primaryEligible &&
+          (sheet.primaryEligible ||
+            (variant.cards.some((card) => card.category === '5') &&
+              sheet.cards.some((card) => card.use === 'ordinary'))) &&
           sheet.cards.length === 10 &&
-          sheet.cards.every((card) => card.use === 'ordinary') &&
+          (!variant.cards.some((card) => card.category === '5')
+            ? sheet.cards.every((card) => card.use === 'ordinary')
+            : true) &&
           JSON.stringify(sheet.layout) === JSON.stringify(sheets[0]?.layout) &&
           evidence.images.some(
             (image) => image.id === sheet.sourceImageId && image.sha256 === sheet.sourceSha256,
@@ -67,20 +73,25 @@ export class SetRules {
     return Boolean(
       review?.passed &&
       review.categoryMatch &&
+      review.compositionMatch !== false &&
       review.style >= minimumStyle &&
       review.readability >= 4 &&
       review.subjectMatch >= 4,
     );
   }
 
-  static validatePlan(plan: Plan, expectedVariants: number): void {
+  static validatePlan(plan: Plan, expectedVariants: number, includeGold = false): void {
     if (plan.variants.length !== expectedVariants) throw new Error(`Expected ${expectedVariants} variants.`);
     for (const variant of plan.variants) {
       if (variant.cards.length !== 10) throw new Error('Each variant must contain exactly ten cards.');
       const names = variant.cards.map((c) => c.subject.trim().toLocaleLowerCase());
       if (new Set(names).size !== 10) throw new Error('Duplicate subjects in a variant.');
       const categories = new Set(variant.cards.map((c) => c.category));
-      if (categories.size !== 4) throw new Error('Each variant must include all four categories.');
+      if (
+        !(['1', '2', '3', '4'] as const).every((category) => categories.has(category)) ||
+        (includeGold ? !categories.has('5') : categories.has('5'))
+      )
+        throw new Error('Each variant must include all four categories.');
     }
   }
   static validateBrief(brief: Brief): void {

@@ -7,4 +7,5 @@ export type ActiveRun = {
   profile: Profile;
   preparation?: StylePreparationPort;
   sourceContext?: SourceContextPort;
+  producing?: Set<string>;
 };

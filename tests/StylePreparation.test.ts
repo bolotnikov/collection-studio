@@ -1,3 +1,5 @@
+import { PromptCatalog } from '../src/application/prompts/PromptCatalog';
+import productionPrompts from '../resources/prompts/production.json';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -67,6 +69,7 @@ async function prepareFixture(mode: 'complete' | 'missing' | 'duplicate') {
         role: 'style anchor',
         take: 'Broad soft highlights',
         ignore: 'Reference object identity',
+        coverage: { useful: true, conflict: false, rendering: true, lighting: true, materials: ['wood'] },
       }));
       const first = entries[0];
       if (!first) throw new Error('No candidate images supplied to visual director');
@@ -134,16 +137,16 @@ async function prepareFixture(mode: 'complete' | 'missing' | 'duplicate') {
     },
     references: library,
   });
-  return { preparation, brief, card, variant, profile, library };
+  return { preparation, brief, card, variant, profile, library, runner, folder };
 }
 
 describe('Reference selection provenance contract', () => {
-  it('produces eight explained attachments after all twelve candidates receive director explanations', async () => {
+  it('keeps only sufficient explained attachments after all twelve candidates receive visual review', async () => {
     const f = await prepareFixture('complete');
     const prepared = await f.preparation.prepare(f.brief, f.card, f.variant, f.profile);
     expect(prepared.evidence.analysis.selections).toHaveLength(12);
-    expect(prepared.evidence.references).toHaveLength(8);
-    expect(prepared.references).toHaveLength(8);
+    expect(prepared.evidence.references).toHaveLength(2);
+    expect(prepared.references).toHaveLength(2);
     for (const reference of prepared.evidence.references) {
       expect(reference.reason).toBe('Material and rendering evidence');
       expect(reference.take).toBe('Broad soft highlights');
@@ -198,4 +201,81 @@ it('uses curated categories in retrieval and passes curated descriptions to the 
       .filter((reference) => reference.purposes?.includes('category'))
       .every((reference) => reference.category === '3'),
   ).toBe(true);
+});
+
+it('reuses successful preparation after restart despite evidence timestamps, and verifies reference bytes', async () => {
+  const f = await prepareFixture('complete');
+  const profile = {
+    ...f.profile,
+    knowledgeContext: {
+      version: 1 as const,
+      stage: 'card' as const,
+      model: 'fixture',
+      documents: [],
+      images: [],
+      guidance: 'Keep source proportions',
+      createdAt: 'first',
+    },
+  };
+  const first = await f.preparation.prepare(f.brief, f.card, f.variant, profile);
+  const calls = vi.mocked(f.runner.run).mock.calls.length;
+  const restarted = () =>
+    new CodexStylePreparation(
+      f.runner,
+      f.library,
+      f.folder,
+      path.join(f.folder, 'cache'),
+      'fixture-model',
+      StyleContracts.policy.parse({ referenceLimit: 8 }),
+    );
+  const same = await restarted().prepare(f.brief, f.card, f.variant, {
+    ...profile,
+    knowledgeContext: { ...profile.knowledgeContext, createdAt: 'later' },
+  });
+  expect(same).toEqual(first);
+  expect(vi.mocked(f.runner.run).mock.calls).toHaveLength(calls);
+  await restarted().prepare(f.brief, f.card, f.variant, profile, 'Change the material');
+  expect(vi.mocked(f.runner.run).mock.calls.length).toBeGreaterThan(calls);
+  const reference = first.references[0];
+  if (!reference) throw new Error('Missing reference fixture');
+  await fs.writeFile(reference, 'tampered bytes');
+  await expect(restarted().prepare(f.brief, f.card, f.variant, profile)).rejects.toThrow('identity mismatch');
+});
+
+it('retains the old selection protocol for frozen prompt snapshots without coverage metadata', async () => {
+  const f = await prepareFixture('complete');
+  const historical = Object.fromEntries(
+    Object.entries(productionPrompts).filter(([key]) => key !== 'reference.coverage.v1'),
+  );
+  const preparation = new CodexStylePreparation(
+    f.runner,
+    f.library,
+    f.folder,
+    path.join(f.folder, 'historical-cache'),
+    'fixture-model',
+    StyleContracts.policy.parse({}),
+    new PromptCatalog(historical),
+  );
+  const result = await preparation.prepare(f.brief, f.card, f.variant, f.profile);
+  expect(result.references).toHaveLength(8);
+});
+
+it('reuses the accepted brief without an analyst call while preserving the visual reference assessment', async () => {
+  const f = await prepareFixture('complete');
+  const { CompositionFixture } = await import('./fixtures/CompositionFixture');
+  f.variant.artContract = CompositionFixture.create().variant.artContract;
+  if (!f.variant.artContract) throw new Error('Fixture art contract missing.');
+  delete f.variant.artContract.composition;
+  const { ContextOptimization } = await import('../src/shared/ContextOptimization');
+  const profile = { ...f.profile, contextOptimization: ContextOptimization.defaults };
+  const result = await f.preparation.prepare(f.brief, f.card, f.variant, profile);
+  const prompts = vi.mocked(f.runner.run).mock.calls.map(([prompt]) => prompt);
+  expect(prompts.some((prompt) => prompt.includes('ROLE: Producer brief analyst.'))).toBe(false);
+  expect(
+    prompts.filter((prompt) => prompt.includes('ROLE: Reference selector and art director.')),
+  ).toHaveLength(1);
+  expect(result.evidence.references.length).toBeGreaterThanOrEqual(2);
+  const before = prompts.length;
+  await f.preparation.prepare(f.brief, f.card, f.variant, profile);
+  expect(vi.mocked(f.runner.run).mock.calls).toHaveLength(before);
 });

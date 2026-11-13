@@ -5,6 +5,7 @@ import path from 'node:path';
 import { ArtDirectionService } from '../src/application/ArtDirectionService';
 import { StyleRulesService } from '../src/application/StyleRulesService';
 import { StyleRulesStore } from '../src/infrastructure/StyleRulesStore';
+import canonical from '../resources/canonical-style-rules.json';
 import { PromptCatalog } from '../src/application/prompts/PromptCatalog';
 import { BriefViewModel } from '../src/renderer/src/viewmodels/BriefViewModel';
 import { LibraryFilter } from '../src/renderer/src/viewmodels/LibraryFilter';
@@ -12,6 +13,8 @@ import { Contracts } from '../src/shared/Contracts';
 import { StyleContracts } from '../src/shared/StyleContracts';
 import { PromptBuilder } from '../src/application/PromptBuilder';
 import { SourceDocumentText } from '../src/application/style/SourceDocumentText';
+import { GenerationContentPolicy } from '../src/application/GenerationContentPolicy';
+import modes from '../resources/content-modes.json';
 import direction from '../resources/prompts/art-direction.json';
 import requirements from '../resources/production-requirements.json';
 import sourceProfile from '../resources/style-profile.json';
@@ -61,7 +64,78 @@ it('ignores late AI suggestions when the user edits the theme or text and avoids
   await next;
   expect(model.snapshot().wishes).toBe('Keep my manual edit');
 });
-it('persists one English rule source locally, reloads it and rejects non-English edits without altering saved rules', async () => {
+it.each([false, true])(
+  'passes gold mode to art direction and removes legacy blanket bans (gold=%s)',
+  async (includeGold) => {
+    const suggest = vi.fn(async (prompt: string) => {
+      expect(prompt).toContain(`"includeGold":${includeGold}`);
+      expect(prompt).toContain(modes.scopedClause);
+      for (const ban of modes.ordinaryClauses) expect(prompt).not.toContain(ban);
+      return { text: 'A connected investigation with clearly readable subjects.' };
+    });
+    const factory = vi.fn((_settings: typeof settings, effectiveProfile: typeof profile) => {
+      expect(effectiveProfile.rules.includes(modes.mixedClause)).toBe(includeGold);
+      return { suggestArtDirection: suggest };
+    });
+    const service = new ArtDirectionService(factory, new PromptCatalog(direction, direction));
+    await service.suggest({ theme: 'Detective cinema', wishes: '', includeGold }, settings, profile);
+    expect(suggest).toHaveBeenCalledOnce();
+  },
+);
+
+it('ignores an art-direction response requested before gold mode changed', async () => {
+  let release: (result: { text: string }) => void = () => {};
+  const suggest = vi.fn(
+    () =>
+      new Promise<{ text: string }>((resolve) => {
+        release = resolve;
+      }),
+  );
+  const model = new BriefViewModel({ suggestArtDirection: suggest });
+  model.setTheme('Detective');
+  model.setIncludeGold(true);
+  const pending = model.suggest();
+  expect(suggest).toHaveBeenCalledWith({ theme: 'Detective', wishes: '', includeGold: true });
+  model.setIncludeGold(false);
+  release({ text: 'A scene with two detectives following a clue.' });
+  await pending;
+  expect(model.snapshot().wishes).toBe('');
+  expect(model.snapshot().suggesting).toBe(false);
+});
+
+it.each([false, true])(
+  'scopes legacy bans across generation stages without mutating historical inputs (gold=%s)',
+  (includeGold) => {
+    const original = Contracts.profile.parse({ ...profile, requirements });
+    const snapshot = structuredClone(original);
+    const policy = StyleContracts.policy.parse({
+      rules: [...modes.ordinaryClauses, 'Keep my custom production rule.'],
+    });
+    const beforePolicy = structuredClone(policy);
+    const content = GenerationContentPolicy.apply(original, policy, includeGold);
+    expect(content.profile.rules).toContain(modes.scopedClause);
+    expect(content.profile.rules.includes(modes.mixedClause)).toBe(includeGold);
+    expect(content.policy?.rules).toContain('Keep my custom production rule.');
+    expect(content.policy?.rules.includes(modes.mixedClause)).toBe(includeGold);
+    const brief = Contracts.brief.parse({
+      theme: 'Detective',
+      wishes: '',
+      includeGold,
+      quality: 'low',
+      maxImageCalls: 10,
+      autoRepair: true,
+    });
+    const planning = PromptBuilder.planning(brief, content.profile);
+    expect(planning).toContain(modes.scopedClause);
+    const cardContext = PromptBuilder.sourceContext(content.profile, includeGold ? '5' : '1');
+    const setContext = PromptBuilder.sourceContext(content.profile, undefined, 'set-review');
+    for (const prompt of [planning, cardContext, setContext])
+      for (const ban of modes.ordinaryClauses) expect(prompt).not.toContain(ban);
+    expect(original).toEqual(snapshot);
+    expect(policy).toEqual(beforePolicy);
+  },
+);
+it('persists one canonical Russian rule source independently of UI localization', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'studio-rules-'));
   folders.push(root);
   const initial = {
@@ -81,11 +155,64 @@ it('persists one English rule source locally, reloads it and rejects non-English
   const reloaded = new StyleRulesStore(root);
   await reloaded.init(initial);
   expect(reloaded.get()).toEqual(result);
-  await expect(
-    service.save({ rendering: ['Правило на русском языке'], categories: initial.categories }),
-  ).rejects.toThrow('English');
-  expect(store.get()).toEqual(result);
+  const russian = await service.save({
+    rendering: ['Правило на русском языке'],
+    categories: initial.categories,
+  });
+  expect(russian.rendering).toEqual(['Правило на русском языке']);
+  expect(store.get()).toEqual(russian);
 });
+it('migrates unchanged defaults to Miro Russian text while preserving custom edits and a backup', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'studio-migration-'));
+  folders.push(root);
+  const legacy = {
+    version: 1,
+    rendering: profile.rules,
+    categories: { ...profile.categories, '2': 'My custom support rule' },
+  };
+  await fs.writeFile(path.join(root, 'style-rules.json'), JSON.stringify(legacy));
+  const store = new StyleRulesStore(root);
+  await store.init({ ...legacy, version: 1 });
+  expect(store.get().version).toBe(2);
+  expect(store.get().rendering).toEqual(canonical.rendering);
+  expect(store.get().categories['1']).toBe(canonical.categories['1']);
+  expect(store.get().categories['2']).toBe('My custom support rule');
+  expect(store.get().preservedCustomFields).toEqual(['category-2']);
+  const backup = (await fs.readdir(root)).find((file) => file.startsWith('style-rules.v1.'));
+  if (!backup) throw new Error('Missing migration backup');
+  expect(JSON.parse(await fs.readFile(path.join(root, backup), 'utf8'))).toEqual(legacy);
+  const reopened = new StyleRulesStore(root);
+  await reopened.init({ ...legacy, version: 1 });
+  expect(reopened.get()).toEqual(store.get());
+  expect((await fs.readdir(root)).filter((file) => file.startsWith('style-rules.v1.'))).toHaveLength(1);
+});
+
+it('scopes recognized saved defaults with a backup while preserving custom edits and historical profiles', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'studio-scoped-rules-'));
+  folders.push(root);
+  const previous = {
+    version: 2 as const,
+    rendering: [...canonical.rendering.slice(0, 6), modes.ordinaryClauses[1], 'Keep custom lighting.'],
+    categories: canonical.categories,
+  };
+  await fs.writeFile(path.join(root, 'style-rules.json'), JSON.stringify(previous));
+  const historical = JSON.stringify({ rules: previous.rendering });
+  await fs.writeFile(path.join(root, 'historical-profile.json'), historical);
+  const store = new StyleRulesStore(root);
+  await store.init({ ...previous, rendering: canonical.rendering });
+  expect(store.get().rendering).toContain(modes.scopedClause);
+  expect(store.get().rendering).toContain('Keep custom lighting.');
+  expect(store.get().categories).toEqual(previous.categories);
+  const backups = (await fs.readdir(root)).filter((file) => file.startsWith('style-rules.v2.'));
+  const backup = backups[0];
+  if (!backup) throw new Error('Missing category-scope migration backup');
+  expect(backups).toHaveLength(1);
+  expect(JSON.parse(await fs.readFile(path.join(root, backup), 'utf8'))).toEqual(previous);
+  await store.init({ ...previous, rendering: canonical.rendering });
+  expect((await fs.readdir(root)).filter((file) => file.startsWith('style-rules.v2.'))).toEqual(backups);
+  expect(await fs.readFile(path.join(root, 'historical-profile.json'), 'utf8')).toBe(historical);
+});
+
 it('partitions all reference images once and keeps excluded and unclassified art accessible', () => {
   const items = ['1', '2', '3', '4', 'unknown'].map((category, i) =>
     StyleContracts.libraryItem.parse({
@@ -124,7 +251,9 @@ it('feeds operational rules to generation without exporting recruitment or board
     images: [],
   };
   const text = PromptBuilder.sourceContext(Contracts.profile.parse({ ...profile, requirements, knowledge }));
-  expect(text).toContain('exactly ten distinct');
+  const rule = requirements.find((section) => section.id === 'set-structure')?.rules[0];
+  if (!rule) throw new Error('Missing set structure rule');
+  expect(text).toContain(rule);
   expect(text).not.toContain('Submit to GitHub');
   expect(text).not.toContain('Тип блока: Doc');
   expect(

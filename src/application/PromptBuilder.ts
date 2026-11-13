@@ -1,5 +1,6 @@
 import { PromptCatalog } from './prompts/PromptCatalog';
 import type { Brief, Plan, Card, Profile, Variant } from '../shared/Contracts';
+import { SetComposition } from '../domain/SetComposition';
 
 export class PromptBuilder {
   static cardReview(card: Card, profile: Profile, brief?: Brief): string {
@@ -58,7 +59,17 @@ export class PromptBuilder {
       {
         sourceContext: this.sourceContext(profile),
         setCount: brief.variants,
-        categories: JSON.stringify(profile.categories),
+        categories: JSON.stringify(
+          profile.visualCatalog
+            ? {
+                definitions: profile.categories,
+                sourceComposition: SetComposition.catalogSummary(
+                  profile.visualCatalog,
+                  Boolean(brief.includeGold),
+                ),
+              }
+            : profile.categories,
+        ),
         rules: JSON.stringify(profile.rules),
         brief: JSON.stringify(brief),
         correction: correction,
@@ -98,7 +109,7 @@ export class PromptBuilder {
             images: evidence.images
               .filter(
                 (image) =>
-                  image.category !== '5' &&
+                  (image.category !== '5' || image.attached || category === '5') &&
                   (!category || image.role !== 'category-example' || image.category === category),
               )
               .map((image) => ({

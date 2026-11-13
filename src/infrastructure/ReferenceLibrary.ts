@@ -42,7 +42,12 @@ export class ReferenceLibrary implements ReferenceLibraryPort {
     this.items = [...anchors, ...users.filter((item) => item.origin === 'user' && item.approved)].map(
       (item) => ({ ...item, metadata: this.metadata[item.id] ?? item.metadata }),
     );
-    this.policy = StyleContracts.policy.parse(await this.read('production-policy.json', {}));
+    const savedPolicy = StyleContracts.policy.parse(await this.read('production-policy.json', {}));
+    this.policy = StyleContracts.policy.parse({
+      ...savedPolicy,
+      styleThreshold: undefined,
+      referenceLimit: undefined,
+    });
   }
   get(id: string): LibraryItem {
     const item = this.items.find((item) => item.id === id);
@@ -50,7 +55,11 @@ export class ReferenceLibrary implements ReferenceLibraryPort {
     return structuredClone(item);
   }
   async savePolicy(input: ProductionPolicy): Promise<void> {
-    const policy = StyleContracts.policy.parse(input);
+    const policy = StyleContracts.policy.parse({
+      ...input,
+      styleThreshold: undefined,
+      referenceLimit: undefined,
+    });
     await this.mutate(async () => {
       await this.write('production-policy.json', policy);
       this.policy = policy;

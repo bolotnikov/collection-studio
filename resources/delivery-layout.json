@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "width": 5482,
+  "height": 2529,
+  "viewport": {
+    "left": 917,
+    "top": 39,
+    "width": 3648,
+    "height": 2457
+  },
+  "slots": [
+    {
+      "left": 1408,
+      "top": 780,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 1971,
+      "top": 780,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 2532,
+      "top": 780,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 3094,
+      "top": 780,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 3655,
+      "top": 780,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 1408,
+      "top": 1557,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 1971,
+      "top": 1557,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 2532,
+      "top": 1557,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 3094,
+      "top": 1557,
+      "width": 417,
+      "height": 474
+    },
+    {
+      "left": 3653,
+      "top": 1557,
+      "width": 417,
+      "height": 474
+    }
+  ],
+  "templates": [
+    {
+      "id": "orange",
+      "sha256": "4568c7a864ee5c1652635f6aeb6b481aa054f541172d809a389a37fb4296c868"
+    },
+    {
+      "id": "pink",
+      "sha256": "c075437a86d3cd8a8e7e2b178f70cb4b5e5c3286f2a828016c33da27318a1bbc"
+    },
+    {
+      "id": "violet",
+      "sha256": "620eecfc822e0e706ec8328afe2f425da296004156fdf9f1c7deeee768f44d93"
+    },
+    {
+      "id": "blue",
+      "sha256": "2444586dd894d6cced7f90b109452b1ff18667671ebcc1e1285a162137d24674"
+    }
+  ]
+}

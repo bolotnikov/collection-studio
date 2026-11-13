@@ -9,6 +9,22 @@ import { PromptBuilder } from './PromptBuilder';
 export class SetReviewService {
   constructor(private readonly context: ProductionContext) {}
   async review(active: ActiveRun, provider: GenerationPort, variant: Variant): Promise<void> {
+    try {
+      await this.reviewOnce(active, provider, variant);
+    } finally {
+      this.context.clearActivity(active.run, variant.id);
+      await this.context.publish(active.run);
+    }
+  }
+  private async reviewOnce(active: ActiveRun, provider: GenerationPort, variant: Variant): Promise<void> {
+    const activity = {
+      key: variant.id,
+      subject: variant.title,
+      index: active.run.variants.findIndex((item) => item.id === variant.id) + 1,
+      total: active.run.variants.length,
+    };
+    this.context.activity(active.run, { ...activity, kind: 'set-references' });
+    await this.context.publish(active.run);
     variant.review = null;
     delete variant.reviewSheet;
     const context = await this.context.sourceContext(active, 'set-review', variant);
@@ -20,6 +36,8 @@ export class SetReviewService {
         throw new Error('Clean reference sheets are required for set review.');
       if (clean?.some((sheet) => JSON.stringify(sheet.layout) !== JSON.stringify(clean[0]?.layout)))
         throw new Error('Clean reference layouts differ.');
+      this.context.activity(active.run, { ...activity, kind: 'assembly' });
+      await this.context.publish(active.run);
       const sheet = await this.context.images.sheet(
         this.context.repository.directory(active.run.id),
         variant,
@@ -34,6 +52,8 @@ export class SetReviewService {
         activeArtContract: variant.artContract,
       };
       variant.reviewPrompt = PromptBuilder.setReview(variant, reviewProfile, active.run.brief);
+      this.context.activity(active.run, { ...activity, kind: 'set-review' });
+      await this.context.publish(active.run);
       variant.review = await provider.reviewSet(
         variant,
         sheet,

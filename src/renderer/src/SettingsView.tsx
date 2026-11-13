@@ -1,4 +1,4 @@
-import { CircleCheck, KeyRound, FolderOpen } from 'lucide-react';
+import { CircleCheck, KeyRound } from 'lucide-react';
 import type { Bootstrap, StudioApi } from '../../shared/Contracts';
 import { Localization } from '../../shared/i18n/Localization';
 import { useLocalization } from './i18n/LocalizationContext';
@@ -40,7 +40,7 @@ export function SettingsView({
     <div className="settings-page">
       <div className="eyebrow">{t('PREFERENCES')}</div>
       <h1>{t('Workspace settings')}</h1>
-      <p className="lead">{t('Generation providers and local storage.')}</p>
+      <p className="lead">{t('Interface, generation limits and provider connections.')}</p>
       <section className="settings-card">
         <h2>{t('Interface')}</h2>
         <label htmlFor="language">{t('Language')}</label>
@@ -65,7 +65,7 @@ export function SettingsView({
         <p>{t('Language and appearance changes apply immediately.')}</p>
       </section>
       <section className="settings-card">
-        <h2>{t('Style production')}</h2>
+        <h2>{t('Generation limits')}</h2>
         <p>{t('Every card is verified. Failed checks trigger revisions within these limits.')}</p>
         <form
           onSubmit={(event) => {
@@ -73,7 +73,7 @@ export function SettingsView({
             void savePolicy();
           }}
         >
-          <div className="form-pair">
+          <div>
             <div>
               <label htmlFor="repair-limit">{t('Revisions per card')}</label>
               <input
@@ -86,28 +86,7 @@ export function SettingsView({
                 onChange={(e) => setPolicy({ ...policy, maxRepairsPerCard: Number(e.target.value) })}
               />
             </div>
-            <div>
-              <label htmlFor="reference-limit">{t('Reference images per request')}</label>
-              <input
-                id="reference-limit"
-                type="number"
-                min={4}
-                max={12}
-                required
-                value={policy.referenceLimit}
-                onChange={(e) => setPolicy({ ...policy, referenceLimit: Number(e.target.value) })}
-              />
-            </div>
           </div>
-          <label htmlFor="style-threshold">{t('Minimum style score')}</label>
-          <select
-            id="style-threshold"
-            value={policy.styleThreshold}
-            onChange={(e) => setPolicy({ ...policy, styleThreshold: Number(e.target.value) })}
-          >
-            <option value={4}>4 / 5</option>
-            <option value={5}>5 / 5</option>
-          </select>
           <div className="actions">
             <button type="submit" className="primary" disabled={policyBusy}>
               {t('Save production settings')}
@@ -217,28 +196,6 @@ export function SettingsView({
           {' '}
           {t(
             'Checks saved settings without generating an image. For Codex, sign in with ChatGPT using codex login. API mode requires separate credits.',
-          )}{' '}
-        </p>
-      </details>
-      <details className="settings-card data-settings">
-        <summary>
-          <FolderOpen size={18} />
-          {t('Data and resources')}
-        </summary>
-        <h2>
-          <FolderOpen size={20} /> {t('Data and resources')}{' '}
-        </h2>
-        <p>{t('Results and production history are stored on this computer.')}</p>
-        <code className="data-path">{data.dataPath}</code>
-        <p>
-          {' '}
-          {t('Prepared references:')} {data.referenceCount} / {data.profile.references.length}
-          {t('. Profile:')} {text(data.profile.name)}.
-        </p>
-        <p className="form-note">
-          {' '}
-          {t(
-            'Each set export includes ten PNG cards, masters, a contact sheet, versions and a production report.',
           )}{' '}
         </p>
       </details>

@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { CompositionContract } from './CompositionContract';
 
 /** Persisted proposals and reviews; deterministic acceptance lives in domain rules. */
 export class SetContract {
-  static readonly category = z.enum(['1', '2', '3', '4']);
+  static readonly category = z.enum(['1', '2', '3', '4', '5']);
   static readonly visual = z.object({
     materials: z.array(z.string().min(1)).min(1),
     silhouette: z.string().min(3),
@@ -17,6 +18,7 @@ export class SetContract {
       '2': z.number().int().min(1).max(7),
       '3': z.number().int().min(1).max(7),
       '4': z.number().int().min(1).max(7),
+      '5': z.number().int().min(0).max(6).optional(),
     }),
     rendering: z.string().min(10),
     lighting: z.string().min(10),
@@ -26,6 +28,7 @@ export class SetContract {
     avoid: z.array(z.string().min(3)).min(1),
     pilotIndex: z.number().int().min(0).max(9),
     pilotRationale: z.string().min(10),
+    composition: CompositionContract.set.optional(),
   });
   static readonly review = z.object({
     passed: z.boolean(),

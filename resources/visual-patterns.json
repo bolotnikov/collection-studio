@@ -1,0 +1,260 @@
+[
+  {
+    "key": "support",
+    "label": "Опора",
+    "values": [
+      {
+        "value": "none",
+        "label": "Без опоры"
+      },
+      {
+        "value": "simple-plane",
+        "label": "Простая поверхность"
+      },
+      {
+        "value": "material-surface",
+        "label": "Реалистичная поверхность с фактурой"
+      },
+      {
+        "value": "environment",
+        "label": "Вписан в окружение"
+      }
+    ]
+  },
+  {
+    "key": "backdrop",
+    "label": "Фон",
+    "values": [
+      {
+        "value": "plain",
+        "label": "Однотонный фон"
+      },
+      {
+        "value": "gradient",
+        "label": "Градиент"
+      },
+      {
+        "value": "pattern",
+        "label": "Фон с узором"
+      },
+      {
+        "value": "surface-continuation",
+        "label": "Поверхность заполняет фон"
+      },
+      {
+        "value": "environment",
+        "label": "Окружающая обстановка"
+      }
+    ]
+  },
+  {
+    "key": "pattern",
+    "label": "Узор",
+    "values": [
+      {
+        "value": "none",
+        "label": "Без узора"
+      },
+      {
+        "value": "rays",
+        "label": "Радиальные лучи"
+      },
+      {
+        "value": "stripes",
+        "label": "Полосы"
+      },
+      {
+        "value": "repeated-motifs",
+        "label": "Повторяющийся мотив"
+      },
+      {
+        "value": "geometric",
+        "label": "Геометрический узор"
+      },
+      {
+        "value": "organic",
+        "label": "Органический узор"
+      },
+      {
+        "value": "waves",
+        "label": "Волны"
+      },
+      {
+        "value": "circles",
+        "label": "Круги"
+      },
+      {
+        "value": "checker",
+        "label": "Клетка"
+      }
+    ]
+  },
+  {
+    "key": "depth",
+    "label": "Глубина",
+    "values": [
+      {
+        "value": "flat",
+        "label": "Плоский фон"
+      },
+      {
+        "value": "shallow",
+        "label": "Небольшая глубина"
+      },
+      {
+        "value": "spatial",
+        "label": "Пространственная глубина"
+      }
+    ]
+  },
+  {
+    "key": "contextDensity",
+    "label": "Окружение",
+    "values": [
+      {
+        "value": "none",
+        "label": "Без деталей окружения"
+      },
+      {
+        "value": "minimal",
+        "label": "Минимальное окружение"
+      },
+      {
+        "value": "contextual",
+        "label": "Выраженное окружение"
+      }
+    ]
+  },
+  {
+    "key": "camera",
+    "label": "Ракурс",
+    "values": [
+      {
+        "value": "front",
+        "label": "Спереди"
+      },
+      {
+        "value": "three-quarter",
+        "label": "Три четверти"
+      },
+      {
+        "value": "top",
+        "label": "Сверху"
+      },
+      {
+        "value": "low",
+        "label": "Снизу"
+      },
+      {
+        "value": "other",
+        "label": "Другой ракурс"
+      }
+    ]
+  },
+  {
+    "key": "subjectScale",
+    "label": "Масштаб",
+    "values": [
+      {
+        "value": "small",
+        "label": "Мелкий предмет"
+      },
+      {
+        "value": "medium",
+        "label": "Средний предмет"
+      },
+      {
+        "value": "large",
+        "label": "Крупный предмет"
+      }
+    ]
+  },
+  {
+    "key": "subjectPosition",
+    "label": "Положение",
+    "values": [
+      {
+        "value": "center",
+        "label": "По центру"
+      },
+      {
+        "value": "left",
+        "label": "Слева"
+      },
+      {
+        "value": "right",
+        "label": "Справа"
+      },
+      {
+        "value": "upper",
+        "label": "Вверху"
+      },
+      {
+        "value": "lower",
+        "label": "Внизу"
+      }
+    ]
+  },
+  {
+    "key": "backgroundColor",
+    "label": "Цвет фона",
+    "values": [
+      {
+        "value": "red",
+        "label": "Красный"
+      },
+      {
+        "value": "orange",
+        "label": "Оранжевый"
+      },
+      {
+        "value": "yellow",
+        "label": "Жёлтый"
+      },
+      {
+        "value": "green",
+        "label": "Зелёный"
+      },
+      {
+        "value": "cyan",
+        "label": "Голубой"
+      },
+      {
+        "value": "blue",
+        "label": "Синий"
+      },
+      {
+        "value": "purple",
+        "label": "Фиолетовый"
+      },
+      {
+        "value": "pink",
+        "label": "Розовый"
+      },
+      {
+        "value": "brown",
+        "label": "Коричневый"
+      },
+      {
+        "value": "cream",
+        "label": "Кремовый"
+      },
+      {
+        "value": "white",
+        "label": "Белый"
+      },
+      {
+        "value": "gray",
+        "label": "Серый"
+      },
+      {
+        "value": "black",
+        "label": "Чёрный"
+      },
+      {
+        "value": "multicolor",
+        "label": "Разноцветный"
+      }
+    ]
+  }
+]

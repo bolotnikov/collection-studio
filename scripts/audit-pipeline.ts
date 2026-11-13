@@ -166,12 +166,16 @@ for (const name of await fs.readdir(path.join(storage, 'runs'))) {
   if (!Contracts.id.safeParse(name).success) continue;
   snapshots.push(Contracts.run.parse(await read(path.join(storage, 'runs', name, 'run.json'))));
 }
-const latest = snapshots.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+const requestedRun = process.argv.find((value) => value.startsWith('--run='))?.slice('--run='.length);
+if (requestedRun && !Contracts.id.safeParse(requestedRun).success) throw new Error('Invalid audit run ID.');
+const latest = snapshots
+  .filter((run) => (!requestedRun || run.id === requestedRun) && run.variants[0]?.cards.length === 10)
+  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
 const previousSet = latest?.variants[0];
 if (!latest || !previousSet || previousSet.cards.length !== 10)
   throw new Error('A historical ten-card plan is required for the offline capture.');
 const variant = structuredClone(previousSet);
-const allocation = { '1': 0, '2': 0, '3': 0, '4': 0 };
+const allocation = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
 for (const card of variant.cards) allocation[card.category]++;
 // The contract is an explicit audit fixture, never represented as an accepted model plan.
 variant.artContract ??= {
@@ -192,7 +196,8 @@ for (const card of variant.cards)
     materials: ['Follow the illustrated subject material.'],
     silhouette: 'Preserve the full recognizable subject silhouette.',
     paletteRole: 'Separate subject and background with controlled contrast.',
-    composition: style.categories[card.category],
+    composition:
+      card.category === '5' ? 'Character narrative in environment' : style.categories[card.category],
   };
 ProductionRules.validatePlan({ variants: [variant] }, 1);
 const prompts = new PromptCatalog(await read(path.join(resources, 'prompts/production.json')));

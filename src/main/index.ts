@@ -1,4 +1,13 @@
+import { VisualCatalogStore } from '../infrastructure/VisualCatalogStore';
+import { KnowledgeWorkspace } from '../infrastructure/KnowledgeWorkspace';
+import { KnowledgeEditorContracts } from '../shared/KnowledgeEditorContracts';
+import { createHash } from 'node:crypto';
+import { CatalogWorkspace } from '../infrastructure/CatalogWorkspace';
+import { CatalogInputLoader } from '../infrastructure/CatalogInputLoader';
+import { CodexCatalogAnalysis } from '../infrastructure/CodexCatalogAnalysis';
+import catalogPrompts from '../../resources/prompts/catalog.json';
 import { StyleRuleContracts } from '../shared/StyleRuleContracts';
+import { ReferenceProfile } from '../domain/ReferenceProfile';
 import { StyleRulesStore } from '../infrastructure/StyleRulesStore';
 import { StyleRulesService } from '../application/StyleRulesService';
 import artDirectionDefaults from '../../resources/prompts/art-direction.json';
@@ -26,11 +35,15 @@ import { RunRepository } from '../infrastructure/RunRepository';
 import { ImageFiles } from '../infrastructure/ImageFiles';
 import { OpenAiProvider } from '../infrastructure/OpenAiProvider';
 import { RunService } from '../application/RunService';
+import { DeliveryPreviewService } from '../infrastructure/DeliveryPreviewService';
 import { ExportService } from '../infrastructure/ExportService';
 import { SettingsStore } from './SettingsStore';
 import { AssetProtocol } from './AssetProtocol';
 import { CodexRunner } from '../infrastructure/CodexRunner';
 import { CodexProvider } from '../infrastructure/CodexProvider';
+import { ExecutionJournal } from '../infrastructure/ExecutionJournal';
+import { ExecutionLogExporter } from '../infrastructure/ExecutionLogExporter';
+import { AuditedFetch } from '../infrastructure/AuditedFetch';
 
 class DesktopApplication {
   private translator = new Localization('en');
@@ -100,16 +113,25 @@ class DesktopApplication {
         /* Missing art is reported in the bootstrap state. */
       }
     }
-    const repository = new RunRepository(runsRoot),
+    const journal = new ExecutionJournal(runsRoot);
+    const repository = new RunRepository(runsRoot, (directory) => shell.trashItem(directory), journal),
       images = new ImageFiles();
     await repository.recover();
+    const delivery = new DeliveryPreviewService(images, knowledgeStore.root);
+    const jobsRoot = (sourceProfile: Profile) =>
+      sourceProfile.productionRunId
+        ? path.join(repository.directory(sourceProfile.productionRunId), '_jobs')
+        : path.join(runsRoot, '_codex-jobs');
+    const runAudit = (sourceProfile: Profile) =>
+      sourceProfile.productionRunId ? { journal, runId: sourceProfile.productionRunId } : undefined;
     const prepareStyle = (policy: ProductionPolicy, sourceProfile: Profile = profile) =>
       new CodexStylePreparation(
         new CodexRunner(
           codexExecutable,
-          path.join(runsRoot, '_codex-jobs'),
+          jobsRoot(sourceProfile),
           sourceProfile.analysisModel ?? settings.settings.codexModel,
           new PromptCatalog(sourceProfile.promptCatalog),
+          runAudit(sourceProfile),
         ),
         structuredClone(sourceProfile.library ?? library.items),
         referenceRoot,
@@ -125,11 +147,26 @@ class DesktopApplication {
       if (s.provider === 'codex') {
         if (!codexReady) throw new Error('Connect Codex CLI with ChatGPT in Settings.');
         return new CodexProvider(
-          new CodexRunner(codexExecutable, path.join(runsRoot, '_codex-jobs'), s.codexModel, templates),
+          new CodexRunner(
+            codexExecutable,
+            jobsRoot(sourceProfile),
+            s.codexModel,
+            templates,
+            runAudit(sourceProfile),
+          ),
           templates,
         );
       }
-      return new OpenAiProvider(settings.credential(), s.imageModel, s.textModel, templates);
+      const auditedFetch = sourceProfile.productionRunId
+        ? new AuditedFetch(journal, sourceProfile.productionRunId)
+        : null;
+      return new OpenAiProvider(
+        settings.credential(),
+        s.imageModel,
+        s.textModel,
+        templates,
+        auditedFetch?.transport(),
+      );
     };
     const direction = new ArtDirectionService(
       makeProvider,
@@ -144,6 +181,127 @@ class DesktopApplication {
         rules: [...profile.rules, ...library.policy.rules],
       }),
     );
+    const catalogTemplates = new PromptCatalog(catalogPrompts, catalogPrompts);
+    const catalogRules = () => ({
+      ...CatalogInputLoader.rules(),
+      rendering: profile.rules,
+      categories: { ...CatalogInputLoader.rules().categories, ...profile.categories },
+    });
+    const shippedCatalog = await new VisualCatalogStore(
+      path.join(resources, 'knowledge/visual-catalog.json'),
+    ).read();
+    const catalogWorkspace = new CatalogWorkspace(
+      resources,
+      path.join(app.getPath('userData'), 'prepared-knowledge'),
+      () =>
+        new CatalogInputLoader(resources).load(
+          shippedCatalog.model,
+          catalogTemplates.values,
+          CatalogInputLoader.rules(),
+        ),
+      (input, previous) =>
+        new CodexCatalogAnalysis(
+          new CodexRunner(codexExecutable, path.join(runsRoot, '_catalog-jobs'), input.model),
+          resources,
+          path.join(app.getPath('userData'), 'catalog-analysis'),
+          catalogTemplates,
+          input.rules,
+          previous,
+        ),
+    );
+    const knowledgeWorkspace = new KnowledgeWorkspace(
+      path.join(app.getPath('userData'), 'working-knowledge.json'),
+      knowledgeStore.root,
+      library,
+      () => catalogWorkspace.published(),
+      () =>
+        new CodexRunner(
+          codexExecutable,
+          path.join(runsRoot, '_knowledge-jobs'),
+          settings.settings.codexModel,
+        ),
+      catalogRules,
+    );
+    await knowledgeWorkspace.init();
+    // Resume interrupted additions and source migrations without reanalyzing existing observations.
+    void catalogWorkspace
+      .ensure()
+      .then(() => knowledgeWorkspace.ensureCards())
+      .catch(() => {
+        /* Persistent update state is exposed by getCatalogStatus/getKnowledge. */
+      });
+    const withKnowledge = async (): Promise<Profile> => {
+      await catalogWorkspace.ready();
+      const snapshot = await knowledgeWorkspace.generation();
+      const available = snapshot.library.filter(
+        (item) => item.origin === 'anchor' && item.approved && item.category !== 'unknown',
+      );
+      const originalIds = [
+        ...new Set([...profile.references.map((ref) => ref.id), ...available.map((item) => item.id)]),
+      ];
+      const references = originalIds
+        .flatMap((id) => {
+          const item = available.find((item) => item.id === id);
+          return item && item.category !== 'unknown'
+            ? [
+                {
+                  id: item.id,
+                  filename: item.filename,
+                  title: item.title,
+                  category: item.category,
+                  sha256: item.sha256,
+                  source: item.source,
+                },
+              ]
+            : [];
+        })
+        .slice(0, 8);
+      const setIds = new Set(snapshot.catalog.sets.map((set) => set.id));
+      return {
+        ...profile,
+        visualCatalog: snapshot.catalog,
+        library: snapshot.library,
+        references,
+        knowledge: profile.knowledge
+          ? {
+              ...profile.knowledge,
+              images: snapshot.catalog.images,
+              cleanSets: [...(profile.knowledge.cleanSets ?? []), ...snapshot.cleanSets]
+                .filter((set) => setIds.has(set.sourceImageId))
+                .map((set) => {
+                  const cards = set.cards.map((card) => ({
+                    ...card,
+                    use:
+                      snapshot.library.find((item) => item.id === card.id)?.category === '5'
+                        ? ('excluded-gold-character' as const)
+                        : ('ordinary' as const),
+                  }));
+                  return { ...set, cards, primaryEligible: cards.every((card) => card.use === 'ordinary') };
+                }),
+            }
+          : undefined,
+      };
+    };
+    this.handle('getKnowledge', z.tuple([]), () => knowledgeWorkspace.snapshot());
+    this.handle('saveKnowledge', z.tuple([KnowledgeEditorContracts.edit]), async ([edit]) =>
+      knowledgeWorkspace.save(edit),
+    );
+    this.handle('removeKnowledge', z.tuple([KnowledgeEditorContracts.kind, z.string()]), async ([kind, id]) =>
+      knowledgeWorkspace.remove(kind, id),
+    );
+    this.handle('importKnowledge', z.tuple([KnowledgeEditorContracts.import]), async ([input]) => {
+      const result = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+      });
+      const file = result.filePaths[0];
+      return result.canceled || !file ? null : knowledgeWorkspace.import(file, input);
+    });
+    const catalogStatus = async () => {
+      const base = await catalogWorkspace.status();
+      return base.status === 'ready' ? (await knowledgeWorkspace.snapshot()).job : base;
+    };
+    this.handle('getCatalogStatus', z.tuple([]), catalogStatus);
     const service = new RunService(
       repository,
       images,
@@ -159,9 +317,10 @@ class DesktopApplication {
         new CodexSourceContext(
           new CodexRunner(
             codexExecutable,
-            path.join(runsRoot, '_codex-jobs'),
+            jobsRoot(sourceProfile),
             sourceProfile.analysisModel ?? settings.settings.codexModel,
             new PromptCatalog(sourceProfile.promptCatalog),
+            runAudit(sourceProfile),
           ),
           knowledgeStore.root,
           path.join(app.getPath('userData'), 'source-analysis'),
@@ -186,7 +345,10 @@ class DesktopApplication {
         filters: [{ name: this.translator.t('Images'), extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
       });
       const file = result.filePaths[0];
-      return result.canceled || !file ? null : referenceService.import(file);
+      if (result.canceled || !file) return null;
+      const item = await referenceService.import(file);
+      await knowledgeWorkspace.ensureCards();
+      return (await knowledgeWorkspace.snapshot()).library.find((entry) => entry.id === item.id) ?? item;
     });
     this.handle('saveStyleRules', z.tuple([StyleRuleContracts.edit]), async ([input]) => {
       const saved = await styleRules.save(input);
@@ -209,8 +371,21 @@ class DesktopApplication {
       nativeTheme.themeSource = theme;
     });
     this.handle('bootstrap', z.tuple([]), async () => {
-      const catalog = await prepareStyle(library.policy).catalog();
+      let sourceProfile = profile;
+      let catalogError: string | null = null;
+      try {
+        sourceProfile = await withKnowledge();
+      } catch (error) {
+        catalogError = this.message(error);
+      }
+      const state = await catalogStatus();
+      const catalog = await prepareStyle(library.policy, sourceProfile).catalog();
       return {
+        catalogReady: Boolean(sourceProfile.visualCatalog),
+        catalogState:
+          catalogError && state.status === 'ready'
+            ? { ...state, status: 'failed' as const, message: catalogError }
+            : state,
         styleRules: styleStore.get(),
         runs: await repository.list(),
         profile,
@@ -227,7 +402,22 @@ class DesktopApplication {
       if (!codexReady) throw new Error('Connect Codex with ChatGPT for reference analysis.');
       if (referenceCount !== profile.references.length || referenceCount < 4)
         throw new Error('Prepare the style references before generating.');
-      service.updateProfile({ ...profile, library: structuredClone(library.items) });
+      const sourceProfile = await withKnowledge();
+      const effective = await prepareStyle(library.policy, sourceProfile).catalog();
+      const revision = createHash('sha256')
+        .update(
+          JSON.stringify([
+            sourceProfile.visualCatalog?.dependencyHash,
+            effective.map((item) => [
+              item.id,
+              item.sha256,
+              item.metadata?.category ?? item.category,
+              item.metadata?.description ?? item.title,
+            ]),
+          ]),
+        )
+        .digest('hex');
+      service.updateProfile(ReferenceProfile.resolve(sourceProfile, effective, revision));
       return service.start(
         {
           ...brief,
@@ -245,9 +435,11 @@ class DesktopApplication {
       const card = run.variants.flatMap((v) => v.cards).find((c) => c.id === cardId);
       if (!card) throw new Error('Card not found.');
       await library.approve(run, card, repository.directory(id));
+      await knowledgeWorkspace.ensureCards();
     });
     this.handle('removeReference', z.tuple([z.string().min(1)]), async ([id]) => library.remove(id));
     this.handle('pause', z.tuple([Contracts.id]), ([id]) => service.pause(id));
+    this.handle('deleteRun', z.tuple([Contracts.id]), ([id]) => service.remove(id));
     this.handle('resume', z.tuple([Contracts.id]), ([id]) =>
       service.resume(id, structuredClone(library.policy)),
     );
@@ -266,6 +458,35 @@ class DesktopApplication {
     this.handle('setBudget', z.tuple([Contracts.id, z.number().int().min(1).max(150)]), ([id, maximum]) =>
       service.setBudget(id, maximum),
     );
+    this.handle('previewDelivery', cardRef, async ([id, variantId]) => {
+      const run = await repository.get(id);
+      if (['planning', 'generating', 'reviewing'].includes(run.status))
+        throw new Error('Wait for generation to finish.');
+      return delivery.create(run, variantId, repository.directory(id));
+    });
+    this.handle('exportDiagnostics', z.tuple([Contracts.id]), async ([id]) => {
+      const run = await repository.get(id);
+      const result = await dialog.showSaveDialog({
+        title: this.translator.t('Download diagnostics'),
+        defaultPath: `diagnostics-${id.slice(0, 8)}.json`,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+      if (result.canceled || !result.filePath) return null;
+      await fs.writeFile(result.filePath, JSON.stringify(run, null, 2));
+      return result.filePath;
+    });
+    this.handle('exportExecutionLog', z.tuple([Contracts.id]), async ([id]) => {
+      const run = await repository.get(id);
+      const result = await dialog.showSaveDialog({
+        title: this.translator.t('Download execution log'),
+        defaultPath: `execution-${id.slice(0, 8)}.md`,
+        filters: [{ name: 'Markdown', extensions: ['md'] }],
+      });
+      if (result.canceled || !result.filePath) return null;
+      const savedProfile = await repository.getProfile(id);
+      await fs.writeFile(result.filePath, await new ExecutionLogExporter(journal).render(run, savedProfile));
+      return result.filePath;
+    });
     this.handle('export', cardRef, async ([id, variantId]) => {
       const run = await repository.get(id);
       const result = await dialog.showSaveDialog({
@@ -274,18 +495,32 @@ class DesktopApplication {
         filters: [{ name: this.translator.t('ZIP archive'), extensions: ['zip'] }],
       });
       if (result.canceled || !result.filePath) return null;
-      await new ExportService(images).export(run, variantId, repository.directory(id), result.filePath);
+      await new ExportService(images, delivery, new ExecutionLogExporter(journal)).export(
+        run,
+        variantId,
+        repository.directory(id),
+        result.filePath,
+      );
       return result.filePath;
     });
     this.handle('saveSettings', z.tuple([Contracts.settings, z.string().max(512)]), async ([value, key]) => {
       await settings.save(value, key);
       await refreshCodex();
+      void catalogWorkspace
+        .ensure()
+        .then(() => knowledgeWorkspace.ensureCards())
+        .catch(() => {});
     });
     this.handle('checkConnection', z.tuple([]), async () => {
       try {
         if (settings.settings.provider === 'codex') {
           await refreshCodex();
-          return { ok: true, message: await CodexRunner.check(codexExecutable) };
+          const message = await CodexRunner.check(codexExecutable);
+          void catalogWorkspace
+            .ensure()
+            .then(() => knowledgeWorkspace.ensureCards())
+            .catch(() => {});
+          return { ok: true, message };
         }
         return {
           ok: true,

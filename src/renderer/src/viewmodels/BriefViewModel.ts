@@ -1,9 +1,23 @@
 import { Contracts, type StudioApi } from '../../../shared/Contracts';
 
-type State = { theme: string; wishes: string; variants: number; suggesting: boolean; error: string | null };
+type State = {
+  theme: string;
+  wishes: string;
+  variants: number;
+  includeGold: boolean;
+  suggesting: boolean;
+  error: string | null;
+};
 
 export class BriefViewModel {
-  private state: State = { theme: '', wishes: '', variants: 1, suggesting: false, error: null };
+  private state: State = {
+    theme: '',
+    wishes: '',
+    variants: 1,
+    includeGold: false,
+    suggesting: false,
+    error: null,
+  };
   private readonly listeners = new Set<() => void>();
   private revision = 0;
   private active = true;
@@ -30,6 +44,10 @@ export class BriefViewModel {
     this.revision++;
     this.update({ wishes, error: null });
   };
+  setIncludeGold = (includeGold: boolean) => {
+    this.revision++;
+    this.update({ includeGold, error: null });
+  };
   setVariants = (variants: number) => this.update({ variants });
   async suggest(): Promise<void> {
     if (this.state.suggesting || !this.active) return;
@@ -39,6 +57,7 @@ export class BriefViewModel {
       const request = Contracts.artDirectionRequest.parse({
         theme: this.state.theme,
         wishes: this.state.wishes,
+        includeGold: this.state.includeGold,
       });
       const result = Contracts.artDirectionResult.parse(await this.api.suggestArtDirection(request));
       if (this.active && revision === this.revision) this.update({ wishes: result.text });

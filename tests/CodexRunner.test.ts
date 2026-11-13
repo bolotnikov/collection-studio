@@ -5,6 +5,9 @@ import os from 'node:os';
 import { z } from 'zod';
 import sharp from 'sharp';
 import { CodexRunner } from '../src/infrastructure/CodexRunner';
+import { ExecutionJournal } from '../src/infrastructure/ExecutionJournal';
+import { randomUUID } from 'node:crypto';
+import { PromptCatalog } from '../src/application/prompts/PromptCatalog';
 
 const folders: string[] = [];
 afterEach(async () => {
@@ -34,11 +37,15 @@ const fs=require('node:fs');let input='';process.stdin.on('data',c=>input+=c);pr
   vi.stubEnv('CODEX_API_KEY', 'fixture-secret');
   vi.stubEnv('OPENAI_BASE_URL', 'https://invalid.example');
   const injection = 'A literal prompt with $(touch SHOULD_NOT_EXIST), `commands`, quotes and\na second line';
-  const result = await new CodexRunner(executable, path.join(root, 'jobs'), 'fixture-model').run(
-    injection,
-    z.object({ answer: z.string() }),
-    [source],
-  );
+  const journal = new ExecutionJournal(root);
+  const runId = randomUUID();
+  const result = await new CodexRunner(
+    executable,
+    path.join(root, 'jobs'),
+    'fixture-model',
+    new PromptCatalog(),
+    { journal, runId },
+  ).run(injection, z.object({ answer: z.string() }), [source]);
   const observed = z
     .object({
       input: z.string(),
@@ -55,6 +62,18 @@ const fs=require('node:fs');let input='';process.stdin.on('data',c=>input+=c);pr
   expect(result.value.answer).toBe('verified');
   expect(result.threadId).toBe('fixture-thread');
   expect(result.usage?.input_tokens).toBe(12);
+  const entries = await journal.entries(runId);
+  expect(entries.map((entry) => entry.action)).toEqual([
+    'request.started',
+    'worker.started',
+    'worker.completed',
+    'request.completed',
+  ]);
+  const log = JSON.stringify(entries);
+  expect(log).toContain('fixture-thread');
+  expect(log).toContain('sha256');
+  expect(log).toContain('verified');
+  expect(log).not.toContain('fixture-secret');
   await expect(fs.access(path.join(root, 'SHOULD_NOT_EXIST'))).rejects.toThrow();
 });
 
@@ -71,11 +90,84 @@ process.stdin.resume();process.stdin.on('end',()=>{console.log(JSON.stringify({t
   const jobs = path.join(root, 'jobs');
   await expect(
     new CodexRunner(executable, jobs, 'fixture-model').run('test', z.object({ answer: z.string() })),
-  ).rejects.toThrow('code 2');
+  ).rejects.toThrow('code 2: fixture failure');
   const [job] = await fs.readdir(jobs);
   if (!job) throw new Error('Job not saved');
   expect(await fs.readFile(path.join(jobs, job, 'stderr.log'), 'utf8')).toContain('fixture diagnostic');
   expect(await fs.readFile(path.join(jobs, job, 'events.jsonl'), 'utf8')).toContain('turn.failed');
+});
+
+it.each(['turn.failed', 'error'])(
+  'surfaces nested server diagnostics from %s rather than stdin progress',
+  async (type) => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-cli-failure-'));
+    folders.push(root);
+    const executable = path.join(root, 'fake-codex');
+    const message = JSON.stringify({
+      type: 'error',
+      error: { message: "Invalid schema: required is missing '5'.", code: 'invalid_json_schema' },
+      status: 400,
+    });
+    const event = type === 'error' ? { type, message } : { type, error: { message } };
+    await fs.writeFile(
+      executable,
+      `#!/usr/bin/env node
+process.stdin.resume();process.stdin.on('end',()=>{
+ console.log('non-JSON startup diagnostic');
+ console.log(${JSON.stringify(JSON.stringify(event))});
+ console.error('Reading prompt from stdin...');process.exitCode=1;
+});`,
+      { mode: 0o700 },
+    );
+    await expect(
+      new CodexRunner(executable, path.join(root, 'jobs'), 'fixture-model').run(
+        'test',
+        z.object({ answer: z.string() }),
+      ),
+    ).rejects.toThrow("code 1: Invalid schema: required is missing '5'.");
+  },
+);
+
+it('keeps stderr as a fallback for process failures without structured events', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-cli-failure-'));
+  folders.push(root);
+  const executable = path.join(root, 'fake-codex');
+  await fs.writeFile(
+    executable,
+    `#!/usr/bin/env node
+process.stdin.resume();process.stdin.on('end',()=>{console.error('Unsupported CLI flag');process.exitCode=2;});`,
+    { mode: 0o700 },
+  );
+  await expect(
+    new CodexRunner(executable, path.join(root, 'jobs'), 'fixture-model').run(
+      'test',
+      z.object({ answer: z.string() }),
+    ),
+  ).rejects.toThrow('code 2: Unsupported CLI flag');
+});
+
+it('sends nullable optional fields to the CLI and restores their absence in the result', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-cli-schema-'));
+  folders.push(root);
+  const executable = path.join(root, 'fake-codex');
+  await fs.writeFile(
+    executable,
+    `#!/usr/bin/env node
+const fs=require('node:fs');process.stdin.resume();process.stdin.on('end',()=>{
+ const args=process.argv.slice(2),schema=JSON.parse(fs.readFileSync(args[args.indexOf('--output-schema')+1],'utf8'));
+ if(!schema.required.includes('optional') || !schema.properties.optional.anyOf.some(s=>s.type==='null')){
+   console.error('Schema is not strict-compatible');process.exitCode=1;return;
+ }
+ fs.writeFileSync(args[args.indexOf('-o')+1],JSON.stringify({answer:'verified',optional:null}));
+ console.log(JSON.stringify({type:'turn.completed'}));
+});`,
+    { mode: 0o700 },
+  );
+  const result = await new CodexRunner(executable, path.join(root, 'jobs'), 'fixture-model').run(
+    'test',
+    z.object({ answer: z.string(), optional: z.string().optional() }),
+  );
+  expect(result.value).toEqual({ answer: 'verified' });
 });
 
 it('packs generation attachments while retaining staged originals and structured provenance', async () => {

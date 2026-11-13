@@ -5,9 +5,17 @@ import { ProductionContext } from './ProductionContext';
 import { SetRules } from '../domain/SetRules';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { Contracts, type Attempt, type Profile, type Variant, type Card } from '../shared/Contracts';
+import {
+  Contracts,
+  type Attempt,
+  type Profile,
+  type Variant,
+  type Card,
+  type Review,
+} from '../shared/Contracts';
 import { PromptBuilder } from './PromptBuilder';
 import { GenerationRequestBuilder } from './GenerationRequestBuilder';
+import { SetComposition } from '../domain/SetComposition';
 
 export class CardProductionService {
   constructor(private readonly context: ProductionContext) {}
@@ -18,20 +26,62 @@ export class CardProductionService {
     card: Card,
     instruction = '',
   ): Promise<void> {
+    const producing = (active.producing ??= new Set());
+    producing.add(card.id);
+    try {
+      await this.produceOnce(active, provider, variant, card, instruction);
+    } finally {
+      producing.delete(card.id);
+      this.context.clearActivity(active.run, card.id);
+      await this.context.publish(active.run);
+    }
+  }
+  private async produceOnce(
+    active: ActiveRun,
+    provider: GenerationPort,
+    variant: Variant,
+    card: Card,
+    instruction: string,
+  ): Promise<void> {
     const run = active.run;
     if (card.locked) return;
+    const previous = this.context.images.selected(card);
+    if (
+      !instruction.trim() &&
+      previous?.review &&
+      !previous.reviewError &&
+      !SetRules.acceptsReview(previous.review, run.productionPolicy?.styleThreshold ?? 4)
+    ) {
+      instruction = this.repairInstruction(previous.review, active.profile);
+    }
     const folder = this.context.repository.directory(run.id),
       references = this.context.references(card, active.profile);
+    this.context.activity(run, {
+      key: card.id,
+      kind: 'references',
+      subject: card.subject,
+      index: variant.cards.findIndex((item) => item.id === card.id) + 1,
+      total: variant.cards.length,
+      attempt: card.attempts.length + 1,
+    });
     await this.context.publish(run, `Preparing reference context: ${card.subject}`);
     const context = await this.context.sourceContext(active, 'card', variant, card);
     if (active.stop) return;
     const cardProfile = {
       ...(context?.profile ?? this.context.reviewProfile(active)),
       activeArtContract: variant.artContract,
+      compositionState: variant.artContract?.composition
+        ? SetComposition.snapshot(variant, active.producing, run.productionPolicy?.styleThreshold ?? 4)
+        : undefined,
     };
     const prepared = await active.preparation?.prepare(run.brief, card, variant, cardProfile, instruction);
     if (active.stop) return;
-    const previous = this.context.images.selected(card);
+    if (variant.artContract?.composition)
+      cardProfile.compositionState = SetComposition.snapshot(
+        variant,
+        active.producing,
+        run.productionPolicy?.styleThreshold ?? 4,
+      );
     const request = new GenerationRequestBuilder().build({
       prompt: prepared?.prompt ?? PromptBuilder.build(card, variant, cardProfile, instruction),
       profile: cardProfile,
@@ -62,6 +112,14 @@ export class CardProductionService {
     SetRules.reserveImage(run);
     card.status = 'generating';
     card.error = null;
+    this.context.activity(run, {
+      key: card.id,
+      kind: 'generation',
+      subject: card.subject,
+      index: variant.cards.findIndex((item) => item.id === card.id) + 1,
+      total: variant.cards.length,
+      attempt: card.attempts.length + 1,
+    });
     await this.context.publish(run, `Generating: ${card.subject}`);
     const started = Date.now();
     const result = await provider.image(prompt, request.references, run.brief.quality);
@@ -103,6 +161,14 @@ export class CardProductionService {
     stored.reviewInputManifest = cardProfile.inputManifest;
     stored.reviewSourceEvidence = cardProfile.knowledgeContext;
     card.status = 'reviewing';
+    this.context.activity(run, {
+      key: card.id,
+      kind: 'card-review',
+      subject: card.subject,
+      index: variant.cards.findIndex((item) => item.id === card.id) + 1,
+      total: variant.cards.length,
+      attempt: card.attempts.findIndex((attempt) => attempt.id === stored.id) + 1,
+    });
     await this.context.publish(run, `Reviewing: ${card.subject}`);
     try {
       stored.review = Contracts.review.parse(
@@ -115,6 +181,26 @@ export class CardProductionService {
         ),
       );
       stored.review.passed = SetRules.acceptsReview(stored.review, run.productionPolicy?.styleThreshold ?? 4);
+      const target = SetComposition.target(variant, card);
+      if (target) {
+        if (!stored.review.observedComposition)
+          throw new Error('Card verifier did not return observed composition evidence.');
+        stored.review.compositionMatch =
+          (card.category === '5' || stored.review.observedComposition.characterCount === 0) &&
+          SetComposition.matches(stored.review.observedComposition, target.required);
+        stored.review.passed = SetRules.acceptsReview(
+          stored.review,
+          run.productionPolicy?.styleThreshold ?? 4,
+        );
+        if (!stored.review.compositionMatch) {
+          const mismatch = JSON.stringify({
+            expectedComposition: target.required,
+            observedComposition: stored.review.observedComposition,
+          });
+          stored.review.findings.push(mismatch);
+          stored.review.correction = [stored.review.correction, mismatch].filter(Boolean).join('\n');
+        }
+      }
     } catch (error) {
       stored.reviewError = this.context.errorMessage(error);
     }
@@ -136,9 +222,7 @@ export class CardProductionService {
         provider,
         variant,
         card,
-        stored.review.correction ||
-          stored.review.findings.join('; ') ||
-          PromptCatalog.render('correction.cardFallback', {}, active.profile.promptCatalog),
+        this.repairInstruction(stored.review, active.profile),
       );
       const repaired = this.context.images.selected(card);
       const originalScore =
@@ -157,5 +241,12 @@ export class CardProductionService {
         await this.context.publish(run, 'Retained the stronger previous version');
       }
     }
+  }
+  private repairInstruction(review: Review, profile: Profile): string {
+    return (
+      review.correction.trim() ||
+      review.findings.join('; ').trim() ||
+      PromptCatalog.render('correction.cardFallback', {}, profile.promptCatalog)
+    );
   }
 }

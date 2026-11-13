@@ -20,7 +20,10 @@
     "prepare:icon": "tsx scripts/prepare-icon.ts",
     "prepare:library": "tsx scripts/prepare-library.ts",
     "prepare:knowledge": "tsx scripts/prepare-knowledge.ts && npm run prepare:clean-sets",
-    "prepare:clean-sets": "tsx scripts/prepare-clean-sets.ts"
+    "prepare:clean-sets": "tsx scripts/prepare-clean-sets.ts",
+    "kb:analyze-cards": "tsx scripts/sync-knowledge.ts cards",
+    "kb:analyze-sets": "tsx scripts/sync-knowledge.ts sets",
+    "kb:sync": "tsx scripts/sync-knowledge.ts sync"
   },
   "build": {
     "appId": "studio.collection.desktop",
@@ -65,6 +68,10 @@
       {
         "from": "resources/production-requirements.json",
         "to": "production-requirements.json"
+      },
+      {
+        "from": "resources/additional-set-membership.json",
+        "to": "additional-set-membership.json"
       }
     ],
     "directories": {

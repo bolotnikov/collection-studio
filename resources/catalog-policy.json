@@ -1,0 +1,6 @@
+{
+  "minimumReferenceConfidence": 0.8,
+  "minimumCompositionReferences": 2,
+  "cardAnalysisBatchSize": 8,
+  "setAnalysisConcurrency": 2
+}

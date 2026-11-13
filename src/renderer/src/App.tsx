@@ -1,23 +1,36 @@
-import { ReferenceGallery } from './ReferenceGallery';
+import { Localization } from '../../shared/i18n/Localization';
 import { StyleRulesView } from './StyleRulesView';
-import { SetReferenceView } from './SetReferenceView';
+import { CatalogSettings } from './CatalogSettings';
+import { KnowledgeView } from './KnowledgeView';
 import { useLocalization } from './i18n/LocalizationContext';
-import { Layers, Plus, Library, Settings2, ArrowUpRight, X, LoaderCircle, Sun, Moon } from 'lucide-react';
+import {
+  Paintbrush,
+  Layers,
+  Plus,
+  Library,
+  Database,
+  ChevronRight,
+  Settings2,
+  Trash2,
+  X,
+  LoaderCircle,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import type { StudioApi } from '../../shared/Contracts';
 import { SettingsView } from './SettingsView';
 import { useAppViewModel } from './viewmodels/useAppViewModel';
 import { BriefForm } from './BriefForm';
 import { RunView } from './RunView';
-import { Assets } from './Assets';
+import { ProjectHistory } from './ProjectHistory';
+import { Modal } from './Modal';
 
 export function App({ api }: { api: StudioApi }) {
-  const { t, text } = useLocalization();
+  const { t, text, preference, setPreference } = useLocalization();
   const {
     data,
     page,
     setPage,
-    libraryView,
-    setLibraryView,
     busy,
     notice,
     setNotice,
@@ -28,7 +41,10 @@ export function App({ api }: { api: StudioApi }) {
     current,
     refresh,
     start,
-    removeReference,
+    deleting,
+    requestDelete,
+    cancelDelete,
+    deleteProject,
   } = useAppViewModel(api, t);
   if (!data)
     return (
@@ -49,43 +65,44 @@ export function App({ api }: { api: StudioApi }) {
             collection<span>STUDIO</span>
           </div>
         </div>
-        <div className="workspace-label">{t('PROJECT')}</div>
-        <nav>
-          <button className={page === 'new' ? 'active' : ''} onClick={() => setPage('new')}>
-            <Plus size={18} /> {t('New set')}
-            <span className="nav-shortcut">＋</span>
-          </button>
-          <button className={page === 'references' ? 'active' : ''} onClick={() => setPage('references')}>
-            <Library size={18} /> {t('Style library')}{' '}
-          </button>
-        </nav>
+        <button
+          className="new-set-action"
+          aria-current={page === 'new' ? 'page' : undefined}
+          onClick={() => setPage('new')}
+        >
+          <Plus size={18} /> {t('New set')}
+        </button>
         <div className="history-heading">
           {' '}
-          {t('SETS')} <span>{data.runs.length.toString().padStart(2, '0')}</span>
+          {t('PROJECTS')} <span>{data.runs.length.toString().padStart(2, '0')}</span>
         </div>
-        <div className="history-list">
-          {data.runs.length === 0 ? (
-            <p className="history-empty">
-              {' '}
-              {t('No collections yet.')} <br /> {t('Create a collection to begin.')}{' '}
-            </p>
-          ) : (
-            data.runs.map((r) => (
-              <button key={r.id} className={page === r.id ? 'active' : ''} onClick={() => setPage(r.id)}>
-                <span className={`run-dot ${r.status}`} />
-                <div>
-                  <strong>{r.brief.theme}</strong>
-                  <small>
-                    {text(Assets.status(r))} ·{' '}
-                    {r.variants.flatMap((v) => v.cards).filter((c) => c.selectedAttemptId).length}/
-                    {r.brief.variants * 10}
-                  </small>
-                </div>
-                <ArrowUpRight size={13} />
+        <ProjectHistory
+          runs={data.runs}
+          page={page}
+          disabled={busy || Boolean(active)}
+          onOpen={setPage}
+          onDelete={requestDelete}
+        />
+        <details
+          className={`knowledge-navigation ${['cards', 'sets', 'categories', 'style'].includes(page) ? 'is-current' : ''}`}
+        >
+          <summary>
+            <Database size={17} />
+            <span>{t('Knowledge base')}</span>
+            <ChevronRight size={14} className="knowledge-chevron" />
+          </summary>
+          <nav aria-label={t('Knowledge base')}>
+            {(['cards', 'sets', 'categories'] as const).map((key) => (
+              <button key={key} className={page === key ? 'active' : ''} onClick={() => setPage(key)}>
+                <Library size={17} />
+                {t(({ cards: 'Cards', sets: 'Sets', categories: 'Categories' } as const)[key])}
               </button>
-            ))
-          )}
-        </div>
+            ))}
+            <button className={page === 'style' ? 'active' : ''} onClick={() => setPage('style')}>
+              <Paintbrush size={17} /> {t('Style')}
+            </button>
+          </nav>
+        </details>
         <div className="sidebar-bottom">
           <button onClick={() => setPage('settings')} className={page === 'settings' ? 'active' : ''}>
             <Settings2 size={17} /> {t('Settings')}{' '}
@@ -118,11 +135,13 @@ export function App({ api }: { api: StudioApi }) {
             <strong>
               {page === 'new'
                 ? t('New set')
-                : page === 'references'
-                  ? t('Style library')
-                  : page === 'settings'
-                    ? t('Settings')
-                    : current?.brief.theme}
+                : ['cards', 'sets', 'categories'].includes(page)
+                  ? text({ cards: 'Cards', sets: 'Sets', categories: 'Categories' }[page] ?? '')
+                  : page === 'style'
+                    ? t('Style')
+                    : page === 'settings'
+                      ? t('Settings')
+                      : current?.brief.theme}
             </strong>
           </span>
           <span className="top-status">
@@ -135,6 +154,16 @@ export function App({ api }: { api: StudioApi }) {
                 <span className="tiny-dot" /> {t('Ready')}{' '}
               </>
             )}
+            <select
+              className="header-language"
+              aria-label={t('Language')}
+              value={preference}
+              onChange={(event) => setPreference(Localization.preference(event.target.value))}
+            >
+              <option value="system">{t('Use device language')}</option>
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+            </select>
             <div className="theme-switch" role="group" aria-label={t('Appearance')}>
               <button
                 aria-pressed={theme === 'dark'}
@@ -180,54 +209,23 @@ export function App({ api }: { api: StudioApi }) {
               api={api}
             />
           )}
-          {page === 'references' && (
-            <div className="library-page">
-              <div className="eyebrow">{t('ASSETS / SOURCE ART')}</div>
-              <h1>{t('Style library')}</h1>
-              <p className="lead">
-                {' '}
-                {t('Manage reference art, set examples and the rules used for generation.')}{' '}
-              </p>
-              <div className="library-switch" role="group" aria-label={t('Reference collection')}>
-                <button
-                  aria-pressed={libraryView === 'source'}
-                  className={libraryView === 'source' ? 'selected' : ''}
-                  onClick={() => setLibraryView('source')}
-                >
-                  {t('Reference art')} <span>{data.library.length}</span>
-                </button>
-                {data.profile.knowledge && (
-                  <button
-                    aria-pressed={libraryView === 'knowledge'}
-                    className={libraryView === 'knowledge' ? 'selected' : ''}
-                    onClick={() => setLibraryView('knowledge')}
-                  >
-                    {t('Set references')}
-                  </button>
-                )}
-                <button
-                  aria-pressed={libraryView === 'rules'}
-                  className={libraryView === 'rules' ? 'selected' : ''}
-                  onClick={() => setLibraryView('rules')}
-                >
-                  {t('Generation rules')}
-                </button>
-              </div>
-              {libraryView === 'knowledge' && data.profile.knowledge && (
-                <SetReferenceView corpus={data.profile.knowledge} />
-              )}
-              {libraryView === 'source' && (
-                <ReferenceGallery
-                  items={data.library}
-                  api={api}
-                  refresh={refresh}
-                  canAnalyze={data.codexReady}
-                  disabled={busy}
-                  onRemove={(id) => void removeReference(id)}
-                />
-              )}
-              {libraryView === 'rules' && <StyleRulesView data={data} api={api} refresh={refresh} />}
-            </div>
+          {(['cards', 'sets', 'categories'] as const)
+            .filter((key) => page === key)
+            .map((key) => (
+              <KnowledgeView
+                workspace={data}
+                key={key}
+                api={api}
+                kind={key === 'cards' ? 'card' : key === 'sets' ? 'set' : 'category'}
+                refresh={refresh}
+              />
+            ))}
+          {page === 'style' && (
+            <section className="style-page">
+              <h1>{t('Style')}</h1>
+              <StyleRulesView data={data} api={api} refresh={refresh} />
+              <CatalogSettings api={api} refresh={refresh} />
+            </section>
           )}
           {page === 'settings' && (
             <SettingsView
@@ -246,6 +244,34 @@ export function App({ api }: { api: StudioApi }) {
           <span>{t('Reference-guided card production')}</span>
         </footer>
       </main>
+      {deleting && (
+        <Modal title={t('Delete project')} onClose={cancelDelete} compact>
+          <div className="delete-project-content">
+            <p>
+              <strong>{deleting.brief.theme}</strong>
+            </p>
+            <p>
+              {t(
+                'The project and its generated images will move to Trash. References saved in the library and exported files will remain.',
+              )}
+            </p>
+            {notice?.error && (
+              <p role="alert" className="inline-error">
+                {text(notice.text)}
+              </p>
+            )}
+            <div className="actions">
+              <button disabled={busy} onClick={cancelDelete}>
+                {t('Cancel')}
+              </button>
+              <button className="danger-button" disabled={busy || Boolean(active)} onClick={deleteProject}>
+                {busy ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} />}
+                {t('Delete project')}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

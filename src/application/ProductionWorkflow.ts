@@ -28,8 +28,12 @@ export class ProductionWorkflow {
     const run = active.run;
     if (run.variants.length === 0) {
       run.status = 'planning';
-      await this.context.publish(run, 'Planning ten subjects for each variant');
-      const context = await this.context.sourceContext(active, 'planning');
+      const aggregate = active.profile.compositionPlanning?.version === 'aggregate-pattern-v1';
+      await this.context.publish(
+        run,
+        aggregate ? 'Loading aggregate composition statistics' : 'Choosing source sets',
+      );
+      const context = aggregate ? null : await this.context.sourceContext(active, 'planning');
       if (active.stop) {
         run.status = 'paused';
         await this.context.publish(run, 'Review paused');
@@ -50,8 +54,9 @@ export class ProductionWorkflow {
             references,
             run.planningPolicy ?? SetContract.planningPolicy.parse(productionDefaults),
             (run.planHistory ??= []),
-            () => this.context.publish(run, 'Reviewing the set plan'),
+            (message) => this.context.publish(run, message),
             () => active.stop,
+            run,
           )
         : {
             plan: await provider.plan(
@@ -67,7 +72,7 @@ export class ProductionWorkflow {
         return;
       }
       const { plan, reviews } = planned;
-      SetRules.validatePlan(plan, run.brief.variants);
+      SetRules.validatePlan(plan, run.brief.variants, Boolean(run.brief.includeGold));
       run.variants = plan.variants.map((v, index) => ({
         planReview: reviews[index],
         planSignature: ProductionRules.signature(v),
@@ -89,7 +94,10 @@ export class ProductionWorkflow {
       await this.context.publish(run, 'Set plans validated');
     }
     if (active.preparation) {
-      await this.context.publish(run, 'Analyzing the reference library');
+      await this.context.publish(
+        run,
+        active.profile.visualCatalog ? 'Reference library ready' : 'Analyzing the reference library',
+      );
       await active.preparation.initialize?.(
         () => active.stop,
         async (indexed, total) => {
@@ -108,7 +116,7 @@ export class ProductionWorkflow {
       if (active.stop) break;
       if (run.workflowVersion) {
         Contracts.productionPlan.parse({ variants: [variant] });
-        ProductionRules.validatePlan({ variants: [variant] }, 1);
+        ProductionRules.validatePlan({ variants: [variant] }, 1, Boolean(run.brief.includeGold));
         if (
           !ProductionRules.planMatches(variant) ||
           !ProductionRules.acceptsPlan(variant.planReview, run.planningPolicy?.minimumPlanScore)

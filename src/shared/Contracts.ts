@@ -1,9 +1,13 @@
+import { ContextOptimization } from './ContextOptimization';
+import { CompositionPlanningContracts } from './CompositionPlanningContracts';
 import type { StyleRuleSettings, StyleRuleEdit } from './StyleRuleContracts';
 import { RetrievalConfiguration } from './RetrievalConfiguration';
 import { SetContract } from './SetContract';
 import { KnowledgeContracts } from './KnowledgeContracts';
 import { StyleContracts, type ProductionPolicy, type LibraryItem } from './StyleContracts';
 import { z } from 'zod';
+import { VisualCatalogContracts } from './VisualCatalogContracts';
+import { CompositionContract } from './CompositionContract';
 
 export class Contracts {
   static readonly inputManifest = z.array(
@@ -19,6 +23,7 @@ export class Contracts {
   static readonly artDirectionRequest = z.object({
     theme: z.string().trim().min(2).max(180),
     wishes: z.string().max(3000),
+    includeGold: z.boolean().optional(),
   });
   static readonly artDirectionResult = z.object({ text: z.string().trim().min(10).max(600) });
   static readonly brief = z.object({
@@ -28,11 +33,12 @@ export class Contracts {
     quality: z.enum(['low', 'medium', 'high']),
     maxImageCalls: z.number().int().min(1).max(150),
     autoRepair: z.boolean(),
+    includeGold: z.boolean().optional(),
   });
   static readonly plannedCard = z.object({
     subject: z.string().min(2),
     description: z.string().min(10),
-    category: z.enum(['1', '2', '3', '4']),
+    category: z.enum(['1', '2', '3', '4', '5']),
     role: z.string().min(3),
     visual: SetContract.visual.optional(),
   });
@@ -67,6 +73,23 @@ export class Contracts {
     categoryMatch: z.boolean(),
     findings: z.array(z.string()),
     correction: z.string(),
+    observedComposition: CompositionContract.observed
+      .extend({ characterCount: CompositionContract.observed.shape.characterCount.optional() })
+      .optional(),
+    compositionMatch: z.boolean().optional(),
+  });
+  static readonly preparedProductionPlan = Contracts.productionPlan.extend({
+    variants: z
+      .array(
+        Contracts.productionPlan.shape.variants.element.extend({
+          artContract: SetContract.art.extend({ composition: CompositionContract.set }),
+        }),
+      )
+      .min(1)
+      .max(5),
+  });
+  static readonly compositionReview = Contracts.review.extend({
+    observedComposition: CompositionContract.observed,
   });
   static readonly setReview = z.object({
     passed: z.boolean(),
@@ -151,6 +174,25 @@ export class Contracts {
     status: z.enum(['planning', 'generating', 'reviewing', 'completed', 'paused', 'failed']),
     stage: z.string(),
     imageCalls: z.number(),
+    activities: z
+      .array(
+        z.object({
+          key: z.string(),
+          kind: z.enum([
+            'references',
+            'generation',
+            'card-review',
+            'set-references',
+            'assembly',
+            'set-review',
+          ]),
+          subject: z.string(),
+          index: z.number().int().min(1),
+          total: z.number().int().min(1),
+          attempt: z.number().int().min(1).optional(),
+        }),
+      )
+      .optional(),
     variants: z.array(Contracts.variant),
     imageModel: z.string(),
     textModel: z.string(),
@@ -161,6 +203,7 @@ export class Contracts {
     sourceEvidence: KnowledgeContracts.evidence.optional(),
     workflowVersion: z.literal('planned-pilot-v1').optional(),
     planningPolicy: SetContract.planningPolicy.optional(),
+    compositionDraft: CompositionPlanningContracts.draft.optional(),
     planHistory: z
       .array(
         z.object({
@@ -168,6 +211,8 @@ export class Contracts {
           plan: Contracts.plan,
           reviews: z.array(SetContract.review),
           errors: z.array(z.string()),
+          reviewError: z.string().optional(),
+          compositionDraft: CompositionPlanningContracts.draft.optional(),
         }),
       )
       .optional(),
@@ -177,15 +222,22 @@ export class Contracts {
     id: z.string(),
     filename: z.string(),
     title: z.string(),
-    category: z.enum(['1', '2', '3', '4']),
+    category: z.enum(['1', '2', '3', '4', '5']),
     sha256: z.string(),
     source: z.string(),
   });
   static readonly profile = z.object({
+    productionRunId: z.string().uuid().optional(),
     id: z.string(),
     name: z.string(),
     rules: z.array(z.string()),
-    categories: z.object({ '1': z.string(), '2': z.string(), '3': z.string(), '4': z.string() }),
+    categories: z.object({
+      '1': z.string(),
+      '2': z.string(),
+      '3': z.string(),
+      '4': z.string(),
+      '5': z.string().optional(),
+    }),
     references: z.array(Contracts.reference),
     library: z.array(StyleContracts.libraryItem).optional(),
     requirements: z
@@ -206,6 +258,10 @@ export class Contracts {
     inputManifest: Contracts.inputManifest.optional(),
     reviewStyleThreshold: z.number().min(4).max(5).optional(),
     analysisModel: z.string().min(1).optional(),
+    visualCatalog: VisualCatalogContracts.catalog.optional(),
+    compositionState: z.unknown().optional(),
+    compositionPlanning: CompositionPlanningContracts.configuration.optional(),
+    contextOptimization: ContextOptimization.schema.optional(),
   });
   static readonly id = z.string().uuid();
   static readonly settings = z.object({
@@ -230,6 +286,8 @@ export type SetReview = z.infer<typeof Contracts.setReview> | z.infer<typeof Con
 export type Profile = z.infer<typeof Contracts.profile>;
 export type Settings = z.infer<typeof Contracts.settings>;
 export type Bootstrap = {
+  catalogReady?: boolean;
+  catalogState?: import('./CatalogState').CatalogState;
   styleRules: StyleRuleSettings;
   runs: Run[];
   profile: Profile;
@@ -242,6 +300,13 @@ export type Bootstrap = {
   library: LibraryItem[];
 };
 export interface StudioApi {
+  getKnowledge(): Promise<import('./KnowledgeEditorContracts').KnowledgeSnapshot>;
+  saveKnowledge(edit: import('./KnowledgeEditorContracts').KnowledgeEdit): Promise<void>;
+  removeKnowledge(kind: import('./KnowledgeEditorContracts').KnowledgeKind, id: string): Promise<void>;
+  importKnowledge(
+    input: import('zod').z.infer<typeof import('./KnowledgeEditorContracts').KnowledgeEditorContracts.import>,
+  ): Promise<string | null>;
+  getCatalogStatus(): Promise<import('./CatalogState').CatalogState>;
   importReference(): Promise<LibraryItem | null>;
   editReference(input: import('./StyleContracts').ReferenceEdit): Promise<void>;
   analyzeReference(id: string): Promise<import('./StyleContracts').ReferenceMetadata>;
@@ -250,6 +315,7 @@ export interface StudioApi {
   saveProductionPolicy(policy: ProductionPolicy): Promise<void>;
   approveReference(runId: string, cardId: string): Promise<void>;
   removeReference(id: string): Promise<void>;
+  deleteRun(id: string): Promise<void>;
   setLanguage(locale: 'en' | 'ru'): Promise<void>;
   getSystemLanguages(): Promise<string[]>;
   setAppearance(theme: 'dark' | 'light'): Promise<void>;
@@ -262,6 +328,9 @@ export interface StudioApi {
   lock(runId: string, cardId: string, locked: boolean): Promise<void>;
   selectVariant(runId: string, variantId: string): Promise<void>;
   setBudget(runId: string, maximum: number): Promise<void>;
+  previewDelivery(runId: string, variantId: string): Promise<import('./DeliveryContracts').DeliveryPreview[]>;
+  exportDiagnostics(runId: string): Promise<string | null>;
+  exportExecutionLog(runId: string): Promise<string | null>;
   exportRun(runId: string, variantId: string): Promise<string | null>;
   saveSettings(settings: Settings, key: string): Promise<void>;
   checkConnection(): Promise<{ ok: boolean; message: string }>;

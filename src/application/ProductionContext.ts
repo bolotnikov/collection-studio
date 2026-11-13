@@ -12,6 +12,12 @@ export class ProductionContext {
     readonly referenceRoot: string,
     readonly publish: (run: Run, message?: string) => Promise<void>,
   ) {}
+  activity(run: Run, activity: NonNullable<Run['activities']>[number]): void {
+    run.activities = [...(run.activities ?? []).filter((item) => item.key !== activity.key), activity];
+  }
+  clearActivity(run: Run, key: string): void {
+    run.activities = run.activities?.filter((item) => item.key !== key);
+  }
   errorMessage(error: unknown): string {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return message.replace(/sk-[A-Za-z0-9_-]+/g, '[REDACTED]').slice(0, 1200);

@@ -1,48 +1,48 @@
 [
   {
     "id": "set-structure",
-    "title": "Set structure",
+    "title": "Состав набора",
     "rules": [
-      "Each set contains exactly ten distinct, recognizable subjects connected by one specific theme.",
-      "Subjects complement one another with varied roles, silhouettes and materials; a shared color alone is insufficient.",
-      "Every set includes all four composition categories. The planned allocation must match the ten cards.",
-      "Generate exactly the number of sets selected by the producer; one set is the default."
+      "В каждом наборе ровно десять разных узнаваемых карточек, объединённых одной конкретной темой: предметы категорий 1–4 и, при включённом режиме золотых карточек, сюжетные сценки категории 5.",
+      "Сюжеты карточек дополняют друг друга: различаются ролью в наборе, силуэтами и материалами. Одного общего цвета недостаточно.",
+      "В каждом наборе представлены все четыре категории композиции. Запланированное распределение должно соответствовать десяти карточкам.",
+      "Создавать ровно столько наборов, сколько выбрал пользователь. По умолчанию — один набор."
     ],
     "stages": ["planning", "set-review"]
   },
   {
     "id": "content",
-    "title": "Content constraints",
+    "title": "Ограничения изображений",
     "rules": [
-      "Produce ordinary object illustrations without gold-rarity character scenes, people, brands, text, rarity badges or interface frames.",
-      "Keep the main subject complete and readable in portrait 43:48 format; preserve the artistic background.",
-      "The producer's theme changes subjects and mood while the active rendering rules define the artistic treatment."
+      "В обычных карточках категорий 1–4 изображать предметы без людей и персонажей. При включённом режиме золотых карточек категория 5 разрешает одного или двух персонажей, в том числе людей, разыгрывающих простую сценку в узнаваемой среде. При выключенном режиме категория 5 исключена. Во всех категориях запрещены бренды, текст, значки редкости и интерфейсные рамки.",
+      "Главный предмет целиком помещается в портретный формат 43:48 и хорошо читается; художественный фон сохраняется.",
+      "Тема пользователя определяет предметы и настроение; действующие правила отрисовки определяют художественную подачу."
     ],
     "stages": ["planning", "card", "set-review"]
   },
   {
     "id": "quality",
-    "title": "Production and quality checks",
+    "title": "Производство и контроль качества",
     "rules": [
-      "Validate the subject plan and shared art direction before generating images.",
-      "Verify a pilot card before producing the remaining cards.",
-      "Compare every card against original art and its assigned composition category.",
-      "Review all ten cards together against clean original sets; repair outliers within the configured limits.",
-      "Export only when the current card versions and complete set have passed the required checks."
+      "Проверить предметный план и общее художественное направление до генерации изображений.",
+      "Сгенерировать и проверить пилотную карточку до производства остальных карточек.",
+      "Сравнивать каждую карточку с исходным артом и назначенной ей категорией композиции.",
+      "Проверять все десять карточек вместе по чистым эталонным наборам; исправлять выбивающиеся карточки в пределах заданных лимитов.",
+      "Экспорт разрешён только после успешной проверки выбранных версий карточек и полного набора."
     ],
     "stages": []
   },
   {
     "id": "image-prompting",
-    "title": "Image brief and reference use",
+    "title": "Описание изображения и использование референсов",
     "rules": [
-      "Define one deliverable and its use. Describe the scene, subject, visible details and constraints in labeled sections.",
-      "Specify subject shape, materials and texture; resolve lighting direction, softness, highlights and shadows from original art.",
-      "State viewpoint, orientation, relative scale, placement, framing, negative space and background depth for the assigned category.",
-      "Define concrete colors, subject/background contrast and rendering medium. Avoid vague quality slogans, unnecessary camera settings and photographic genre drift.",
-      "Identify every input image by number and purpose. Transfer only declared rendering or category evidence; exclude source subjects, UI and layout. Originals outrank supplemental examples.",
-      "For revisions, supply the previous candidate, request the smallest coherent correction and restate what must remain. The candidate is an edit base, never style authority; preservation is subordinate to the accepted plan.",
-      "Exclude unrelated objects, text, logos, watermarks, frames and people. Check the complete silhouette, materials, lighting, category and thumbnail readability against the approved brief."
+      "Указать один конкретный результат и его назначение. Описать сцену, предмет, видимые детали и ограничения в подписанных разделах.",
+      "Задать форму предмета, материалы и фактуру; определить по исходному арту направление и мягкость света, блики и тени.",
+      "Указать ракурс, ориентацию, относительный масштаб, положение, кадрирование, свободное пространство и глубину фона для назначенной категории.",
+      "Задать конкретные цвета, контраст предмета с фоном и технику отрисовки. Избегать расплывчатых обещаний качества, ненужных параметров камеры и перехода к фотографической стилистике.",
+      "Обозначить каждое входное изображение номером и назначением. Переносить только заявленные признаки отрисовки или композиции; исключить предметы референсов, интерфейс и раскладку. Исходные эталоны имеют приоритет над дополнительными примерами.",
+      "При доработке приложить предыдущий вариант, запросить минимальное согласованное исправление и повторить требования к сохранению деталей. Вариант служит основой редактирования; стиль определяют эталоны. Сохранение деталей подчиняется утверждённому плану.",
+      "Исключить посторонние предметы, текст, логотипы, водяные знаки и интерфейсные рамки во всех категориях; людей и персонажей исключить только в обычных карточках категорий 1–4. В категории 5 проверить одного или двух персонажей, в том числе людей, их позу, взгляд и взаимодействие с предметами по утверждённой сценке. Проверить целый силуэт, материалы, свет, категорию и читаемость миниатюры."
     ],
     "stages": ["planning", "card", "set-review"]
   }

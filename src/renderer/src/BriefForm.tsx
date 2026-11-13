@@ -1,8 +1,7 @@
 import { useLocalization } from './i18n/LocalizationContext';
 import { useBriefViewModel } from './viewmodels/useBriefViewModel';
-import { ArrowUpRight, Sparkles, Layers, LoaderCircle } from 'lucide-react';
+import { ArrowUpRight, Sparkles, LoaderCircle } from 'lucide-react';
 import type { Bootstrap, Brief, StudioApi } from '../../shared/Contracts';
-import { Assets } from './Assets';
 
 export function BriefForm({
   data,
@@ -23,6 +22,8 @@ export function BriefForm({
     setWishes,
     variants,
     setVariants,
+    includeGold,
+    setIncludeGold,
     ready,
     submit,
     canSuggest,
@@ -33,9 +34,7 @@ export function BriefForm({
   return (
     <div className="new-layout focused-brief">
       <section className="brief-column">
-        <div className="eyebrow">{t('Create in your game style')}</div>
-        <h1>{t('What set do you need?')}</h1>
-        <p className="lead">{t('Complete sets matched to your reference library.')}</p>
+        <h1>{t('Create a new set')}</h1>
         <form onSubmit={submit} className="brief-form">
           <label htmlFor="theme">{t('Set theme')}</label>
           <input
@@ -47,18 +46,6 @@ export function BriefForm({
             required
             placeholder={t('For example, space science fiction')}
           />
-          <div className="suggestions">
-            {[t('Detective cinema'), t('Space science fiction'), t('Adventure fantasy')].map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                onClick={() => setTheme(suggestion)}
-                className={theme === suggestion ? 'chosen' : ''}
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
           <div className="art-direction-label">
             <label htmlFor="wishes">
               {t('Art direction')} <span className="muted">{t('Optional')}</span>
@@ -102,6 +89,14 @@ export function BriefForm({
             onChange={(event) => setVariants(event.currentTarget.valueAsNumber)}
             className="set-count-input"
           />
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={includeGold}
+              onChange={(event) => setIncludeGold(event.target.checked)}
+            />
+            {t('Include gold cards')}
+          </label>
           <div className="start-row">
             <button type="submit" className="primary" disabled={disabled || !ready || suggesting}>
               <Sparkles size={18} />
@@ -109,42 +104,30 @@ export function BriefForm({
               <ArrowUpRight size={18} />
             </button>
           </div>
+          {data.catalogReady === false && (
+            <p
+              role={data.catalogState?.status === 'failed' ? 'alert' : 'status'}
+              className={data.catalogState?.status === 'failed' ? 'inline-error' : 'form-note'}
+            >
+              {data.catalogState?.status === 'failed'
+                ? t('Library unavailable: {reason}', { reason: text(data.catalogState.message) })
+                : t('Preparing the knowledge library…')}
+              {data.catalogState?.status === 'running' &&
+                data.catalogState.total > 0 &&
+                ` ${data.catalogState.done}/${data.catalogState.total}`}
+            </p>
+          )}
           <p className="form-note">
             {ready
               ? t('{count} cards · automatic review and bounded revisions', {
                   count: Number.isInteger(variants) && variants > 0 ? variants * 10 : 0,
                 })
-              : t('Configure a provider and prepare the style references.')}
+              : data.catalogReady === false
+                ? null
+                : t('Configure a provider and prepare the style references.')}
           </p>
         </form>
       </section>
-      <aside className="style-column">
-        <div className="style-header">
-          <span className="eyebrow">{t('Your style')}</span>
-          <span className="small-badge">
-            <Layers size={12} />
-            {data.library.length} {t('references')}
-          </span>
-        </div>
-        <div className="reference-mosaic">
-          {data.profile.references.slice(0, 8).map((reference) => (
-            <figure key={reference.id} className="reference-tile">
-              <img src={Assets.reference(reference.filename)} alt={text(reference.title)} />
-            </figure>
-          ))}
-        </div>
-        <h2>{t('Fixed source anchors')}</h2>
-        <p>
-          {t(
-            'References are selected for each subject. Approved examples can supplement the original style.',
-          )}
-        </p>
-        <div className="brief-delivery">
-          <strong>{t('Included in every set')}</strong>
-          <span>{t('10 cards · all 4 composition categories')}</span>
-          <span>{t('Originals, ready-to-use PNGs and review history')}</span>
-        </div>
-      </aside>
     </div>
   );
 }

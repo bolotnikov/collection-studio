@@ -69,14 +69,21 @@ export function ReferenceEditor({
             required
             onChange={(event) => {
               const value = event.target.value;
-              if (value === '' || value === '1' || value === '2' || value === '3' || value === '4')
+              if (
+                value === '' ||
+                value === '1' ||
+                value === '2' ||
+                value === '3' ||
+                value === '4' ||
+                value === '5'
+              )
                 model.setCategory(value);
             }}
           >
             <option value="" disabled>
               {t('Choose a category')}
             </option>
-            {(['1', '2', '3', '4'] as const).map((category) => (
+            {(['1', '2', '3', '4', '5'] as const).map((category) => (
               <option key={category} value={category}>
                 {t('Category')} {category}
               </option>
@@ -85,7 +92,7 @@ export function ReferenceEditor({
           <label htmlFor="reference-description">{t('Reference description')}</label>
           <textarea
             id="reference-description"
-            lang="en"
+            lang="ru"
             spellCheck={false}
             rows={5}
             required
@@ -96,7 +103,7 @@ export function ReferenceEditor({
             onChange={(event) => model.setDescription(event.target.value)}
           />
           <p className="form-note">
-            {t('Describe the subject in English. Saved category and description guide reference retrieval.')}
+            {t('Describe the subject. Saved category and description guide reference retrieval.')}
           </p>
           {state.error && (
             <p className="inline-error" role="alert">

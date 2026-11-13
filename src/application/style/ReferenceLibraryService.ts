@@ -13,7 +13,7 @@ export class ReferenceLibraryService {
   async analyze(id: string) {
     const item = this.library.get(id);
     const result = await this.analyzer().analyzeReference(item);
-    if (!result.eligible || result.category === '5')
+    if (!result.eligible && result.category !== '5')
       throw new Error(result.exclusionReason || 'This image is unsuitable for ordinary card references.');
     return StyleContracts.referenceMetadata.parse({
       category: result.category,

@@ -1,6 +1,10 @@
-import { SetPlanDetails } from './SetPlanDetails';
+import { RunProgressView } from './RunProgressView';
+import { SetBlueprintView } from './SetBlueprintView';
+import { SlotRequirements } from './SlotRequirements';
+import { SetComposition } from '../../domain/SetComposition';
+import { RunDiagnostics } from './RunDiagnostics';
+import { DeliveryGallery } from './DeliveryGallery';
 import { useRunViewModel } from './viewmodels/useRunViewModel';
-import { SetReviewDetails } from './SetReviewDetails';
 import { useLocalization } from './i18n/LocalizationContext';
 import {
   Download,
@@ -15,7 +19,7 @@ import {
   CircleAlert,
   CheckCircle2,
   LoaderCircle,
-  ChevronRight,
+  FileText,
 } from 'lucide-react';
 import type { Card, Profile, Run, StudioApi } from '../../shared/Contracts';
 import { Assets } from './Assets';
@@ -31,6 +35,10 @@ type Props = {
 export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: Props) {
   const { t, text, locale } = useLocalization();
   const {
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    exportDiagnostics,
+    exportExecutionLog,
     setTab,
     setCardId,
     instruction,
@@ -41,7 +49,6 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
     card,
     evidence,
     total,
-    done,
     active,
     complete,
     pause,
@@ -72,6 +79,15 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
           </p>
         </div>
         <div className="actions">
+          {!active && (
+            <button disabled={busy} onClick={exportExecutionLog}>
+              <Download size={16} /> {t('Download execution log')}
+            </button>
+          )}
+          <button onClick={() => setDiagnosticsOpen(true)}>
+            <FileText size={16} />
+            {t('Diagnostics')}
+          </button>
           {active ? (
             <button disabled={busy} onClick={pause}>
               <Pause size={16} /> {t('Pause')}{' '}
@@ -86,35 +102,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
           </button>
         </div>
       </div>
-      <div className={`progress-panel ${run.status === 'failed' ? 'failure' : ''}`}>
-        <div className="progress-heading">
-          <span>
-            {active ? (
-              <LoaderCircle className="spin" size={18} />
-            ) : run.status === 'completed' ? (
-              <CheckCircle2 size={18} />
-            ) : (
-              <Pause size={18} />
-            )}{' '}
-            {text(run.stage)}
-          </span>
-          <strong>
-            {done} <em>/ {total}</em>
-          </strong>
-        </div>
-        <div className="progress-track">
-          <div style={{ width: `${(done / total) * 100}%` }} />
-        </div>
-        <div className="progress-meta">
-          <span>
-            {text(Assets.status(run))} {t('· all changes saved')}
-          </span>
-          <span>
-            {' '}
-            {t('Used')} {run.imageCalls} {t('of')} {run.brief.maxImageCalls} {t('image calls')}{' '}
-          </span>
-        </div>
-      </div>
+      <RunProgressView run={run} />
       {variant ? (
         <>
           <div className="variant-tabs">
@@ -136,13 +124,17 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
           <div className="variant-heading">
             <div>
               <h2>{variant.title}</h2>
-              <p>{variant.concept}</p>
             </div>
             <button disabled={busy || active || variant.id === run.selectedVariantId} onClick={selectVariant}>
               {variant.id === run.selectedVariantId ? <Check size={14} /> : null}
               {variant.id === run.selectedVariantId ? t('Selected for delivery') : t('Select for delivery')}
             </button>
           </div>
+          <SetBlueprintView
+            composition={variant.artContract?.composition}
+            subjects={variant.cards.map((card) => card.subject)}
+            profile={profile}
+          />
           <div className="cards-grid">
             {variant.cards.map((c, i) => (
               <CardTile
@@ -157,79 +149,68 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
               />
             ))}
           </div>
-          <div className="review-panel">
-            <div>
-              <span className="eyebrow">{t('SET REVIEW')}</span>
-              <h3>
-                {variant.review
-                  ? variant.review.passed
-                    ? t('Set review passed')
-                    : t('Needs attention')
-                  : active
-                    ? t('Review follows generation')
-                    : t('Not reviewed')}
-              </h3>
-              <p>{t('Automated review supports selection. Final art direction remains yours.')}</p>
-            </div>
-            <ul>
-              {variant.review?.findings.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-              {variant.reviewError && <li>{text(variant.reviewError)}</li>}
-              {variant.review && (
-                <li>
-                  {t('Coherence:')} {variant.review.coherence}/5
-                </li>
-              )}
-            </ul>
+          <div className={`set-status ${complete ? 'green' : 'amber'}`} role="status">
+            {complete ? <CheckCircle2 size={16} /> : <CircleAlert size={16} />}
+            <span>
+              {complete
+                ? t('Ready for delivery')
+                : active
+                  ? t('Review follows generation')
+                  : t('Needs attention')}
+            </span>
+            {!complete && !active && <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>}
           </div>
-          <SetReviewDetails variant={variant} />
+          {complete && !active && <DeliveryGallery api={api} run={run} variant={variant} />}
         </>
       ) : (
         <div className="planning-empty">
-          <LoaderCircle className="spin" size={30} />
-          <h2>{t('Planning the collection')}</h2>
-          <p>
-            {' '}
-            {t('Selecting subjects, four composition categories')} <br />{' '}
-            {t('and a distinct concept for each variant.')}{' '}
-          </p>
+          {active ? (
+            <>
+              <LoaderCircle className="spin" size={30} />
+              <h2>{t('Planning the collection')}</h2>
+              <p>
+                {t(
+                  run.brief.includeGold
+                    ? 'Selecting subjects and composition categories 1–5, including gold cards'
+                    : 'Selecting subjects and composition categories 1–4',
+                )}{' '}
+                <br />
+                {t('and a distinct concept for each variant.')}
+              </p>
+            </>
+          ) : (
+            <>
+              {run.status === 'failed' ? <CircleAlert size={30} /> : <Pause size={30} />}
+              <h2>{t(run.status === 'failed' ? 'Planning failed' : 'Planning paused')}</h2>
+              <p>{text(run.stage)}</p>
+              <button onClick={() => setDiagnosticsOpen(true)}>{t('Details')}</button>
+            </>
+          )}
         </div>
       )}
-      <SetPlanDetails run={run} variant={variant} />
-      <details className="trace">
-        <summary>
-          {' '}
-          {t('Production log & limits')} <ChevronRight size={14} />
-        </summary>
-        <p>{run.brief.wishes}</p>
-        <div className="budget-controls">
-          <label htmlFor="run-budget">{t('Image request limit')}</label>
-          <input
-            id="run-budget"
-            type="number"
-            min={Math.max(run.imageCalls, total)}
-            max={150}
-            value={budget}
-            onChange={(e) => setBudget(Number(e.target.value))}
+      {!variant &&
+        run.compositionDraft?.blueprints?.map((blueprint, index) => (
+          <SetBlueprintView
+            key={`${run.compositionDraft?.attempt}-${index}`}
+            composition={blueprint.composition}
+            subjects={blueprint.slots.map((slot) => slot.subject.subject)}
+            profile={profile}
+            proposed
           />
-          <button disabled={busy || active || budget === run.brief.maxImageCalls} onClick={updateBudget}>
-            {' '}
-            {t('Update limit')}{' '}
-          </button>
-        </div>
-        {run.events.slice(-30).map((e, i) => (
-          <div key={i}>
-            <time>{new Date(e.at).toLocaleTimeString(locale)}</time>
-            {text(e.message)}
-          </div>
         ))}
-        <p>
-          {' '}
-          {t('Provider:')} {run.provider} {t('· Images:')} {run.imageModel} {t('· Planning / review:')}{' '}
-          {run.textModel} {t('· Run:')} {run.id}
-        </p>
-      </details>
+      {diagnosticsOpen && (
+        <RunDiagnostics
+          run={run}
+          variant={variant}
+          busy={busy}
+          active={active}
+          budget={budget}
+          onBudget={setBudget}
+          onUpdateBudget={updateBudget}
+          onDownload={exportDiagnostics}
+          onClose={() => setDiagnosticsOpen(false)}
+        />
+      )}
       {card && (
         <div className="drawer-backdrop" onClick={() => setCardId(null)}>
           <aside className="card-drawer" onClick={(e) => e.stopPropagation()}>
@@ -243,6 +224,10 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
             </div>
             <h2>{card.subject}</h2>
             <p>{card.role}</p>
+            <SlotRequirements
+              target={variant ? SetComposition.target(variant, card) : undefined}
+              observed={Assets.selected(card)?.review?.observedComposition}
+            />
             <div className="comparison">
               <div>
                 {Assets.selected(card) ? (
@@ -272,7 +257,8 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
             </div>
             <p className="category-description">{profile.categories[card.category]}</p>
             {Assets.selected(card)?.review && (
-              <div className="card-review">
+              <details className="card-review">
+                <summary>{t('Review details')}</summary>
                 <strong>
                   {Assets.selected(card)?.review?.passed
                     ? t('Automated review passed')
@@ -297,7 +283,7 @@ export function RunView({ run, profile, busy, perform, onLibraryChanged, api }: 
                     <li key={i}>{f}</li>
                   ))}
                 </ul>
-              </div>
+              </details>
             )}
             {(card.error || Assets.selected(card)?.reviewError) && (
               <p className="inline-error">{text(card.error || Assets.selected(card)?.reviewError || '')}</p>

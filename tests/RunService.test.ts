@@ -1,3 +1,5 @@
+import { CompositionPlanningContracts } from '../src/shared/CompositionPlanningContracts';
+import type { CompositionBlueprint } from '../src/shared/CompositionPlanningContracts';
 import type { PlanReview } from '../src/shared/SetContract';
 import type { SourceContextPort } from '../src/application/style/SourceContextPort';
 import { KnowledgeContracts } from '../src/shared/KnowledgeContracts';
@@ -27,6 +29,8 @@ import { RunRepository } from '../src/infrastructure/RunRepository';
 import { ImageFiles } from '../src/infrastructure/ImageFiles';
 import { ExportService } from '../src/infrastructure/ExportService';
 import { SetRules } from '../src/domain/SetRules';
+import { CompositionFixture } from './fixtures/CompositionFixture';
+import contentModes from '../resources/content-modes.json';
 
 let pixels: Buffer;
 let profile: Profile;
@@ -55,6 +59,38 @@ const pass: Review = {
 };
 
 class FixtureProvider implements GenerationPort {
+  async proposeSubjects(input: Brief, supplied: Profile, references: string[]) {
+    const plan = await this.plan(input, supplied, references);
+    return {
+      variants: plan.variants.map((variant) => ({
+        title: variant.title,
+        concept: variant.concept,
+        candidates: variant.cards.map((card, index) => ({
+          id: `subject-${index}`,
+          subject: card.subject,
+          role: card.role,
+          materials: card.visual?.materials ?? ['wood'],
+          silhouette: card.visual?.silhouette ?? 'rounded form',
+          compatibleCategories: [card.category],
+          characterCount: card.category === '5' ? 1 : 0,
+        })),
+      })),
+    };
+  }
+  async describeComposition(_brief: Brief, _profile: Profile, blueprints: CompositionBlueprint[]) {
+    return {
+      variants: blueprints.map((blueprint, variantIndex) => ({
+        variantIndex,
+        paletteRhythm: 'Complementary saturated colors',
+        cards: blueprint.slots.map((slot) => ({
+          index: slot.index,
+          description: 'One clearly recognizable fixture object',
+          paletteRole: 'blue and orange contrast',
+          composition: 'Matches the assigned support and backdrop',
+        })),
+      })),
+    };
+  }
   rejectPlan = false;
   planReviewCalls = 0;
   async reviewPlan(): Promise<PlanReview> {
@@ -168,7 +204,7 @@ async function harness(
 ) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'collection-studio-test-'));
   directories.push(root);
-  const repository = new RunRepository(root),
+  const repository = new RunRepository(root, (directory) => fs.rename(directory, directory + '.trashed')),
     images = new ImageFiles();
   const snapshots: Run[] = [];
   const service = new RunService(
@@ -354,7 +390,10 @@ describe('production invariants and durable execution', () => {
     expect(h.provider.setReviewProfiles).toHaveLength(3);
     for (const received of [...h.provider.reviewProfiles, ...h.provider.setReviewProfiles]) {
       expect(received.rules).toContain(rule);
-      expect(received.rules).toEqual(expect.arrayContaining(originalRules));
+      expect(received.rules).toEqual(
+        expect.arrayContaining(originalRules.filter((rule) => !contentModes.ordinaryClauses.includes(rule))),
+      );
+      expect(received.rules).toContain(contentModes.scopedClause);
     }
     expect(profile.rules).toEqual(originalRules);
   });
@@ -733,6 +772,27 @@ it('resumes a paused plan review without drafting another plan or spending an im
   expect(completed.status).toBe('completed');
 });
 
+it('blocks stage-specific image numbers in new art contracts before generating any images', async () => {
+  const provider = new FixtureProvider();
+  const original = provider.plan.bind(provider);
+  vi.spyOn(provider, 'plan').mockImplementation(async (brief) => {
+    const plan = await original(brief);
+    for (const variant of plan.variants)
+      if (variant.artContract) variant.artContract.rendering = 'Images 8 and 9 define the painted rendering';
+    return plan;
+  });
+  const h = await harness(provider);
+  const started = await h.service.start({ ...brief, variants: 1 }, settings);
+  const paused = await finished(h, started.id);
+  expect(paused.status).toBe('paused');
+  expect(provider.calls).toBe(0);
+  expect(
+    paused.planHistory?.every((entry) =>
+      entry.errors.some((error) => error.includes('stable reference IDs')),
+    ),
+  ).toBe(true);
+});
+
 it('manual pilot selection invalidates approval and makes a completed run resumable', async () => {
   const h = await harness();
   const started = await h.service.start({ ...brief, variants: 1 }, settings);
@@ -756,6 +816,197 @@ it('manual pilot selection invalidates approval and makes a completed run resuma
   expect(completed.variants[0]?.pilotAttemptId).toBe(alternative.id);
   expect(h.provider.calls).toBe(10);
 });
+
+it.each([
+  [true, true],
+  [false, true],
+  [true, false],
+])('propagates gold mode end to end (enabled=%s, planHasGold=%s)', async (enabled, hasGold) => {
+  const f = CompositionFixture.create();
+  const variant = f.plan.variants[0];
+  if (!variant?.artContract?.composition) throw new Error('Missing fixture');
+  if (hasGold) {
+    variant.artContract.categoryAllocation['3'] = 2;
+    variant.artContract.categoryAllocation['5'] = 2;
+    for (const index of [6, 7]) {
+      const card = variant.cards[index],
+        source = f.catalog.cards[index],
+        target = variant.artContract.composition.targets[index];
+      if (!card || !source || !target) throw new Error('Missing fixture card');
+      card.category = '5';
+      source.observation.category = '5';
+      source.observation.facets = {
+        ...source.observation.facets,
+        support: 'environment',
+        backdrop: 'environment',
+        pattern: 'none',
+        characterCount: 1,
+      };
+      target.category = '5';
+      target.required = {
+        support: 'environment',
+        backdrop: 'environment',
+        pattern: 'none',
+        depth: 'spatial',
+        characterCount: 1,
+      };
+    }
+  }
+  const provider = new FixtureProvider();
+  vi.spyOn(provider, 'plan').mockResolvedValue(f.plan);
+  vi.spyOn(provider, 'review').mockImplementation(async (card) => {
+    const source = f.catalog.cards[Number(card.subject.split(' ')[1])];
+    if (!source) throw new Error('Missing observation');
+    return { ...pass, observedComposition: source.observation.facets };
+  });
+  const h = await harness(provider, undefined, undefined, {
+    ...profile,
+    visualCatalog: f.catalog,
+    compositionPlanning: { ...CompositionPlanningContracts.defaults, version: 'source-prototype-v1' },
+  });
+  const started = await h.service.start(
+    { ...brief, variants: 1, maxImageCalls: 10, includeGold: enabled },
+    settings,
+  );
+  const result = await finished(h, started.id);
+  expect(result.brief.includeGold).toBe(enabled);
+  if (enabled && hasGold) {
+    expect(result.status).toBe('completed');
+    expect(provider.calls).toBe(10);
+    expect(result.variants[0]?.cards.filter((card) => card.category === '5')).toHaveLength(2);
+    const frozen = await h.repository.getProfile(started.id);
+    expect(frozen.categories['5']).toBeDefined();
+    expect(frozen.rules).not.toContain(profile.rules[6]);
+  } else {
+    expect(result.status).toBe('failed');
+    expect(provider.calls).toBe(0);
+    expect(provider.planCalls).toBe(0);
+  }
+});
+
+it.each(['wrong', 'missing'] as const)(
+  'enforces observed composition at the pilot gate (%s evidence)',
+  async (mode) => {
+    const f = CompositionFixture.create();
+    const provider = new FixtureProvider();
+    vi.spyOn(provider, 'plan').mockResolvedValue(f.plan);
+    let first = true;
+    vi.spyOn(provider, 'review').mockImplementation(async (card) => {
+      const index = Number(card.subject.split(' ')[1]);
+      const source = f.catalog.cards[index];
+      if (!source) throw new Error('Missing observation fixture');
+      if (first) {
+        first = false;
+        return mode === 'missing'
+          ? pass
+          : {
+              ...pass,
+              observedComposition: { ...source.observation.facets, backdrop: 'plain', pattern: 'none' },
+            };
+      }
+      return { ...pass, observedComposition: source.observation.facets };
+    });
+    const h = await harness(provider, undefined, undefined, { ...profile, visualCatalog: f.catalog });
+    const started = await h.service.start(
+      { ...brief, variants: 1, maxImageCalls: 11 },
+      settings,
+      StyleContracts.policy.parse({ maxRepairsPerCard: 1 }),
+    );
+    let run = await finished(h, started.id);
+    if (mode === 'missing') {
+      expect(run.status).toBe('paused');
+      expect(provider.calls).toBe(1);
+      expect(
+        run.variants[0]?.cards[run.variants[0]?.artContract?.pilotIndex ?? 0]?.attempts[0]?.reviewError,
+      ).toContain('observed composition');
+      h.snapshots.length = 0;
+      await h.service.resume(run.id);
+      run = await finished(h, run.id);
+      expect(provider.calls).toBe(10);
+    } else {
+      expect(provider.calls).toBe(11);
+      expect(provider.receivedPrompts[1]).toContain('expectedComposition');
+      expect(provider.receivedReferences[1]?.at(-1)).toContain('master');
+    }
+    expect(run.status).toBe('completed');
+    expect(
+      run.variants[0]?.cards.every(
+        (card) =>
+          card.attempts.find((attempt) => attempt.id === card.selectedAttemptId)?.review?.compositionMatch ===
+          true,
+      ),
+    ).toBe(true);
+  },
+);
+
+it('resumes a partially reviewed plan after repeated verifier outages without consuming plan repairs', async () => {
+  const provider = new FixtureProvider();
+  const originalReview = provider.reviewPlan.bind(provider);
+  let unavailable = true;
+  const review = vi.spyOn(provider, 'reviewPlan').mockImplementation(async () => {
+    if (provider.planReviewCalls > 0 && unavailable) throw new Error('Temporary plan verifier outage');
+    return originalReview();
+  });
+  const h = await harness(provider);
+  const started = await h.service.start(brief, settings);
+  const interrupted = await finished(h, started.id);
+  expect(interrupted.status).toBe('failed');
+  expect(interrupted.planHistory?.[0]?.reviews).toHaveLength(1);
+  expect(interrupted.planHistory?.[0]?.errors).toEqual([]);
+  expect(interrupted.planHistory?.[0]?.reviewError).toBe('Temporary plan verifier outage');
+  if (!interrupted.planningPolicy) throw new Error('Missing planning policy');
+  interrupted.planningPolicy.maxPlanRepairs = 0;
+  await h.repository.save(interrupted);
+  h.snapshots.length = 0;
+  await h.service.resume(started.id);
+  const stillInterrupted = await finished(h, started.id);
+  expect(stillInterrupted.planHistory).toHaveLength(1);
+  expect(stillInterrupted.planHistory?.[0]?.reviews).toHaveLength(1);
+  expect(provider.calls).toBe(0);
+  expect(provider.planCalls).toBe(1);
+  unavailable = false;
+  h.snapshots.length = 0;
+  await h.service.resume(started.id);
+  const completed = await finished(h, started.id);
+  expect(completed.status).toBe('completed');
+  expect(completed.planHistory).toHaveLength(1);
+  expect(completed.planHistory?.[0]?.reviews).toHaveLength(3);
+  expect(completed.planHistory?.[0]?.reviewError).toBeUndefined();
+  expect(review).toHaveBeenCalledTimes(5);
+  expect(provider.planCalls).toBe(1);
+});
+
+it.each([0, 7])(
+  'resumes a rejected card with its saved correction and previous image (card %s)',
+  async (index) => {
+    const h = await harness();
+    const started = await h.service.start(
+      { ...brief, variants: 1, maxImageCalls: 11 },
+      settings,
+      StyleContracts.policy.parse({ maxRepairsPerCard: 1 }),
+    );
+    const run = await finished(h, started.id);
+    const variant = run.variants[0];
+    const card = variant?.cards[index];
+    const previous = card?.attempts[0];
+    if (!variant || !card || !previous) throw new Error('Missing card fixture');
+    const correction = 'Restore the broad painted highlights on the saved candidate';
+    previous.review = { ...pass, passed: false, style: 2, correction };
+    variant.review = null;
+    run.status = 'paused';
+    await h.repository.save(run);
+    h.snapshots.length = 0;
+    await h.service.resume(run.id);
+    const completed = await finished(h, run.id);
+    expect(completed.status).toBe('completed');
+    expect(h.provider.calls).toBe(11);
+    expect(h.provider.receivedPrompts.at(-1)).toContain(correction);
+    expect(h.provider.receivedReferences.at(-1)).toContain(
+      path.join(h.repository.directory(run.id), previous.master),
+    );
+    expect(completed.variants[0]?.cards[index]?.attempts).toHaveLength(2);
+  },
+);
 
 it.each([false, true])(
   'requires clean-sheet evidence for v3 and passes primary references first (missing=%s)',
@@ -948,7 +1199,12 @@ it('snapshots active rules and reference metadata before asynchronous startup an
   h.service.updateProfile(revised);
   const first = await pending;
   await finished(h, first.id);
-  expect((await h.repository.getProfile(first.id)).rules).toEqual(profile.rules);
+  const frozenRules = (await h.repository.getProfile(first.id)).rules;
+  expect(frozenRules).toHaveLength(profile.rules.length);
+  expect(frozenRules).toEqual(
+    expect.arrayContaining(profile.rules.filter((rule) => !contentModes.ordinaryClauses.includes(rule))),
+  );
+  expect(frozenRules).toContain(contentModes.scopedClause);
   expect((await h.repository.getProfile(first.id)).analysisModel).toBe(settings.codexModel);
   expect((await h.repository.getProfile(first.id)).library?.[0]?.metadata?.category).toBe('1');
   h.snapshots.length = 0;
@@ -1028,4 +1284,48 @@ it('refuses export after selected image bytes change without changing the attemp
     ),
   ).rejects.toThrow('bytes have changed');
   await expect(fs.access(destination)).rejects.toThrow();
+});
+
+it('blocks deleting in-flight work and moves the entire paused project out of history', async () => {
+  const provider = new FixtureProvider();
+  let release = () => {};
+  provider.gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const h = await harness(provider);
+  const run = await h.service.start({ ...brief, variants: 1 }, settings);
+  await expect(h.service.remove(run.id)).rejects.toThrow('active run');
+  await h.service.pause(run.id);
+  await expect(h.service.remove(run.id)).rejects.toThrow('active run');
+  release();
+  await finished(h, run.id);
+  await fs.writeFile(path.join(h.repository.directory(run.id), 'keep-with-project.txt'), 'fixture');
+  await fs.writeFile(path.join(h.root, 'exported.zip'), 'independent export');
+  await h.service.remove(run.id);
+  expect(await h.repository.list()).toEqual([]);
+  expect(
+    await fs.readFile(
+      path.join(h.repository.directory(run.id) + '.trashed', 'keep-with-project.txt'),
+      'utf8',
+    ),
+  ).toBe('fixture');
+  expect(await fs.readFile(path.join(h.root, 'exported.zip'), 'utf8')).toBe('independent export');
+  await expect(h.service.resume(run.id)).rejects.toThrow();
+});
+
+it('preserves the project if Trash fails and rejects invalid deletion paths', async () => {
+  const h = await harness();
+  const run = await h.service.start({ ...brief, variants: 1 }, settings);
+  await finished(h, run.id);
+  const trash = vi.fn(async () => {
+    throw new Error('Trash unavailable');
+  });
+  const repository = new RunRepository(h.root, trash);
+  await expect(repository.remove('../outside')).rejects.toThrow();
+  expect(trash).not.toHaveBeenCalled();
+  await expect(repository.remove(run.id)).rejects.toThrow('Trash unavailable');
+  expect((await repository.get(run.id)).id).toBe(run.id);
+  const stillUsable = await repository.get(run.id);
+  await repository.save(stillUsable);
+  expect(await repository.list()).toHaveLength(1);
 });

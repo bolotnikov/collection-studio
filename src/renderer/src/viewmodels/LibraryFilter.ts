@@ -1,9 +1,10 @@
 import type { LibraryItem } from '../../../shared/StyleContracts';
 
-export type CategoryFilter = 'all' | '1' | '2' | '3' | '4' | 'unknown' | 'excluded';
+export type CategoryFilter = 'all' | '1' | '2' | '3' | '4' | '5' | 'unknown' | 'excluded';
 export class LibraryFilter {
-  static readonly categories: CategoryFilter[] = ['all', '1', '2', '3', '4', 'unknown', 'excluded'];
+  static readonly categories: CategoryFilter[] = ['all', '1', '2', '3', '4', '5', 'unknown', 'excluded'];
   static bucket(item: LibraryItem): Exclude<CategoryFilter, 'all'> {
+    if (item.category === '5') return '5';
     return item.tags.includes('exclude:ordinary-card-generation') ? 'excluded' : item.category;
   }
   static groups(items: LibraryItem[], filter: CategoryFilter) {

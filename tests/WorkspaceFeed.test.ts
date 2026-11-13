@@ -5,7 +5,7 @@ import { Contracts } from '../src/shared/Contracts';
 import { StyleContracts } from '../src/shared/StyleContracts';
 import profile from '../resources/style-profile.json';
 
-it('owns one subscription, retains live updates during bootstrap, and ignores results after disposal', async () => {
+it('retains live updates but never resurrects deleted projects from late events or snapshots', async () => {
   let resolve: (data: Bootstrap) => void = () => {};
   let callback: (run: Run) => void = () => {};
   const unsubscribe = vi.fn();
@@ -54,12 +54,23 @@ it('owns one subscription, retains live updates during bootstrap, and ignores re
   resolve(data);
   await vi.waitFor(() => expect(publish).toHaveBeenCalledOnce());
   expect(publish.mock.calls[0]?.[0].runs).toEqual([run]);
+  const stale = feed.refresh();
+  feed.forget(run.id);
+  callback(run);
+  resolve({ ...data, runs: [run] });
+  await stale;
+  expect(publish).toHaveBeenCalledTimes(2);
+  expect(publish.mock.calls.at(-1)?.[0].runs).toEqual([]);
+  const refreshed = feed.refresh();
+  resolve({ ...data, runs: [run] });
+  await refreshed;
+  expect(publish.mock.calls.at(-1)?.[0].runs).toEqual([]);
   const pending = feed.refresh();
   feed.dispose();
   feed.dispose();
   resolve(data);
   await pending;
-  expect(publish).toHaveBeenCalledOnce();
+  expect(publish).toHaveBeenCalledTimes(3);
   expect(unsubscribe).toHaveBeenCalledOnce();
   expect(fail).not.toHaveBeenCalled();
 });

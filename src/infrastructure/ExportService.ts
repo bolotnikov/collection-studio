@@ -1,40 +1,24 @@
-import { ProductionRules } from '../domain/ProductionRules';
-import { SetRules } from '../domain/SetRules';
+import { DeliveryReadiness } from '../domain/DeliveryReadiness';
+import { DeliveryPreviewService } from './DeliveryPreviewService';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Run } from '../shared/Contracts';
 import { ImageFiles } from './ImageFiles';
+import { ExecutionLogExporter } from './ExecutionLogExporter';
+import { Contracts } from '../shared/Contracts';
 
 export class ExportService {
-  constructor(private readonly images: ImageFiles) {}
+  constructor(
+    private readonly images: ImageFiles,
+    private readonly delivery?: DeliveryPreviewService,
+    private readonly executionLog?: ExecutionLogExporter,
+  ) {}
   async export(run: Run, variantId: string, folder: string, destination: string): Promise<void> {
     const variant = run.variants.find((v) => v.id === variantId);
     if (!variant || variant.cards.length !== 10 || variant.cards.some((c) => !c.selectedAttemptId))
       throw new Error('Export requires all ten images in the variant.');
-    if (
-      (run.reviewProtocol === 'set-v3' && !SetRules.hasCleanSetEvidence(variant)) ||
-      (run.workflowVersion &&
-        !ProductionRules.readyForExport(
-          variant,
-          run.productionPolicy?.styleThreshold ?? 4,
-          run.planningPolicy,
-        )) ||
-      !SetRules.acceptsSetReview(
-        variant.review,
-        run.productionPolicy?.styleThreshold ?? 4,
-        Boolean(run.reviewProtocol),
-      ) ||
-      !SetRules.reviewMatchesSelection(variant, Boolean(run.reviewProtocol)) ||
-      variant.reviewError ||
-      variant.cards.some((card) => {
-        const attempt = this.images.selected(card);
-        return (
-          !SetRules.acceptsReview(attempt?.review, run.productionPolicy?.styleThreshold ?? 4) ||
-          Boolean(attempt?.reviewError)
-        );
-      })
-    )
+    if (!DeliveryReadiness.accepts(run, variant))
       throw new Error('Production export requires passed card and set reviews.');
     const sheet = await this.images.sheet(folder, variant, variant.sourceEvidence?.cleanSets?.[0]?.layout);
     if (run.reviewProtocol === 'set-v3' && path.basename(sheet) !== variant.reviewSheet)
@@ -53,9 +37,35 @@ export class ExportService {
         );
     }
     zip.addFile('contact-sheet.png', await fs.readFile(sheet));
+    if (this.delivery) {
+      const previews = await this.delivery.create(run, variantId, folder);
+      for (const preview of previews)
+        zip.addFile(`delivery/${preview.id}.png`, await fs.readFile(path.join(folder, preview.filename)));
+      zip.addFile(
+        'delivery/manifest.json',
+        Buffer.from(
+          JSON.stringify(
+            {
+              variantId,
+              selectedAttemptIds: variant.cards.map((card) => card.selectedAttemptId),
+              previews,
+              note: 'Original template captions and game counters are retained.',
+            },
+            null,
+            2,
+          ),
+        ),
+      );
+    }
     zip.addFile('run.json', Buffer.from(JSON.stringify(run, null, 2)));
     zip.addFile('selection.json', Buffer.from(JSON.stringify({ variantId, variant }, null, 2)));
     zip.addFile('style-profile.json', await fs.readFile(path.join(folder, 'style-profile.json')));
+    if (this.executionLog) {
+      const profile = Contracts.profile.parse(
+        JSON.parse(await fs.readFile(path.join(folder, 'style-profile.json'), 'utf8')),
+      );
+      zip.addFile('execution-log.md', Buffer.from(await this.executionLog.render(run, profile)));
+    }
     const cardReports = variant.cards.map((card, index) => {
       const selected = this.images.selected(card),
         review = selected?.review;

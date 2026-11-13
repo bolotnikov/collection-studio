@@ -6,6 +6,7 @@ export class WorkspaceFeed {
   private unsubscribe: (() => void) | null = null;
   private data: Bootstrap | null = null;
   private readonly updates = new Map<string, Run>();
+  private readonly removed = new Set<string>();
   constructor(
     private readonly api: Pick<StudioApi, 'bootstrap' | 'onRun'>,
     private readonly publish: (data: Bootstrap) => void,
@@ -14,6 +15,7 @@ export class WorkspaceFeed {
   connect(): void {
     if (this.unsubscribe) return;
     this.unsubscribe = this.api.onRun((run) => {
+      if (this.removed.has(run.id)) return;
       this.updates.set(run.id, run);
       if (this.data) this.accept(this.data);
     });
@@ -26,8 +28,14 @@ export class WorkspaceFeed {
     const data = await this.api.bootstrap();
     if (this.unsubscribe && generation === this.generation) this.accept(data);
   }
+  forget(id: string): void {
+    this.generation++;
+    this.removed.add(id);
+    this.updates.delete(id);
+    if (this.data) this.accept(this.data);
+  }
   private accept(data: Bootstrap): void {
-    const runs = new Map(data.runs.map((run) => [run.id, run]));
+    const runs = new Map(data.runs.filter((run) => !this.removed.has(run.id)).map((run) => [run.id, run]));
     for (const [id, run] of this.updates) {
       const stored = runs.get(id);
       if (!stored || stored.updatedAt <= run.updatedAt) runs.set(id, run);
@@ -40,6 +48,7 @@ export class WorkspaceFeed {
     this.unsubscribe?.();
     this.unsubscribe = null;
     this.updates.clear();
+    this.removed.clear();
     this.data = null;
   }
 }

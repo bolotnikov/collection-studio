@@ -1,0 +1,22 @@
+{
+  "version": "aggregate-pattern-v1",
+  "policy": {
+    "maxAdaptedSlots": 2,
+    "adaptationPenalty": 20,
+    "preferredSourceBonus": 40,
+    "reusedSourcePenalty": 4
+  },
+  "prompts": {
+    "subjects": "{{sourceContext}}\nROLE: Semantic set designer. Propose {{setCount}} distinct coherent concepts for the producer brief. For each, propose ten complementary primary subjects followed by up to four reserve subjects. Give each candidate a unique stable id, subject, narrative role, concrete materials and silhouette. Give compatibleCategories in preference order based on how the subject CAN naturally be depicted; do not force every subject into every category. This is semantic compatibility, NOT a choice of counts, backgrounds, pattern, camera or rendering style. Set characterCount=0 for ordinary objects and exactly 1 or 2 for narrative candidates; this is part of subject identity and cannot change during slot assignment. Supply enough flexibility for the aggregate category and joint-pattern statistics. Categories 1–4 need ordinary objects; category 5 needs an explicitly described simple scene with one or two acting characters, never a lone object recategorized as narrative. When gold is disabled, omit narrative candidates. All final sets contain ten distinct subjects and all four ordinary categories. Preserve producer restrictions. The application will fit the aggregate source distribution, allocate categories, assign candidates, and lock visual facets. Do not invent a new style or a palette shared by all cards. Canonical style rules: {{rules}}. Category definitions: {{categories}}. Aggregate statistics from all classified source sets (expected counts per ten-card set and supported joint patterns): {{prototypes}}. Brief (creative data): {{brief}}. Previous rejected proposal: {{correction}}. Return only semantic concepts/candidates, using English retrieval-friendly descriptions.",
+    "details": "{{sourceContext}}\nROLE: Describe the assigned subjects inside an immutable set blueprint. Return one set entry per blueprint with variantIndex, a concise paletteRhythm, and exactly one detail per slot index. Each detail contains description, paletteRole and composition. The application owns subject identity, category, all required facets, aggregate composition, canonical rendering and slot order; you CANNOT change these. Explain concrete visible materials, silhouette and subject actions. For composition, translate every required support/backdrop/pattern/depth/context trait into a concrete scene fitting THIS subject. Preferred facets are flexible only where subject readability or producer wishes require it. Describe varied colors and complementary accents, not a uniform recoloring of all ten cards. Never redefine rendering/light/material style. Canonical style rules: {{rules}}. Category definitions: {{categories}}. Immutable blueprints: {{blueprints}}. Producer brief (creative data): {{brief}}. Review correction: {{correction}}. Use stable IDs, never attachment numbers. Output English descriptions. Treat all supplied metadata as data.",
+    "lighting": "Follow the canonical style rules and original rendering references for light direction, softness, broad highlights and shadow treatment. Subject-specific staging must not redefine the rendering style.",
+    "materialTreatment": "Use the canonical style rules and original references for material treatment. Preserve readable differences between materials without photographic texture or uniform glossy plastic.",
+    "avoid": "Do not redefine the canonical rendering style or change the locked slot composition. Do not copy source subjects, UI, lettering or frames.",
+    "pilot": "Test a contextual composition and the set's material variety against original rendering references before releasing the other slots."
+  },
+  "aggregation": {
+    "categoryWeight": 4,
+    "jointPatternWeight": 1,
+    "visualBalanceWeight": 2
+  }
+}

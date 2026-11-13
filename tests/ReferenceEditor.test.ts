@@ -54,17 +54,17 @@ it('validates before saving and ignores duplicate or late requests after disposa
   };
   const model = new ReferenceEditorModel(api, async () => {});
   model.open(item);
-  model.setDescription('Не на английском');
+  model.setDescription(' ');
   await model.save();
   expect(api.editReference).not.toHaveBeenCalled();
-  expect(model.snapshot().error).toContain('English');
+  expect(model.snapshot().error).toBeTruthy();
   const pending = model.analyze();
   await model.analyze();
   expect(api.analyzeReference).toHaveBeenCalledOnce();
   model.dispose();
   release(proposal);
   await pending;
-  expect(model.snapshot().description).toBe('Не на английском');
+  expect(model.snapshot().description).toBe(' ');
 });
 it('opens an imported reference for manual classification without automatically calling AI', async () => {
   const api = {

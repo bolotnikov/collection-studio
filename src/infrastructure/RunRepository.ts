@@ -2,10 +2,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Contracts, type Run, type Profile } from '../shared/Contracts';
 import type { RunStore } from '../application/RunStore';
+import { ExecutionJournal } from './ExecutionJournal';
 
 export class RunRepository implements RunStore {
   private writes: Promise<void> = Promise.resolve();
-  constructor(readonly root: string) {}
+  constructor(
+    readonly root: string,
+    private readonly trash: (directory: string) => Promise<void>,
+    private readonly journal?: ExecutionJournal,
+  ) {}
   directory(id: string): string {
     return path.join(this.root, Contracts.id.parse(id));
   }
@@ -20,13 +25,31 @@ export class RunRepository implements RunStore {
     const folder = this.directory(id);
     await fs.mkdir(folder, { recursive: true });
     const file = path.join(folder, 'run.json');
+    let changes: unknown[] = [];
+    if (this.journal) {
+      let previous: unknown = null;
+      try {
+        previous = JSON.parse(await fs.readFile(file, 'utf8'));
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      }
+      const current: unknown = JSON.parse(snapshot);
+      changes = ExecutionJournal.changes(previous, current);
+    }
     await fs.writeFile(file + '.tmp', snapshot);
     await fs.rename(file + '.tmp', file);
+    if (changes.length) await this.journal?.record(id, 'Production workflow', 'state.changed', changes);
   }
   async get(id: string): Promise<Run> {
     return Contracts.run.parse(
       JSON.parse(await fs.readFile(path.join(this.directory(id), 'run.json'), 'utf8')),
     );
+  }
+  async remove(id: string): Promise<void> {
+    const folder = this.directory(id);
+    const operation = this.writes.then(() => this.trash(folder));
+    this.writes = operation.catch(() => {});
+    await operation;
   }
   async saveProfile(id: string, profile: Profile): Promise<void> {
     const file = path.join(this.directory(id), 'style-profile.json');

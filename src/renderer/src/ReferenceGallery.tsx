@@ -1,3 +1,4 @@
+import { CatalogPolicy } from '../../shared/CatalogPolicy';
 import { Plus, Pencil, LoaderCircle } from 'lucide-react';
 import type { StudioApi } from '../../shared/Contracts';
 import { useReferenceEditor } from './viewmodels/useReferenceEditor';
@@ -58,7 +59,7 @@ export function ReferenceGallery({
           .filter(
             (category) =>
               category === 'all' ||
-              ['1', '2', '3', '4'].includes(category) ||
+              ['1', '2', '3', '4', '5'].includes(category) ||
               LibraryFilter.count(items, category) > 0,
           )
           .map((category) => (
@@ -105,7 +106,41 @@ export function ReferenceGallery({
                   </span>
                 </div>
                 <figcaption>
-                  <strong lang="en">{item.title}</strong>
+                  <strong>{item.title}</strong>
+                  {item.observation && (
+                    <div className="reference-facets" title={item.observation.categoryRationale}>
+                      <span>
+                        {t(
+                          (
+                            {
+                              plain: 'Plain backdrop',
+                              gradient: 'Gradient backdrop',
+                              'surface-continuation': 'Surface fills backdrop',
+                              pattern: 'Patterned backdrop',
+                              environment: 'Environmental backdrop',
+                            } as const
+                          )[item.observation.facets.backdrop],
+                        )}
+                      </span>
+                      <span>
+                        {t(
+                          (
+                            {
+                              none: 'Floating',
+                              'simple-plane': 'Simple support',
+                              'material-surface': 'Material surface',
+                              environment: 'Integrated environment',
+                            } as const
+                          )[item.observation.facets.support],
+                        )}
+                      </span>
+                      {item.observation.confidence < CatalogPolicy.values.minimumReferenceConfidence && (
+                        <span className="inline-error" title={item.observation.uncertainties.join('\n')}>
+                          {t('Needs classification review')}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <button
                     type="button"
                     disabled={disabled || Boolean(editor.busy)}

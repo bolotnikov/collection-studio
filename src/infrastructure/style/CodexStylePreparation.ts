@@ -1,3 +1,5 @@
+import { ReferenceCoverageSelector } from '../../domain/ReferenceCoverageSelector';
+import { PreparationCache } from '../PreparationCache';
 import baseStyle from '../../../resources/style-profile.json';
 import legacyPrompts from '../../../resources/legacy-analysis-prompts.json';
 import { RetrievalConfiguration } from '../../shared/RetrievalConfiguration';
@@ -17,12 +19,14 @@ import type { PreparedStyle, StylePreparationPort } from '../../application/styl
 import { ReferenceRetriever } from '../../application/style/ReferenceRetriever';
 import { PromptBuilder } from '../../application/PromptBuilder';
 import { CodexRunner } from '../CodexRunner';
+import { SetComposition } from '../../domain/SetComposition';
 
 /** Bounded specialist tasks: brief analysis, cached library analysis, visual selection and direction. */
 export class CodexStylePreparation implements StylePreparationPort {
   private initialization: Promise<void> | null = null;
   private readonly analyses = new Map<string, ReferenceAnalysis>();
   private readonly retriever: ReferenceRetriever;
+  private readonly preparedCatalog: boolean;
   private readonly briefs = new Map<string, Promise<string>>();
   private readonly preparations = new Map<string, Promise<PreparedStyle>>();
   constructor(
@@ -37,8 +41,9 @@ export class CodexStylePreparation implements StylePreparationPort {
     private readonly categoryDefinitions: Profile['categories'] = baseStyle.categories,
   ) {
     this.retriever = new ReferenceRetriever(retrievalConfig);
+    this.preparedCatalog = library.some((item) => item.origin === 'anchor' && Boolean(item.observation));
   }
-  private digest(value: string): string {
+  private digest(value: string | Buffer): string {
     return createHash('sha256').update(value).digest('hex');
   }
   private filename(item: LibraryItem): string {
@@ -84,6 +89,50 @@ export class CodexStylePreparation implements StylePreparationPort {
     }
   }
   private async cached(item: LibraryItem): Promise<ReferenceAnalysis | null> {
+    if (item.observation) {
+      const { observation } = item;
+      return this.curated(item, {
+        eligible: observation.category !== '5',
+        exclusionReason:
+          observation.category === '5'
+            ? 'Narrative character card; ordinary production excludes category 5.'
+            : '',
+        subject: observation.subject,
+        category: observation.category,
+        materials: observation.facets.materials,
+        silhouette: observation.facets.silhouette,
+        rendering: observation.facets.rendering,
+        lighting: observation.facets.lighting,
+        palette: observation.facets.palette.join(', '),
+        background: JSON.stringify({
+          support: observation.facets.support,
+          backdrop: observation.facets.backdrop,
+          pattern: observation.facets.pattern,
+          depth: observation.facets.depth,
+        }),
+        usefulPrinciples: [observation.categoryRationale],
+        avoidCopying: ['Source subject identity'],
+      });
+    }
+    if (item.origin === 'user' && this.preparedCatalog) {
+      const category = item.metadata?.category ?? item.category;
+      if (category === 'unknown') return null;
+      // Supplemental art is visually screened during selection; metadata is not invented facet evidence.
+      return {
+        eligible: item.approved,
+        exclusionReason: '',
+        category,
+        subject: item.metadata?.description ?? item.title,
+        materials: [],
+        silhouette: '',
+        rendering: '',
+        lighting: '',
+        palette: '',
+        background: '',
+        usefulPrinciples: [],
+        avoidCopying: [],
+      };
+    }
     if (this.analyses.has(item.id)) return this.curated(item, this.analyses.get(item.id) ?? null);
     try {
       const value = StyleContracts.analysis.parse(JSON.parse(await this.readCachedAnalysis(item)));
@@ -99,7 +148,12 @@ export class CodexStylePreparation implements StylePreparationPort {
     return {
       ...analysis,
       subject: item.metadata.description,
-      category: analysis.category === '5' ? '5' : item.metadata.category,
+      category: this.preparedCatalog
+        ? item.metadata.category
+        : analysis.category === '5'
+          ? '5'
+          : item.metadata.category,
+      eligible: this.preparedCatalog ? item.metadata.category !== '5' : analysis.eligible,
     };
   }
   /** Read-only display projection; never invokes a model or mutates the source catalog. */
@@ -114,8 +168,7 @@ export class CodexStylePreparation implements StylePreparationPort {
             title: item.metadata?.description ?? item.title,
             tags: [...item.tags],
           };
-        const category =
-          item.metadata?.category ?? (analysis.category === '5' ? item.category : analysis.category);
+        const category = item.metadata?.category ?? analysis.category;
         const tags = [
           ...new Set([
             ...item.tags,
@@ -147,7 +200,10 @@ export class CodexStylePreparation implements StylePreparationPort {
     onProgress?: (indexed: number, total: number) => Promise<void>,
   ): Promise<{ indexed: number; total: number }> {
     const items = this.library.filter(
-      (r) => (r.origin === 'anchor' || r.approved) && !r.tags.includes('exclude:ordinary-card-generation'),
+      (r) =>
+        (r.origin === 'anchor' ||
+          (r.approved && (!this.preparedCatalog || Boolean(r.metadata || r.category !== 'unknown')))) &&
+        !r.tags.includes('exclude:ordinary-card-generation'),
     );
     const missing: LibraryItem[] = [];
     for (const item of items) if (!(await this.cached(item))) missing.push(item);
@@ -224,23 +280,35 @@ export class CodexStylePreparation implements StylePreparationPort {
     return structuredClone(analysis);
   }
   private brief(brief: Brief): Promise<string> {
-    const key = JSON.stringify([brief.theme, brief.wishes, this.policy.rules]);
+    const key = JSON.stringify([
+      'brief-v1',
+      this.model,
+      this.prompts.values['CodexStylePreparation.brief'],
+      brief.theme,
+      brief.wishes,
+      this.policy.rules,
+    ]);
     const existing = this.briefs.get(key);
     if (existing) return existing;
-    const task = this.runner
-      .run(
-        this.prompts.render('CodexStylePreparation.brief', {
-          brief: JSON.stringify({ theme: brief.theme, wishes: brief.wishes }),
-          rules: JSON.stringify(this.policy.rules),
-        }),
-        z.object({
-          direction: z.string(),
-          retrievalTerms: z.array(z.string()),
-          requirements: z.array(z.string()),
-        }),
-      )
-      .then(({ value }) => JSON.stringify(value));
+    const schema = z.object({
+      direction: z.string(),
+      retrievalTerms: z.array(z.string()),
+      requirements: z.array(z.string()),
+    });
+    const task = new PreparationCache(path.join(this.cacheRoot, 'briefs'))
+      .getOrCreate(key, schema, async () => {
+        const { value } = await this.runner.run(
+          this.prompts.render('CodexStylePreparation.brief', {
+            brief: JSON.stringify({ theme: brief.theme, wishes: brief.wishes }),
+            rules: JSON.stringify(this.policy.rules),
+          }),
+          schema,
+        );
+        return value;
+      })
+      .then((value) => JSON.stringify(value));
     this.briefs.set(key, task);
+    void task.catch(() => this.briefs.delete(key));
     return task;
   }
   async prepare(
@@ -250,18 +318,30 @@ export class CodexStylePreparation implements StylePreparationPort {
     profile: Profile,
     correction = '',
   ): Promise<PreparedStyle> {
+    const knowledgeContext = profile.knowledgeContext
+      ? { ...profile.knowledgeContext, createdAt: undefined }
+      : undefined;
+    const visualCatalog = profile.visualCatalog
+      ? { ...profile.visualCatalog, createdAt: undefined }
+      : undefined;
     const key = this.digest(
       JSON.stringify([
-        brief.theme,
-        brief.wishes,
+        'prepared-style-v1',
+        this.model,
+        this.prompts.values,
+        this.categoryDefinitions,
+        brief,
         card.subject,
         card.description,
         card.category,
+        card.role,
         card.visual,
         variant.artContract,
         correction,
-        profile.knowledgeContext,
+        { ...profile, knowledgeContext, visualCatalog },
+        variant.title,
         variant.concept,
+        variant.cards.map(({ subject, category, role, visual }) => ({ subject, category, role, visual })),
         profile.rules,
         this.policy,
         this.library.map((r) => [r.id, r.sha256, r.approved, r.metadata]),
@@ -269,15 +349,58 @@ export class CodexStylePreparation implements StylePreparationPort {
     );
     let task = this.preparations.get(key);
     if (!task) {
-      task = this.prepareOnce(brief, card, variant, profile, correction);
+      task = this.restoreOrPrepare(key, brief, card, variant, profile, correction);
       this.preparations.set(key, task);
+      void task.catch(() => this.preparations.delete(key));
     }
     const prepared = await task;
+    await this.verifyPrepared(prepared);
     return {
       ...prepared,
       prompt:
         prepared.prompt + (correction ? this.prompts.render('correction.revision', { correction }) : ''),
     };
+  }
+  private async restoreOrPrepare(
+    key: string,
+    brief: Brief,
+    card: Card,
+    variant: Variant,
+    profile: Profile,
+    correction: string,
+  ): Promise<PreparedStyle> {
+    const file = path.join(this.cacheRoot, 'preparations', `${key}.json`);
+    const schema = z.object({
+      prompt: z.string().min(1),
+      references: z.array(z.string()),
+      evidence: StyleContracts.evidence,
+    });
+    let prepared: PreparedStyle;
+    try {
+      prepared = schema.parse(JSON.parse(await fs.readFile(file, 'utf8')));
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      prepared = await this.prepareOnce(brief, card, variant, profile, correction);
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      const temporary = `${file}.${randomUUID()}.tmp`;
+      await fs.writeFile(temporary, JSON.stringify(prepared));
+      await fs.rename(temporary, file);
+    }
+    return prepared;
+  }
+  private async verifyPrepared(prepared: PreparedStyle): Promise<void> {
+    if (prepared.references.length !== prepared.evidence.references.length)
+      throw new Error('Prepared reference evidence is incomplete.');
+    for (const [index, reference] of prepared.evidence.references.entries()) {
+      const item = this.library.find((item) => item.id === reference.id);
+      if (
+        !item ||
+        this.filename(item) !== prepared.references[index] ||
+        reference.sha256 !== item.sha256 ||
+        this.digest(await fs.readFile(this.filename(item))) !== reference.sha256
+      )
+        throw new Error('Prepared reference identity mismatch.');
+    }
   }
   private async prepareOnce(
     brief: Brief,
@@ -287,7 +410,17 @@ export class CodexStylePreparation implements StylePreparationPort {
     correction = '',
   ): Promise<PreparedStyle> {
     await this.initialize();
-    const direction = await this.brief(brief);
+    if (profile.contextOptimization && !variant.artContract)
+      throw new Error('Accepted art contract is required to reuse the planned brief.');
+    const direction = profile.contextOptimization
+      ? JSON.stringify({
+          theme: brief.theme,
+          wishes: brief.wishes,
+          concept: variant.concept,
+          story: variant.artContract?.story,
+          constraints: variant.artContract?.avoid,
+        })
+      : await this.brief(brief);
     const query = `${direction} ${variant.concept} ${card.subject} ${card.description} ${card.role} ${JSON.stringify(card.visual ?? {})} ${correction}`;
     const analyses = new Map<string, ReferenceAnalysis>();
     for (const item of this.library) {
@@ -295,13 +428,21 @@ export class CodexStylePreparation implements StylePreparationPort {
       if (analysis) analyses.set(item.id, analysis);
     }
     const effective = (await this.catalog()).filter(
-      (item) => analyses.get(item.id)?.eligible && analyses.get(item.id)?.category !== '5',
+      (item) =>
+        (analyses.get(item.id)?.eligible && analyses.get(item.id)?.category !== '5') ||
+        (card.category === '5' && analyses.get(item.id)?.category === '5'),
     );
     const ranked = this.retriever.rank(query, card.category, effective, analyses, 24);
+    const target = SetComposition.target(variant, card);
+    const compositionIds = target
+      ? effective.filter((item) => SetComposition.reference(item, target)).map((item) => item.id)
+      : undefined;
     const categoryCandidates = this.retriever.rank(
       query,
       card.category,
-      effective.filter((item) => item.category === card.category),
+      effective.filter(
+        (item) => item.category === card.category && (!compositionIds || compositionIds.includes(item.id)),
+      ),
       analyses,
       8,
     );
@@ -333,6 +474,7 @@ export class CodexStylePreparation implements StylePreparationPort {
       Math.min(12, this.policy.referenceLimit + 4),
       card.category,
       commonAnchorIds,
+      compositionIds,
     );
     for (const item of visualPool) {
       const actual = createHash('sha256')
@@ -340,6 +482,15 @@ export class CodexStylePreparation implements StylePreparationPort {
         .digest('hex');
       if (actual !== item.sha256) throw new Error(`Reference integrity mismatch: ${item.id}`);
     }
+    const coverageProtocol = this.prompts.values['reference.coverage.v1'];
+    const baseEntry = StyleContracts.selection.shape.selections.element;
+    const entrySchema = coverageProtocol
+      ? target
+        ? baseEntry.extend({ coverage: StyleContracts.referenceCoverage, compositionMatches: z.boolean() })
+        : baseEntry.extend({ coverage: StyleContracts.referenceCoverage })
+      : target
+        ? baseEntry.extend({ compositionMatches: z.boolean() })
+        : baseEntry;
     const selection = (
       await this.runner.run(
         this.prompts.render('CodexStylePreparation.prepareOnce', {
@@ -350,6 +501,7 @@ export class CodexStylePreparation implements StylePreparationPort {
             category: card.category,
             categoryDefinition: profile.categories[card.category],
             role: card.role,
+            compositionTarget: target,
           }),
           setConcept: variant.concept,
           artContract: JSON.stringify(variant.artContract ?? null),
@@ -366,10 +518,11 @@ export class CodexStylePreparation implements StylePreparationPort {
               title: r.title,
               origin: r.origin,
               analysis: analyses.get(r.id),
+              observedFacets: r.observation?.facets,
             })),
           ),
-        }),
-        StyleContracts.selection,
+        }) + (coverageProtocol ? '\n' + coverageProtocol : ''),
+        StyleContracts.selection.extend({ selections: z.array(entrySchema) }),
         visualPool.map((r) => this.filename(r)),
       )
     ).value;
@@ -379,17 +532,30 @@ export class CodexStylePreparation implements StylePreparationPort {
       selection.selections.some((entry) => !visualPool.some((item) => item.id === entry.id))
     )
       throw new Error('Visual selection must explain every candidate exactly once.');
-    const selected = this.retriever.select(
-      selection.selections.map((entry) => {
-        const item = visualPool.find((candidate) => candidate.id === entry.id);
-        if (!item) throw new Error('Unknown reference ID');
-        return item;
-      }),
-      selection.selections.map((s) => s.id),
-      this.policy.referenceLimit,
-      card.category,
-      commonAnchorIds,
-    );
+    const selected = coverageProtocol
+      ? new ReferenceCoverageSelector().select(
+          visualPool,
+          selection.selections,
+          this.policy.referenceLimit,
+          card.category,
+          commonAnchorIds,
+          compositionIds,
+          card.visual?.materials ?? [],
+        )
+      : this.retriever.select(
+          selection.selections.map((entry) => {
+            const item = visualPool.find((candidate) => candidate.id === entry.id);
+            if (!item) throw new Error('Unknown reference ID');
+            return item;
+          }),
+          selection.selections.map((s) => s.id),
+          this.policy.referenceLimit,
+          card.category,
+          commonAnchorIds,
+          compositionIds?.filter(
+            (id) => selection.selections.find((entry) => entry.id === id)?.compositionMatches === true,
+          ),
+        );
     const evidence = StyleContracts.evidence.parse({
       version: 'style-v2',
       query,
@@ -399,7 +565,9 @@ export class CodexStylePreparation implements StylePreparationPort {
         category: r.category,
         purposes: [
           commonAnchorIds.includes(r.id) ? 'shared-style' : 'supporting',
-          ...(r.category === card.category ? ['category'] : []),
+          ...(r.category === card.category && (!compositionIds || compositionIds.includes(r.id))
+            ? ['category']
+            : []),
         ],
         sha256: r.sha256,
         source: r.source,

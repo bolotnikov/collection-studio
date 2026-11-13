@@ -4,6 +4,8 @@ A desktop art-production tool for collectible mobile-game card sets. Enter a set
 
 English and Russian interface with persistent **Dark / Light** palettes inspired by Photoshop. **Settings → Interface** offers device language (default), English or Russian. Unsupported device languages fall back to English. Built with Electron, React and strict TypeScript.
 
+**Style** contains the shared rendering rules and operational image guidance. Edit each category's canonical generation rule inside **Categories**; inspect set structure and source statistics under **Sets**. Rule text has one canonical Russian source, independent of interface language. Statistics show an explanatory tooltip on hover, keyboard focus or click; secondary attributes are grouped in expandable sections.
+
 ## Run
 
 ```sh
@@ -15,6 +17,8 @@ npm start
 Node.js 22+ and macOS are required for the validated configuration. `npm run dev` enables development reloads. If package-manager policy disables dependency install scripts, run `node node_modules/electron/install.js` once.
 
 The local macOS bundle is produced by `npm run package:mac` at `release/mac-arm64/Collection Studio.app`. It is an unsigned local build, not a notarized distribution. The bundle includes all 160 private source card references for local evaluation; do not publish that bundle or the supplied art without permission.
+
+Keep only this current bundle under `release`; temporary packaging belongs outside that directory. The project list offers a Trash button with confirmation. Deletion moves the complete project folder to the system Trash and removes it from history. Library references and separately exported files remain. Pause generation and wait for in-flight requests to finish before deleting a project.
 
 ## Generation providers
 
@@ -137,7 +141,7 @@ Use `--index-only` to prepare the library without generating images. `--repair` 
 
 ## Complete assignment context
 
-Run `npm run prepare:knowledge` after importing the complete `Art Sources` export. It prepares seven original documents and all 25 non-card images under the ignored `resources/knowledge/` folder. This private corpus is packaged locally and deliberately omitted from the source-only archive. New runs use normalized English production requirements and active editable style rules. Original documents remain archived for provenance; reference inventories and delivery material remain separately identified.
+Run `npm run prepare:knowledge` after importing the complete `Art Sources` export. It prepares seven original documents and all 25 non-card images under the ignored `resources/knowledge/` folder. This private corpus is packaged locally and deliberately omitted from the source-only archive. New runs use operational production requirements and active canonical Russian style rules. Original documents remain archived for provenance; reference inventories and delivery material remain separately identified.
 
 Sixteen complete set sheets and five composition figures are analyzed once and cached. Semantic selection chooses relevant original sets. Planning and whole-set review receive actual set images and category figures; card generation receives derived set principles and the applicable composition figure. Category 5 is an exclusion example, and result templates never become positive style references. The Library's **Set references** and **Generation rules** views explain their operative roles.
 
@@ -149,6 +153,18 @@ The application now uses MVVM presentation and a reviewed-plan/pilot production 
 
 Clean whole-set references are prepared automatically by `npm run prepare:knowledge` (or `npm run prepare:clean-sets` separately). Fifteen source sets are reconstructed from original card PNGs with verified slot membership; six complete ordinary sets are primary references for the no-gold task. New final reviews compare candidate and reference sheets in the same neutral 5×2 layout, with original game windows as secondary context. See [clean whole-set review](docs/APPLICATION_ARCHITECTURE.md#clean-whole-set-review-set-v3).
 
-Style library navigation contains Reference art, Set references and Generation rules. Original, imported and accepted generated images share one category-filtered gallery with corner badges. Every reference has an editor for its English description and composition category, with optional visual AI suggestions. Saved metadata overrides inferred labels in both display and retrieval; source pixels and provenance remain intact. Rendering rules and category definitions can be edited in **Generation rules** and are stored as one English source of truth; UI language does not translate generator rules. The optional **AI** button beside art direction drafts a short English description from the selected set theme using the current provider.
+Style library navigation contains Reference art, Set references and Generation rules. Original, imported and accepted generated images share one category-filtered gallery with corner badges. Every reference has an editor for its description and composition category, with optional visual AI suggestions. Saved metadata overrides inferred labels in both display and retrieval; source pixels and provenance remain intact. Rendering rules and category definitions can be edited in **Generation rules** and are stored as one Russian source of truth; UI language does not translate generator rules. The optional **AI** button beside art direction drafts a short English description from the selected set theme using the current provider.
 
 For an offline payload/integrity audit using the local private corpus, run `npx tsx scripts/audit-pipeline.ts`. It captures ten production-shaped requests with explicit deterministic/replay labels, performs no network/model/image-generation calls, and writes `output/pipeline-audit/report.json`. See [pipeline audit](docs/PIPELINE_AUDIT.md) for corrected findings, gate coverage and limits; an offline pass does not establish artistic quality.
+
+Prepared visual cataloging, explicit synchronization, source lineage and runtime composition contracts are documented in [Knowledge catalog](docs/KNOWLEDGE_CATALOG.md). Developer entry points are `npm run kb:sync`, `npm run kb:analyze-cards` and `npm run kb:analyze-sets`. The private prepared index is packaged with the art resources. New projects do not perform source-library analysis.
+
+### Knowledge workspace
+
+Use **Cards**, **Sets**, and **Categories** to inspect and maintain the working knowledge base. Cards show only artwork until opened; category and abstract pattern filters share the same machine facets used by composition planning and reference retrieval. Entity details support editing and explicit reanalysis; all three sections support adding and removing source entities. Sets expose ordered membership and observed per-set composition ranges. Source bytes and historical production snapshots are retained. Generation rules are edited once in Settings, separately from UI localization. The creation form includes **Include gold cards**, disabled by default.
+
+New-set composition is fitted to joint-pattern statistics across the full prepared source corpus, with original-reference coverage per slot. No single source layout is selected for new runs. See [aggregate planning](docs/AGGREGATE_COMPOSITION_PLANNING.md); existing runs keep their frozen planning protocol.
+
+The header language selector and Settings share the same language preference. Production settings expose revisions per card only. New work uses 5/5 style acceptance and a maximum of eight selected card references, chosen by required role/material coverage rather than by filling the limit. Historical run policies remain frozen.
+
+The sidebar keeps **New set** and project history separate from the collapsible **Knowledge base** administration group (Cards, Sets, Categories, Style). Inactive projects offer **Download execution log**; production ZIPs also include the Markdown journal. See [Execution log](docs/EXECUTION_LOG.md) for captured evidence, historical-run limitations and credential/image redaction.

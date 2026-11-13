@@ -1,5 +1,6 @@
 import { RetrievalConfiguration } from '../../shared/RetrievalConfiguration';
 import type { LibraryItem, ReferenceAnalysis } from '../../shared/StyleContracts';
+import { CatalogPolicy } from '../../shared/CatalogPolicy';
 
 type SearchField = { weight: number; terms: string[] };
 type SearchDocument = { item: LibraryItem; analysis: ReferenceAnalysis | undefined; fields: SearchField[] };
@@ -25,9 +26,10 @@ export class ReferenceRetriever {
     const documents = this.unique(items)
       .filter(
         (item) =>
-          this.eligible(item) &&
-          analyses.get(item.id)?.eligible !== false &&
-          analyses.get(item.id)?.category !== '5',
+          this.eligible(item, category === '5') &&
+          (analyses.get(item.id)?.eligible !== false ||
+            (category === '5' && analyses.get(item.id)?.category === '5')) &&
+          (category === '5' || analyses.get(item.id)?.category !== '5'),
       )
       .map((item): SearchDocument => {
         const analysis = analyses.get(item.id);
@@ -94,16 +96,23 @@ export class ReferenceRetriever {
     limit: number,
     category?: string,
     anchorIds: string[] = [],
+    compositionIds?: string[],
   ): LibraryItem[] {
     this.validateLimit(limit);
     if (limit < 4) throw new Error('Reference selection requires room for four original anchors.');
     const unique = this.unique(ranked);
     const byId = new Map(unique.map((item) => [item.id, item]));
-    const eligible = unique.filter((item) => this.eligible(item));
+    const eligible = unique.filter((item) => this.eligible(item, category === '5'));
     const selected: LibraryItem[] = [];
     const usedHashes = new Set<string>();
     const add = (item: LibraryItem | undefined) => {
-      if (!item || !this.eligible(item) || usedHashes.has(item.sha256) || selected.length >= limit) return;
+      if (
+        !item ||
+        !this.eligible(item, category === '5') ||
+        usedHashes.has(item.sha256) ||
+        selected.length >= limit
+      )
+        return;
       if (
         item.origin === 'user' &&
         selected.filter((r) => r.origin === 'user').length >= Math.floor(limit / 4)
@@ -114,10 +123,25 @@ export class ReferenceRetriever {
     };
     for (const id of anchorIds) add(eligible.find((item) => item.id === id && item.origin === 'anchor'));
     if (category) {
-      const matching = eligible.filter((item) => item.origin === 'anchor' && item.category === category);
-      for (const item of matching.slice(0, 2)) add(item);
-      if (selected.filter((item) => item.origin === 'anchor' && item.category === category).length < 2)
-        throw new Error(`At least two original category ${category} references are required.`);
+      const minimum = compositionIds ? CatalogPolicy.values.minimumCompositionReferences : 2;
+      const matching = eligible.filter(
+        (item) =>
+          item.origin === 'anchor' &&
+          item.category === category &&
+          (!compositionIds || compositionIds.includes(item.id)),
+      );
+      for (const item of matching.slice(0, minimum)) add(item);
+      if (
+        selected.filter(
+          (item) =>
+            item.origin === 'anchor' &&
+            item.category === category &&
+            (!compositionIds || compositionIds.includes(item.id)),
+        ).length < minimum
+      )
+        throw new Error(
+          `At least ${minimum === 2 ? 'two' : minimum} original category ${category} references are required.`,
+        );
       for (const item of eligible.filter((item) => item.origin === 'anchor')) {
         if (selected.filter((r) => r.origin === 'anchor').length >= 4) break;
         add(item);
@@ -137,8 +161,11 @@ export class ReferenceRetriever {
     return selected;
   }
 
-  private eligible(item: LibraryItem): boolean {
-    return item.approved && !item.tags.includes('exclude:ordinary-card-generation');
+  private eligible(item: LibraryItem, allowGold = false): boolean {
+    return (
+      item.approved &&
+      (!item.tags.includes('exclude:ordinary-card-generation') || (allowGold && item.category === '5'))
+    );
   }
   private unique(items: LibraryItem[]): LibraryItem[] {
     const seen = new Set<string>();

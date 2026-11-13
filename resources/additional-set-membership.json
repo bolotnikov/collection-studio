@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "method": "developer-visual-correspondence-v1",
+  "sets": [
+    {
+      "id": "knowledge-ca056a3759c876638d4eebc1",
+      "sourceSha256": "ca056a3759c876638d4eebc19ad09480a201fef8c8c11b973a36c020d614db05",
+      "cards": [
+        {
+          "slot": 1,
+          "id": "3458764679576194409",
+          "sha256": "d32b91a1a24ab2a6cdd401061fd3d7f1352b85cff34d1403716a9a8eb7b7e691"
+        },
+        {
+          "slot": 2,
+          "id": "3458764679576194410",
+          "sha256": "564e07b6d807542fc8a77dd225f18a74f5080bb29f31964916f8ebf24eaa5800"
+        },
+        {
+          "slot": 3,
+          "id": "3458764679576194415",
+          "sha256": "722be1c8df296f27f62946ef23aaf55fcba4d65ba88a7e729ce69a34470697d3"
+        },
+        {
+          "slot": 4,
+          "id": "3458764679576194411",
+          "sha256": "10080c8ce5dc655f3319bdd139edcd6d985de27162da0dbeaee5f5622a6be846"
+        },
+        {
+          "slot": 5,
+          "id": "3458764679576194412",
+          "sha256": "4aee0804779ebc66f1a697c0102389b4c7e616db0e05ff44e644427a8d02d6aa"
+        },
+        {
+          "slot": 6,
+          "id": "3458764679576194414",
+          "sha256": "6bcb54ce47c80c2c32a6d77d5346489c17e60f00827f8a23680bbb9c084e6b9a"
+        },
+        {
+          "slot": 7,
+          "id": "3458764679576194416",
+          "sha256": "b85270102b28671dabd3470a1c3e849022cfc2171b478b3576dc81c457be8ddf"
+        },
+        {
+          "slot": 8,
+          "id": "3458764679576194417",
+          "sha256": "1065b75af618dfe5d624b1d636062ddce540e05cbb8f956202f87abc8e55929b"
+        },
+        {
+          "slot": 9,
+          "id": "3458764679576194418",
+          "sha256": "7d070594f5dc944b5a9f7cd0fe76d01723d96ad2f660e975a3af26e45d0c83d2"
+        },
+        {
+          "slot": 10,
+          "id": "3458764679576194419",
+          "sha256": "3c8a0c9ed90cc45777faa29cbc361723777044b20ba7427adf5b11276a2437e8"
+        }
+      ]
+    }
+  ]
+}

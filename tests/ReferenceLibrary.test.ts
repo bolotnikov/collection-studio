@@ -208,9 +208,7 @@ it('persists edits to both original and generated art without changing image byt
     description: 'A revised manual description.',
   });
   expect(snapshot.metadata?.category).toBe('3');
-  await expect(
-    reopened.editMetadata({ id: f.anchor.id, category: '1', description: 'Русское описание' }),
-  ).rejects.toThrow('English');
+  await expect(reopened.editMetadata({ id: f.anchor.id, category: '1', description: ' ' })).rejects.toThrow();
   expect(reopened.get(f.anchor.id).metadata?.category).toBe('2');
   await expect(
     reopened.editMetadata({ id: 'missing', category: '1', description: 'A valid description.' }),
@@ -233,4 +231,15 @@ it('imports local images once into the unified catalog and preserves them after 
   await fs.writeFile(path.join(f.runFolder, 'invalid.png'), 'not an image');
   await expect(reopened.importImage(path.join(f.runFolder, 'invalid.png'))).rejects.toThrow();
   expect(reopened.items).toHaveLength(2);
+});
+
+it('uses hidden production defaults for new work while retaining revision limits and authored rules', async () => {
+  const f = await fixture();
+  const old = StyleContracts.policy.parse({ styleThreshold: 4, referenceLimit: 12, maxRepairsPerCard: 3 });
+  await fs.writeFile(path.join(f.storage, 'production-policy.json'), JSON.stringify(old));
+  const reopened = new ReferenceLibrary(f.root, f.storage);
+  await reopened.init(f.resources);
+  expect(reopened.policy).toEqual({ ...old, styleThreshold: 5, referenceLimit: 8 });
+  await reopened.savePolicy({ ...old, maxRepairsPerCard: 1 });
+  expect(reopened.policy).toEqual({ ...old, styleThreshold: 5, referenceLimit: 8, maxRepairsPerCard: 1 });
 });

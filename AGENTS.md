@@ -16,7 +16,7 @@ These rules apply to this application, not to game-engine runtime modules. Follo
 ## Authored content and production workflow
 
 - Store model prompt text in editable JSON configuration, not business orchestration. Templates have explicit validated placeholders; no eval. Keep hard invariants in code and tunable policy/content in validated configuration.
-- Author, edit and persist generator rules in English only, with one canonical source. UI localization must never translate or maintain separate language copies of rule bodies.
+- Author, edit and persist generator rules in one canonical source, initialized in Russian from substantive Miro text. Preserve user edits and historical snapshots during migration. UI localization must never translate or maintain separate language copies of rule bodies. Keep source quotations distinguishable from authored operational guidance.
 - Keep applicable OpenAI image-prompting guidance in `resources/production-requirements.json` and propagate it through planning, generation and verification. Bind reference roles to actual numbered inputs; revisions must identify their previous candidate and preservation constraints. Preserve historical prompt snapshots. See `docs/IMAGE_PROMPTING.md` for scope and verification.
 - Every new set has ten subjects, all four ordinary composition categories, a validated category allocation, a shared art contract and a separately reviewed plan.
 - Generate and verify a pilot before the remaining cards. Failed/unknown review blocks downstream production. Preserve original reference authority, exact-version approvals, bounded repairs and budget limits across pause/resume.
@@ -28,3 +28,4 @@ These rules apply to this application, not to game-engine runtime modules. Follo
 - For code/config changes run npm run typecheck, npm run lint, focused behavioral tests and the applicable build. Exercise gates, interruption, legacy reading and export rather than testing implementation wording.
 - Do not run image generation or resume existing runs as part of routine refactoring. Static/offline checks are the default; clearly report the limits of validation.
 - Do not publish, commit broadly, change shared SDKs or expose private sources/credentials. Stage only intended files when staging is requested.
+- Keep exactly one current packaged release at `release/mac-arm64/Collection Studio.app`. Do not create named release subdirectories. Replace the canonical build only after successful verification; keep temporary packaging outside `release` and remove obsolete builds.

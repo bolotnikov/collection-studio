@@ -1,10 +1,11 @@
 import productionRules from '../../resources/production-rules.json';
 import { z } from 'zod';
 import { StyleRuleContracts } from './StyleRuleContracts';
+import { VisualCatalogContracts } from './VisualCatalogContracts';
 
 export class StyleContracts {
   static readonly referenceMetadata = z.object({
-    category: z.enum(['1', '2', '3', '4']),
+    category: z.enum(['1', '2', '3', '4', '5']),
     description: StyleRuleContracts.line,
   });
   static readonly referenceEdit = StyleContracts.referenceMetadata.extend({ id: z.string().min(1) });
@@ -18,13 +19,14 @@ export class StyleContracts {
     id: z.string().min(1),
     filename: z.string().min(1),
     title: z.string(),
-    category: z.enum(['1', '2', '3', '4', 'unknown']),
+    category: z.enum(['1', '2', '3', '4', '5', 'unknown']),
     sha256: z.string().min(1),
     source: z.string(),
     origin: z.enum(['anchor', 'user']).default('anchor'),
     approved: z.boolean().default(true),
     tags: z.array(z.string()).default([]),
     metadata: StyleContracts.referenceMetadata.optional(),
+    observation: VisualCatalogContracts.observation.optional(),
   });
   static readonly analysis = z.object({
     eligible: z.boolean(),
@@ -40,6 +42,13 @@ export class StyleContracts {
     usefulPrinciples: z.array(z.string()),
     avoidCopying: z.array(z.string()),
   });
+  static readonly referenceCoverage = z.object({
+    useful: z.boolean(),
+    conflict: z.boolean(),
+    rendering: z.boolean(),
+    lighting: z.boolean(),
+    materials: z.array(z.string().min(1)),
+  });
   static readonly selection = z.object({
     selections: z.array(
       z.object({
@@ -48,6 +57,8 @@ export class StyleContracts {
         role: z.string().trim().min(1),
         take: z.string().trim().min(1),
         ignore: z.string().trim().min(1),
+        compositionMatches: z.boolean().optional(),
+        coverage: StyleContracts.referenceCoverage.optional(),
       }),
     ),
     visualDirection: z.string().trim().min(1),
@@ -62,7 +73,7 @@ export class StyleContracts {
     references: z.array(
       z.object({
         id: z.string(),
-        category: z.enum(['1', '2', '3', '4', 'unknown']).optional(),
+        category: z.enum(['1', '2', '3', '4', '5', 'unknown']).optional(),
         purposes: z.array(z.enum(['shared-style', 'category', 'supporting'])).optional(),
         sha256: z.string(),
         source: z.string(),

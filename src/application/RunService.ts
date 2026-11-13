@@ -1,3 +1,6 @@
+import { ContextOptimization } from '../shared/ContextOptimization';
+import { CompositionPlanningContracts } from '../shared/CompositionPlanningContracts';
+import { GenerationContentPolicy } from './GenerationContentPolicy';
 import { RunEdits } from '../domain/RunEdits';
 import type { ActiveRun } from './ActiveRun';
 import { ProductionContext } from './ProductionContext';
@@ -58,13 +61,22 @@ export class RunService {
   }
   async start(input: Brief, settings: Settings, policy?: ProductionPolicy): Promise<Run> {
     return this.whenIdle(async () => {
-      const profile = { ...structuredClone(this.profile), analysisModel: settings.codexModel };
+      let profile = { ...structuredClone(this.profile), analysisModel: settings.codexModel };
       const brief = Contracts.brief.parse(input);
       SetRules.validateBrief(brief);
+      const content = GenerationContentPolicy.apply(profile, policy, Boolean(brief.includeGold));
+      profile = { ...content.profile, analysisModel: settings.codexModel };
+      if (profile.visualCatalog)
+        profile.compositionPlanning ??= structuredClone(CompositionPlanningContracts.defaults);
+      if (profile.visualCatalog && profile.compositionPlanning?.version === 'aggregate-pattern-v1')
+        profile.contextOptimization ??= structuredClone(ContextOptimization.defaults);
+      policy = content.policy;
+      const id = randomUUID();
+      profile.productionRunId = id;
       const provider = this.makeProvider(settings, profile);
       const now = new Date().toISOString();
       const run: Run = {
-        id: randomUUID(),
+        id,
         createdAt: now,
         updatedAt: now,
         brief,
@@ -100,6 +112,7 @@ export class RunService {
     profile: Profile,
     singleCard?: { card: Card; variant: Variant; instruction: string },
   ): void {
+    run.activities = [];
     const active: ActiveRun = {
       run,
       stop: false,
@@ -135,6 +148,14 @@ export class RunService {
     this.active.stop = true;
     await this.publish(this.active.run, 'Pausing the queue. Waiting for in-flight requests to finish.');
   }
+  async remove(id: string): Promise<void> {
+    return this.whenIdle(async () => {
+      const run = await this.repository.get(id);
+      if (['planning', 'generating', 'reviewing'].includes(run.status))
+        throw new Error('Pause generation before deleting a project.');
+      await this.repository.remove(id);
+    });
+  }
   async resume(id: string, policy?: ProductionPolicy): Promise<void> {
     return this.whenIdle(async () => {
       const run = await this.repository.get(id);
@@ -148,6 +169,7 @@ export class RunService {
             c.error = null;
           }
       const savedProfile = await this.repository.getProfile(run.id);
+      savedProfile.productionRunId = run.id;
       this.launch(
         run,
         this.makeProvider(
@@ -175,6 +197,7 @@ export class RunService {
       variant.review = null;
       variant.reviewError = null;
       const savedProfile = await this.repository.getProfile(run.id);
+      savedProfile.productionRunId = run.id;
       this.launch(
         run,
         this.makeProvider(

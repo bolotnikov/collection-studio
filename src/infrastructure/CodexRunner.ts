@@ -3,22 +3,34 @@ import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { z } from 'zod';
 import { ReferenceImagePacker } from './ReferenceImagePacker';
+import { CodexOutputSchema } from './CodexOutputSchema';
+import { ExecutionJournal } from './ExecutionJournal';
 
 export class CodexRunner {
   private static readonly event = z.object({
     type: z.string(),
     usage: z.record(z.string(), z.unknown()).optional(),
     thread_id: z.string().optional(),
+    message: z.string().optional(),
     error: z.object({ message: z.string() }).optional(),
   });
+  private static failureMessage(message: string): string {
+    try {
+      const payload = CodexRunner.event.safeParse(JSON.parse(message));
+      return payload.success ? (payload.data.error?.message ?? payload.data.message ?? message) : message;
+    } catch {
+      return message;
+    }
+  }
   constructor(
     private readonly executable: string,
     private readonly jobsRoot: string,
     private readonly model: string,
     private readonly prompts = new PromptCatalog(),
+    private readonly audit?: { journal: ExecutionJournal; runId: string },
   ) {}
   static async locate(configured = ''): Promise<string> {
     const candidates = configured
@@ -60,12 +72,40 @@ export class CodexRunner {
     schema: z.ZodType<T>,
     images: string[] = [],
     generateImage = false,
+    executor = 'CodexRunner',
+  ): Promise<{ value: T; folder: string; usage: Record<string, unknown> | null; threadId: string | null }> {
+    if (!this.audit) return this.execute(prompt, schema, images, generateImage);
+    return this.audit.journal.capture(
+      this.audit.runId,
+      executor,
+      {
+        model: this.model,
+        mode: generateImage ? 'image' : 'analysis',
+        prompt,
+        attachments: images,
+        schema: new CodexOutputSchema(schema).jsonSchema,
+      },
+      () => this.execute(prompt, schema, images, generateImage),
+      (result) => ({
+        response: result.value,
+        jobFolder: result.folder,
+        usage: result.usage,
+        threadId: result.threadId,
+      }),
+    );
+  }
+  private async execute<T>(
+    prompt: string,
+    schema: z.ZodType<T>,
+    images: string[],
+    generateImage: boolean,
   ): Promise<{ value: T; folder: string; usage: Record<string, unknown> | null; threadId: string | null }> {
     const folder = path.join(this.jobsRoot, randomUUID());
     await fs.mkdir(folder, { recursive: true });
     const schemaFile = path.join(folder, 'schema.json'),
       resultFile = path.join(folder, 'result.json');
-    await fs.writeFile(schemaFile, JSON.stringify(z.toJSONSchema(schema, { target: 'draft-7' })));
+    const outputSchema = new CodexOutputSchema(schema);
+    await fs.writeFile(schemaFile, JSON.stringify(outputSchema.jsonSchema));
     const inputs: string[] = [];
     for (const [index, file] of images.entries()) {
       const destination = path.join(folder, `input-${index + 1}.png`);
@@ -86,6 +126,20 @@ export class CodexRunner {
       ),
     });
     await fs.writeFile(path.join(folder, 'prompt.txt'), instruction);
+    await this.audit?.journal.record(this.audit.runId, 'CodexRunner', 'worker.started', {
+      jobFolder: folder,
+      model: this.model,
+      prompt: instruction,
+      attachments: await Promise.all(
+        attachments.map(async (file, index) => ({
+          image: index + 1,
+          file,
+          sha256: createHash('sha256')
+            .update(await fs.readFile(file))
+            .digest('hex'),
+        })),
+      ),
+    });
     const args = [
       'exec',
       '--ignore-user-config',
@@ -159,21 +213,52 @@ export class CodexRunner {
     const transcript = execution.output;
     await fs.writeFile(path.join(folder, 'events.jsonl'), transcript);
     await fs.writeFile(path.join(folder, 'stderr.log'), execution.errors);
+    if (this.audit) {
+      const events: unknown[] = [];
+      for (const line of transcript.split('\n').filter(Boolean)) {
+        try {
+          events.push(JSON.parse(line));
+        } catch {
+          /* Raw non-JSON output stays in the worker folder. */
+        }
+      }
+      await this.audit.journal.record(this.audit.runId, 'CodexRunner', 'worker.completed', {
+        jobFolder: folder,
+        exitCode: execution.code,
+        timedOut: execution.timedOut,
+        events,
+        stderr: execution.errors,
+      });
+    }
     if (execution.timedOut)
       throw new Error(
         'Codex did not finish within 10 minutes. Generation outcome is unknown; automatic retry is disabled.',
       );
-    if (execution.code !== 0)
-      throw new Error(`Codex CLI exited with code ${execution.code}: ${execution.errors.slice(-1600)}`);
+    let failure: string | null = null;
     for (const line of transcript.split('\n').filter(Boolean)) {
-      const event = CodexRunner.event.safeParse(JSON.parse(line));
+      let payload: unknown;
+      try {
+        payload = JSON.parse(line);
+      } catch {
+        // Preserve non-JSON output in the transcript while looking for structured diagnostics.
+        continue;
+      }
+      const event = CodexRunner.event.safeParse(payload);
       if (!event.success) continue;
       if (event.data.usage) usage = event.data.usage;
       if (event.data.thread_id) threadId = event.data.thread_id;
-      if (event.data.type === 'turn.failed')
-        throw new Error(event.data.error?.message ?? 'Codex task failed.');
+      if (event.data.type === 'turn.failed' || event.data.type === 'error') {
+        const message = event.data.error?.message ?? event.data.message;
+        if (message) failure = CodexRunner.failureMessage(message);
+        else failure ??= 'Codex task failed.';
+      }
     }
-    const value = schema.parse(JSON.parse(await fs.readFile(resultFile, 'utf8')));
+    if (execution.code !== 0)
+      throw new Error(
+        `Codex CLI exited with code ${execution.code}: ${failure ?? (execution.errors.trim().slice(-1600) || 'No diagnostic message was returned.')}`,
+      );
+    if (failure) throw new Error(failure);
+    const value = outputSchema.parse(JSON.parse(await fs.readFile(resultFile, 'utf8')));
     if (packing) usage = { ...usage, referencePacking: packing.manifest };
     return { value, folder, usage, threadId };
   }

@@ -1,3 +1,8 @@
+import {
+  CompositionPlanningContracts,
+  type CompositionBlueprint,
+} from '../shared/CompositionPlanningContracts';
+import { CompositionPlanningPrompts } from '../application/prompts/CompositionPlanningPrompts';
 import type { ArtDirectionPort } from '../application/ArtDirectionPort';
 import { PromptCatalog } from '../application/prompts/PromptCatalog';
 import { SetContract } from '../shared/SetContract';
@@ -17,8 +22,9 @@ export class OpenAiProvider implements GenerationPort, ArtDirectionPort {
     readonly imageModel: string,
     readonly textModel: string,
     private readonly prompts = new PromptCatalog(),
+    requestFetch?: typeof fetch,
   ) {
-    this.client = new OpenAI({ apiKey, maxRetries: 0, timeout: 240_000 });
+    this.client = new OpenAI({ apiKey, maxRetries: 0, timeout: 240_000, fetch: requestFetch });
   }
   async check(): Promise<string> {
     await this.client.models.retrieve(this.imageModel);
@@ -52,9 +58,59 @@ export class OpenAiProvider implements GenerationPort, ArtDirectionPort {
           ],
         },
       ],
-      text: { format: zodTextFormat(Contracts.productionPlan, 'collection_plan') },
+      text: {
+        format: zodTextFormat(
+          profile.visualCatalog ? Contracts.preparedProductionPlan : Contracts.productionPlan,
+          'collection_plan',
+        ),
+      },
     });
     if (!response.output_parsed) throw new Error('Planner did not return a structured plan.');
+    return response.output_parsed;
+  }
+  async proposeSubjects(brief: Brief, profile: Profile, references: string[], correction: string) {
+    const response = await this.client.responses.parse({
+      model: this.textModel,
+      store: false,
+      input: [
+        {
+          role: 'user',
+          content: [
+            { type: 'input_text', text: CompositionPlanningPrompts.subjects(brief, profile, correction) },
+            ...(await Promise.all(references.map((file) => this.inputImage(file)))),
+          ],
+        },
+      ],
+      text: { format: zodTextFormat(CompositionPlanningContracts.concepts, 'semantic_concepts') },
+    });
+    if (!response.output_parsed) throw new Error('Semantic concepts were not returned.');
+    return response.output_parsed;
+  }
+  async describeComposition(
+    brief: Brief,
+    profile: Profile,
+    blueprints: CompositionBlueprint[],
+    references: string[],
+    correction: string,
+  ) {
+    const response = await this.client.responses.parse({
+      model: this.textModel,
+      store: false,
+      input: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: CompositionPlanningPrompts.details(brief, profile, blueprints, correction),
+            },
+            ...(await Promise.all(references.map((file) => this.inputImage(file)))),
+          ],
+        },
+      ],
+      text: { format: zodTextFormat(CompositionPlanningContracts.details, 'composition_details') },
+    });
+    if (!response.output_parsed) throw new Error('Slot descriptions were not returned.');
     return response.output_parsed;
   }
   async reviewPlan(brief: Brief, variant: Plan['variants'][number], profile: Profile, references: string[]) {
@@ -122,7 +178,12 @@ export class OpenAiProvider implements GenerationPort, ArtDirectionPort {
           ],
         },
       ],
-      text: { format: zodTextFormat(Contracts.review, 'card_review') },
+      text: {
+        format: zodTextFormat(
+          profile.activeArtContract?.composition ? Contracts.compositionReview : Contracts.review,
+          'card_review',
+        ),
+      },
     });
     if (!response.output_parsed) throw new Error('Card review was not returned.');
     const review = response.output_parsed;
