@@ -5,6 +5,7 @@ import type { ActiveRun } from './ActiveRun';
 import type { GenerationPort } from './GenerationPort';
 import { ProductionContext } from './ProductionContext';
 import { PromptCatalog } from './prompts/PromptCatalog';
+import { ManualSlotTagPrompts } from './prompts/ManualSlotTagPrompts';
 
 /** Records observations; bounded repair decisions belong to production orchestration. */
 export class CompositionVerificationService {
@@ -50,6 +51,7 @@ export class CompositionVerificationService {
           active.profile.promptCatalog,
         );
     }
+    attempt.reviewPrompt += ManualSlotTagPrompts.render(active.profile, variant, [card]);
     card.status = 'reviewing';
     this.context.activity(active.run, {
       key: card.id,

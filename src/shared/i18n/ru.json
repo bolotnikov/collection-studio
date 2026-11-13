@@ -682,5 +682,21 @@
   "No separate objects": "Отдельных объектов нет",
   "Describe environment background": "Описать фон окружения",
   "Remove background description": "Убрать описание фона",
-  "Set {number}": "Набор {number}"
+  "Set {number}": "Набор {number}",
+  "Save tags": "Сохранить теги",
+  "Add tag": "Добавить тег",
+  "Remove tag": "Удалить тег",
+  "Remove tag: {tag}": "Удалить тег: {tag}",
+  "Required by category": "Требуется категорией",
+  "Edit slot tags": "Редактирование тегов слота",
+  "No requirement": "Без требования",
+  "Manual tag revision {number}": "Ручные теги · версия {number}",
+  "Save tag changes before regenerating the image.": "Сохраните теги перед перегенерацией изображения.",
+  "Tags are requirements. Removing a tag makes that property unrestricted; put prohibitions in the revision instructions.": "Теги задают обязательные признаки. Удаление снимает требование; запреты укажите в инструкции к перегенерации.",
+  "Category and character restrictions remain fixed. Changes do not regenerate the image.": "Категория и ограничения на персонажей сохраняются. Изменение тегов не запускает генерацию.",
+  "This tag is required by the card category.": "Этот тег обязателен для категории карточки.",
+  "Slot tags changed. Reopen the editor.": "Теги слота изменились. Закройте и откройте редактор заново.",
+  "Choose a pattern geometry for a patterned backdrop.": "Для фона с узором выберите геометрию узора.",
+  "Pattern geometry requires a patterned backdrop.": "Геометрия узора требует фона с узором.",
+  "The selected tags need at least two matching original references.": "Для выбранных тегов нужны минимум два подходящих исходных референса."
 }

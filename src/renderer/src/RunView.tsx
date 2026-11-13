@@ -55,6 +55,9 @@ export function RunView({ run, profile: initialProfile, busy, perform, onLibrary
     setCardId,
     instruction,
     setInstruction,
+    slotTagsPending,
+    setSlotTagsPending,
+    saveSlotTags,
     budget,
     setBudget,
     variant,
@@ -245,8 +248,15 @@ export function RunView({ run, profile: initialProfile, busy, perform, onLibrary
             <h2>{card.subject}</h2>
             <p>{card.role}</p>
             <SlotRequirements
+              key={card.id}
               target={variant ? SetComposition.target(variant, card) : undefined}
               showObserved={false}
+              editor={{
+                revision: card.slotTagEdits?.at(-1)?.revision ?? 0,
+                disabled: busy || active || card.locked,
+                save: saveSlotTags,
+                onPendingChange: setSlotTagsPending,
+              }}
             />
             <div className="comparison">
               <div>
@@ -300,7 +310,13 @@ export function RunView({ run, profile: initialProfile, busy, perform, onLibrary
               />
               <button
                 className="primary"
-                disabled={busy || active || card.locked || run.imageCalls >= run.brief.maxImageCalls}
+                disabled={
+                  busy ||
+                  active ||
+                  card.locked ||
+                  slotTagsPending ||
+                  run.imageCalls >= run.brief.maxImageCalls
+                }
                 onClick={retry}
               >
                 <RefreshCw size={16} /> {t('Regenerate image')}{' '}

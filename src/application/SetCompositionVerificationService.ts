@@ -10,6 +10,8 @@ import { SetComposition } from '../domain/SetComposition';
 import { CardProductionService } from './CardProductionService';
 import { ProductionContext } from './ProductionContext';
 import { PromptCatalog } from './prompts/PromptCatalog';
+import { ManualSlotTagPrompts } from './prompts/ManualSlotTagPrompts';
+import { SlotTagRules } from '../domain/SlotTagRules';
 
 /** Reviews exact selected versions and persists bounded, resumable correction batches. */
 export class SetCompositionVerificationService {
@@ -24,26 +26,32 @@ export class SetCompositionVerificationService {
     const history = (variant.gridReviewHistory ??= []);
     const rounds = (variant.gridRepairRounds ??= []);
     while (!active.stop) {
-      const pending = rounds.find((round) => !round.completedAt);
+      const pending = rounds.find((round) => !round.completedAt && !round.supersededAt);
       if (pending) {
         await this.correct(active, provider, variant, pending);
         if (active.stop) return;
       }
-      let review = history.at(-1);
+      const currentHistory = history.filter((entry) =>
+        SlotTagRules.gridCurrent(variant, entry.slotTagRevisions),
+      );
+      let review = currentHistory.at(-1);
       const selection = variant.cards.map((card) => card.selectedAttemptId ?? '');
       if (!review || JSON.stringify(review.attemptIds) !== JSON.stringify(selection)) {
-        if (history.length >= 1 + policy.maxSetRegenerationRounds) return;
+        if (currentHistory.length >= 1 + policy.maxSetRegenerationRounds) return;
         review = await this.inspect(active, provider, variant, selection);
       }
       if (
         active.stop ||
         review.error ||
         !review.observation?.corrections.length ||
-        rounds.length >= policy.maxSetRegenerationRounds
+        rounds.filter((round) => currentHistory.some((entry) => entry.id === round.reviewId)).length >=
+          policy.maxSetRegenerationRounds
       )
         return;
       const targets = review.observation.corrections.filter(
-        (correction) => !variant.cards.find((card) => card.id === correction.cardId)?.locked,
+        (correction) =>
+          !variant.cards.find((card) => card.id === correction.cardId)?.locked &&
+          SlotTagRules.gridCorrectionAllowed(variant, correction.cardId, correction.kind),
       );
       if (!targets.length || !CompositionRepairRules.hasImageBudget(active.run)) return;
       const round = {
@@ -63,21 +71,25 @@ export class SetCompositionVerificationService {
       id: randomUUID(),
       at: new Date().toISOString(),
       attemptIds,
-      prompt: PromptCatalog.render(
-        'review.grid.v1',
-        {
-          brief: active.run.brief,
-          artContract: variant.artContract ?? { concept: variant.concept },
-          cards: variant.cards.map((card, index) => ({
-            index: index + 1,
-            cardId: card.id,
-            subject: card.subject,
-            visual: card.visual,
-            target: SetComposition.target(variant, card) ?? { category: card.category },
-          })),
-        },
-        active.profile.promptCatalog,
-      ),
+      slotTagRevisions: variant.cards.some((card) => card.slotTagEdits?.length)
+        ? SlotTagRules.gridRevisions(variant)
+        : undefined,
+      prompt:
+        PromptCatalog.render(
+          'review.grid.v1',
+          {
+            brief: active.run.brief,
+            artContract: SetComposition.activeContract(variant) ?? { concept: variant.concept },
+            cards: variant.cards.map((card, index) => ({
+              index: index + 1,
+              cardId: card.id,
+              subject: card.subject,
+              visual: card.visual,
+              target: SetComposition.target(variant, card) ?? { category: card.category },
+            })),
+          },
+          active.profile.promptCatalog,
+        ) + ManualSlotTagPrompts.render(active.profile, variant),
       error: 'Set composition request outcome is unknown.',
     });
     (variant.gridReviewHistory ??= []).push(review);
@@ -125,6 +137,11 @@ export class SetCompositionVerificationService {
   ): Promise<void> {
     const review = variant.gridReviewHistory?.find((review) => review.id === round.reviewId);
     if (!review?.observation) throw new Error('Set repair round is missing its review evidence.');
+    if (!SlotTagRules.gridCurrent(variant, review.slotTagRevisions)) {
+      round.supersededAt = new Date().toISOString();
+      await this.context.publish(active.run);
+      return;
+    }
     let next = 0;
     const worker = async () => {
       while (!active.stop) {

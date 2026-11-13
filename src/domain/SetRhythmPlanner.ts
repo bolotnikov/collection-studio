@@ -165,7 +165,9 @@ export class SetRhythmPlanner {
       const above = targets[index - policy.columns];
       if (
         [left, above].some(
-          (neighbor) => neighbor?.appearance && family(neighbor.appearance.backgroundColor) === family(color),
+          (neighbor) =>
+            neighbor?.appearance?.backgroundColor &&
+            family(neighbor.appearance.backgroundColor) === family(color),
         )
       )
         throw new Error('Adjacent cards share a background color family.');

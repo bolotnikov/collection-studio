@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { VisualCatalogContracts } from './VisualCatalogContracts';
 import { CompositionContract } from './CompositionContract';
 import { GenerationRepairContracts } from './GenerationRepairContracts';
+import { SlotTagContracts, type SlotTagEdit } from './SlotTagContracts';
 
 export class Contracts {
   static readonly inputManifest = z.array(
@@ -134,6 +135,9 @@ export class Contracts {
     confirmedViolations: z.array(GenerationRepairContracts.violation),
   });
   static readonly attempt = z.object({
+    revisionInstruction: z.string().optional(),
+    slotTagRevision: z.number().int().positive().optional(),
+    slotTargetSnapshot: CompositionContract.target.optional(),
     backgroundReviewVersion: z.literal('environment-background-v1').optional(),
     repairRootId: z.string().optional(),
     revisionOf: z.string().optional(),
@@ -160,6 +164,7 @@ export class Contracts {
     sourceEvidence: KnowledgeContracts.evidence.optional(),
   });
   static readonly card = Contracts.plannedCard.extend({
+    slotTagEdits: z.array(SlotTagContracts.revision).min(1).optional(),
     generationFailures: z
       .array(
         z.object({
@@ -400,6 +405,7 @@ export interface StudioApi {
   lock(runId: string, cardId: string, locked: boolean): Promise<void>;
   selectVariant(runId: string, variantId: string): Promise<void>;
   setBudget(runId: string, maximum: number): Promise<void>;
+  setSlotTags(runId: string, cardId: string, edit: SlotTagEdit): Promise<void>;
   previewDelivery(runId: string, variantId: string): Promise<import('./DeliveryContracts').DeliveryPreview[]>;
   exportDeliveryPreview(
     runId: string,

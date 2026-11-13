@@ -5,6 +5,7 @@ import type { CompositionRequirements, CompositionTarget } from '../shared/Compo
 import type { VisualCatalog } from '../shared/VisualCatalogContracts';
 import type { LibraryItem } from '../shared/StyleContracts';
 import { SetRules } from './SetRules';
+import { SlotTagRules } from './SlotTagRules';
 
 /** Immutable slot targets avoid shared mutable counters and double-counted retries. */
 export class SetComposition {
@@ -79,9 +80,26 @@ export class SetComposition {
     );
   }
   static target(variant: Variant, card: Card): CompositionTarget | undefined {
-    return variant.artContract?.composition?.targets.find(
+    const original = variant.artContract?.composition?.targets.find(
       (target) => target.index === variant.cards.findIndex((item) => item.id === card.id),
     );
+    const edit = card.slotTagEdits?.at(-1);
+    return original && edit ? SlotTagRules.target(original, edit.facets, edit.referenceIds) : original;
+  }
+  static activeContract(variant: Variant) {
+    const contract = variant.artContract;
+    if (!contract?.composition || !variant.cards.some((card) => card.slotTagEdits?.length)) return contract;
+    return {
+      ...contract,
+      composition: {
+        ...contract.composition,
+        targets: variant.cards.map((card) => {
+          const target = this.target(variant, card);
+          if (!target) throw new Error('Missing slot target.');
+          return target;
+        }),
+      },
+    };
   }
   static reference(item: LibraryItem, target: CompositionTarget): boolean {
     return (
@@ -260,7 +278,8 @@ export class SetComposition {
       const observed =
         selected?.compositionCheck?.observedComposition ?? selected?.review?.observedComposition;
       const verified = selected?.compositionCheck
-        ? !selected.compositionCheckError &&
+        ? SlotTagRules.reviewCurrent(card, selected.slotTagRevision) &&
+          !selected.compositionCheckError &&
           selected.compositionCheck.matches &&
           (!target ||
             (this.matches(observed, target.required) &&

@@ -4,6 +4,7 @@ import type { Run, StudioApi, Profile } from '../../../shared/Contracts';
 import { Assets } from '../Assets';
 import { ReferencePresentation } from './ReferencePresentation';
 import { SetComposition } from '../../../domain/SetComposition';
+import type { SlotTagEdit } from '../../../shared/SlotTagContracts';
 
 export function useRunViewModel(
   run: Run,
@@ -36,6 +37,7 @@ export function useRunViewModel(
   const [tab, setTabIndex] = useState<number | null>(null);
   const [cardId, setCardId] = useState<string | null>(null);
   const [instruction, setInstruction] = useState('');
+  const [slotTagsPending, setSlotTagsPending] = useState(false);
   const [budget, setBudget] = useState(run.brief.maxImageCalls);
   const tabs = Array.from({ length: run.brief.variants }, (_, index) => ({
     index,
@@ -95,6 +97,12 @@ export function useRunViewModel(
     setCardId,
     instruction,
     setInstruction,
+    slotTagsPending,
+    setSlotTagsPending,
+    saveSlotTags: async (edit: SlotTagEdit) => {
+      if (!card) throw new Error('Card not found.');
+      await api.setSlotTags(run.id, card.id, edit);
+    },
     budget,
     setBudget,
     variant,

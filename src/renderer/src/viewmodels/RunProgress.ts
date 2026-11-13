@@ -2,6 +2,7 @@ import type { Run } from '../../../shared/Contracts';
 import { SetComposition } from '../../../domain/SetComposition';
 import { DeliveryReadiness } from '../../../domain/DeliveryReadiness';
 import { ProductionRules } from '../../../domain/ProductionRules';
+import { SlotTagRules } from '../../../domain/SlotTagRules';
 
 /** Completed milestones only; elapsed model-request time never pretends to be progress. */
 export class RunProgress {
@@ -89,8 +90,9 @@ export class RunProgress {
         : accepted;
       const gridReview = variant.gridReviewHistory?.at(-1);
       const currentGrid =
+        SlotTagRules.gridCurrent(variant, gridReview?.slotTagRevisions) &&
         JSON.stringify(gridReview?.attemptIds) ===
-        JSON.stringify(variant.cards.map((card) => card.selectedAttemptId));
+          JSON.stringify(variant.cards.map((card) => card.selectedAttemptId));
       if (
         compositionOnly && hasSetCheck
           ? currentGrid &&
@@ -98,7 +100,7 @@ export class RunProgress {
               gridReview?.observation ||
               (gridReview?.error && gridReview.error !== 'Set composition request outcome is unknown.'),
             ) &&
-            !variant.gridRepairRounds?.some((round) => !round.completedAt)
+            !variant.gridRepairRounds?.some((round) => !round.completedAt && !round.supersededAt)
           : !compositionOnly &&
             (ProductionRules.allowsWarnings(run.planningPolicy)
               ? variant.review || variant.reviewError

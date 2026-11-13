@@ -5,6 +5,8 @@ import type { PreparedStyle } from './style/StylePreparationPort';
 import type { SourceContext } from './style/SourceContextPort';
 import { PromptCatalog } from './prompts/PromptCatalog';
 import { EnvironmentBackdrops } from '../domain/EnvironmentBackdrops';
+import { ManualSlotTagPrompts } from './prompts/ManualSlotTagPrompts';
+import type { Variant } from '../shared/Contracts';
 
 /** Binds image roles to the actual provider input order, including a bounded revision base. */
 export class GenerationRequestBuilder {
@@ -14,10 +16,12 @@ export class GenerationRequestBuilder {
     profile: Profile;
     brief: Brief;
     card: Card;
+    variant?: Variant;
     references: string[];
     prepared?: PreparedStyle;
     sourceContext?: SourceContext;
     instruction: string;
+    manualTagInstruction?: string;
     previous?: { id: string; path: string };
   }): {
     prompt: string;
@@ -28,12 +32,22 @@ export class GenerationRequestBuilder {
     const { profile, sourceContext, prepared } = input;
     const references = [...input.references, ...(sourceContext?.referencePaths ?? [])];
     const prompts = new PromptCatalog(profile.promptCatalog);
-    const prompt =
+    const basePrompt =
       input.target?.appearance && prompts.values['generation.appearance.v1']
         ? input.prompt +
           '\n' +
           prompts.render('generation.appearance.v1', { appearance: input.target.appearance })
         : input.prompt;
+    const prompt =
+      basePrompt +
+      (input.variant
+        ? ManualSlotTagPrompts.render(
+            profile,
+            input.variant,
+            [input.card],
+            input.manualTagInstruction ?? input.instruction,
+          )
+        : '');
     if (!prompts.values['generation.context.v1']) return { prompt, references };
     if (prepared && prepared.references.length !== prepared.evidence.references.length)
       throw new Error('Generation reference evidence must match the attached images.');

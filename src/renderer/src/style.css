@@ -850,6 +850,59 @@ li {
   border-top: 0;
   margin-bottom: 12px;
 }
+.editable-tags > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.editable-tag > button {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+}
+.editable-tag:hover > button,
+.editable-tag:focus-within > button {
+  opacity: 1;
+}
+.fixed-tag > svg {
+  color: var(--muted);
+}
+.slot-tag-save {
+  margin-top: 10px;
+}
+.slot-tag-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-height: 55vh;
+  overflow: auto;
+  margin: 16px 0;
+}
+.slot-tag-options fieldset {
+  min-width: 0;
+  border: 1px solid var(--field-line);
+  padding: 10px;
+}
+.slot-tag-options legend {
+  padding: 0 5px;
+  color: var(--muted);
+}
+.slot-tag-options legend svg {
+  margin-left: 6px;
+}
+.slot-tag-options button[aria-pressed='true'] {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+@media (hover: none) {
+  .editable-tag > button {
+    opacity: 1;
+  }
+}
 .variant-heading h2 {
   font-size: 15px;
 }

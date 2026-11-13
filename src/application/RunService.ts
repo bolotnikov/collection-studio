@@ -27,6 +27,7 @@ import type { RunStore } from './RunStore';
 import type { ImageStore } from './ImageStore';
 import type { GenerationPort } from './GenerationPort';
 import { ProductionRules } from '../domain/ProductionRules';
+import { SlotTagContracts, type SlotTagEdit } from '../shared/SlotTagContracts';
 
 export class RunService {
   private active: ActiveRun | null = null;
@@ -339,6 +340,20 @@ export class RunService {
   }
   setBudget(id: string, maximum: number): Promise<void> {
     return this.edit(id, (run) => RunEdits.setBudget(run, maximum));
+  }
+  setSlotTags(id: string, cardId: string, input: SlotTagEdit): Promise<void> {
+    const edit = SlotTagContracts.edit.parse(input);
+    return this.whenIdle(async () => {
+      const run = await this.repository.get(id);
+      const profile = await this.repository.getProfile(id);
+      if (!RunEdits.setSlotTags(run, cardId, edit, profile.library ?? [])) return;
+      const template = new PromptCatalog().values['manual.slot-tags.v1'];
+      if (!template) throw new Error('Missing manual slot tag prompt.');
+      profile.promptCatalog ??= { ...new PromptCatalog().values };
+      profile.promptCatalog['manual.slot-tags.v1'] ??= template;
+      await this.repository.saveProfile(id, profile);
+      await this.publish(run);
+    });
   }
   async edit(id: string, mutate: (run: Run) => void): Promise<void> {
     return this.whenIdle(async () => {

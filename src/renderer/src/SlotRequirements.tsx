@@ -2,15 +2,18 @@ import type { CompositionTarget, CompositionRequirements } from '../../shared/Co
 import { PatternChips } from './PatternChips';
 import { SetComposition } from '../../domain/SetComposition';
 import { useLocalization } from './i18n/LocalizationContext';
+import { SlotTagEditor } from './SlotTagEditor';
 
 export function SlotRequirements({
   target,
   observed,
   showObserved = true,
+  editor,
 }: {
   target?: CompositionTarget;
   observed?: CompositionRequirements;
   showObserved?: boolean;
+  editor?: Omit<Parameters<typeof SlotTagEditor>[0], 'target'>;
 }) {
   const { t } = useLocalization();
   return (
@@ -21,7 +24,11 @@ export function SlotRequirements({
           <p>
             {t('Category')} {target.category}
           </p>
-          <PatternChips facets={{ ...target.required, ...target.appearance }} />
+          {editor ? (
+            <SlotTagEditor key={`${target.index}/${editor.revision}`} target={target} {...editor} />
+          ) : (
+            <PatternChips facets={{ ...target.required, ...target.appearance }} />
+          )}
           {target.required.characterCount !== undefined && (
             <p>{t('Acting characters: {count}', { count: target.required.characterCount })}</p>
           )}

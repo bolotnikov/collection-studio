@@ -51,6 +51,7 @@ export class GenerationRepairContracts {
       .max(10),
   });
   static readonly setReview = z.object({
+    slotTagRevisions: z.array(z.number().int().nonnegative()).length(10).optional(),
     id: z.string(),
     at: z.string(),
     attemptIds: z.array(z.string()).length(10),
@@ -65,6 +66,7 @@ export class GenerationRepairContracts {
     targetCardIds: z.array(z.string()).min(1).max(10),
     startedAt: z.string(),
     completedAt: z.string().optional(),
+    supersededAt: z.string().optional(),
   });
 }
 

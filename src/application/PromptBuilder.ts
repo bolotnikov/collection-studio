@@ -228,7 +228,7 @@ export class PromptBuilder {
         sourceContext: PromptBuilder.sourceContext(profile, card.category),
         setTitle: variant.title,
         setConcept: variant.concept,
-        artContract: JSON.stringify(variant.artContract ?? null),
+        artContract: JSON.stringify(profile.activeArtContract ?? variant.artContract ?? null),
         setCards: JSON.stringify(
           variant.cards.map((c) => ({
             subject: c.subject,

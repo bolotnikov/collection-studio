@@ -21,6 +21,7 @@ export class PromptCatalog {
           'correction.mandatory.v1',
           'review.grid.v1',
           'correction.grid.v1',
+          'manual.slot-tags.v1',
         ].includes(key) &&
         input !== defaults
       )

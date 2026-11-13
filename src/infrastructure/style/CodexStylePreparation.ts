@@ -352,6 +352,7 @@ export class CodexStylePreparation implements StylePreparationPort {
         profile.rules,
         this.policy,
         this.library.map((r) => [r.id, r.sha256, r.approved, r.metadata]),
+        ...(card.slotTagEdits?.length ? [card.slotTagEdits.at(-1)] : []),
       ]),
     );
     let task = this.preparations.get(key);
@@ -563,7 +564,7 @@ export class CodexStylePreparation implements StylePreparationPort {
                 compositionTarget: target,
               }),
               setConcept: variant.concept,
-              artContract: JSON.stringify(variant.artContract ?? null),
+              artContract: JSON.stringify(profile.activeArtContract ?? variant.artContract ?? null),
               visualRequirements: JSON.stringify(card.visual ?? null),
               correction: correction,
               rules: JSON.stringify({

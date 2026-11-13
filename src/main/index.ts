@@ -32,6 +32,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { z } from 'zod';
 import { Contracts, type Run } from '../shared/Contracts';
+import { SlotTagContracts } from '../shared/SlotTagContracts';
 import { RunRepository } from '../infrastructure/RunRepository';
 import { ImageFiles } from '../infrastructure/ImageFiles';
 import { RunService } from '../application/RunService';
@@ -455,6 +456,11 @@ class DesktopApplication {
     this.handle('selectVariant', cardRef, ([id, variant]) => service.selectVariant(id, variant));
     this.handle('setBudget', z.tuple([Contracts.id, z.number().int().min(1).max(150)]), ([id, maximum]) =>
       service.setBudget(id, maximum),
+    );
+    this.handle(
+      'setSlotTags',
+      z.tuple([Contracts.id, Contracts.id, SlotTagContracts.edit]),
+      ([id, cardId, edit]) => service.setSlotTags(id, cardId, edit),
     );
     this.handle('previewDelivery', cardRef, async ([id, variantId]) => {
       const run = await repository.get(id);

@@ -29,6 +29,7 @@ const api: StudioApi = {
   lock: (run, card, locked) => ipcRenderer.invoke('studio:lock', run, card, locked),
   selectVariant: (run, variant) => ipcRenderer.invoke('studio:selectVariant', run, variant),
   setBudget: (run, maximum) => ipcRenderer.invoke('studio:setBudget', run, maximum),
+  setSlotTags: (run, card, edit) => ipcRenderer.invoke('studio:setSlotTags', run, card, edit),
   previewDelivery: (run, variant) => ipcRenderer.invoke('studio:previewDelivery', run, variant),
   exportDeliveryPreview: (run, variant, preview) =>
     ipcRenderer.invoke('studio:exportDeliveryPreview', run, variant, preview),

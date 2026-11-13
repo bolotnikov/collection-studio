@@ -25,6 +25,7 @@ export class CompositionContract {
         backgroundColor: VisualCatalogContracts.facets.shape.backgroundColor.unwrap(),
         subjectScale: VisualCatalogContracts.facets.shape.subjectScale,
       })
+      .partial()
       .optional(),
     referenceIds: z.array(z.string()).optional(),
     selectedReferenceIds: z.array(z.string()).min(2).max(8).optional(),

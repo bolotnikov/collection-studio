@@ -125,7 +125,7 @@ export class CardProductionService {
     if (active.stop) return;
     const cardProfile = {
       ...(context?.profile ?? this.context.reviewProfile(active)),
-      activeArtContract: variant.artContract,
+      activeArtContract: SetComposition.activeContract(variant),
       compositionState: variant.artContract?.composition
         ? SetComposition.snapshot(variant, active.producing, run.productionPolicy?.styleThreshold ?? 4)
         : undefined,
@@ -144,10 +144,12 @@ export class CardProductionService {
       target: SetComposition.target(variant, card),
       brief: run.brief,
       card,
+      variant,
       references: prepared?.references ?? references,
       prepared,
       sourceContext: context,
       instruction,
+      manualTagInstruction: manual ? instruction : (previous?.revisionInstruction ?? instruction),
       previous: previous ? { id: previous.id, path: path.join(folder, previous.master) } : undefined,
     });
     const selectedReferences = [...(prepared?.references ?? references), ...(context?.referencePaths ?? [])];
@@ -194,6 +196,13 @@ export class CardProductionService {
     }
     const { result, id, files, elapsedMs } = generated;
     const attempt = {
+      revisionInstruction: card.slotTagEdits?.length
+        ? manual
+          ? instruction
+          : (previous?.revisionInstruction ?? instruction)
+        : undefined,
+      slotTagRevision: card.slotTagEdits?.at(-1)?.revision,
+      slotTargetSnapshot: card.slotTagEdits?.length ? SetComposition.target(variant, card) : undefined,
       repairRootId: repair?.rootAttemptId,
       revisionOf: instruction.trim() ? previous?.id : undefined,
       id,

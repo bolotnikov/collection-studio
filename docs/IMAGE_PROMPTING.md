@@ -33,6 +33,14 @@ The canonical `environment-background` requirements define calm recognizable set
 - Codex requests portrait art; delivery is a centered 430×480 crop of the immutable master. When card verification is enabled, it inspects silhouette completeness. Historical square API outputs remain unchanged, but the API adapter is no longer available. Output positioning remains probabilistic.
 - Keep deterministic plan validation, frozen slot reference identity, bounded repair, current-version review evidence and whole-set checks. Prompt compliance cannot prove visual compliance.
 
+## Manual slot tags
+
+The card drawer supports explicit, idle-only tag edits before manual regeneration. Editable tags come from the existing controlled facet catalogue; category-defining support/backdrop and character restrictions remain fixed. Removing a tag makes it unrestricted. Replacing green with blue makes blue mandatory, while the producer can request a lunar surface in the revision instructions. Saving tags does not generate images or spend request/correction budgets.
+
+`card.slotTagEdits` stores additive, numbered revisions with effective facets, changed axes and frozen matching original references. The original art contract, planning signature, drafts, prompt snapshots and image bytes are preserved. Generation, per-card checks and whole-grid checks use the effective target and the snapshotted `manual.slot-tags.v1` precedence rule. Conflicting old prose and palette-rhythm assignments do not restore removed tags. Only color/pattern relationships involving edited slots are relaxed; unrelated composition and style requirements remain active.
+
+New image attempts bind their tag revision, effective target snapshot and user instructions. Old observations remain evidence for their original revision and cannot trigger automatic repairs under a different tag contract. Whole-grid reviews and correction allowances are scoped to the tag-revision vector; unfinished obsolete rounds are recorded as superseded. Optimistic revision checking rejects stale edits. Unedited runs retain their existing targets, prompts and correction behavior, including historical reading and pause/resume.
+
 ## Offline verification
 
 `tests/GenerationContext.test.ts` checks requirement propagation through all stages without a corpus, planned visual details in review, exact numbered input order, revision-base behavior, historical catalogs, and both provider adapters. The API transport is intercepted locally and the Codex worker is mocked; neither generates art or uses real credentials. Its production-service cases verify that a revision receives its selected immutable master and reviewers retain only original evidence. Existing workflow tests exercise card/plan failures, interruption, resume and export gates.

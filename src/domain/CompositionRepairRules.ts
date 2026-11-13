@@ -1,11 +1,12 @@
 import type { Attempt, Card, Run, Variant } from '../shared/Contracts';
 import { SetComposition } from './SetComposition';
+import { SlotTagRules } from './SlotTagRules';
 
 /** Only explicit, observation-backed mandatory defects may spend a card repair request. */
 export class CompositionRepairRules {
   static violations(variant: Variant, card: Card, attempt: Attempt) {
     const check = attempt.compositionCheck;
-    if (!check || attempt.compositionCheckError) return [];
+    if (!check || attempt.compositionCheckError || !SlotTagRules.reviewCurrent(card, attempt.slotTagRevision)) return [];
     const target = SetComposition.target(variant, card);
     return (check.confirmedViolations ?? []).filter((violation) => {
       switch (violation.kind) {

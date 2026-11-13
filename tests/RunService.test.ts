@@ -33,6 +33,8 @@ import { SetContract } from '../src/shared/SetContract';
 import { DeliveryReadiness } from '../src/domain/DeliveryReadiness';
 import { CompositionFixture } from './fixtures/CompositionFixture';
 import contentModes from '../resources/content-modes.json';
+import { SetComposition } from '../src/domain/SetComposition';
+import { SlotTagContracts } from '../src/shared/SlotTagContracts';
 
 let pixels: Buffer;
 let profile: Profile;
@@ -2061,6 +2063,124 @@ class BoundedCompositionProvider extends FixtureProvider {
     };
   }
 }
+
+it.each(['normal', 'pause', 'repair'] as const)(
+  'preserves manual blue tags through generation, verification and export in %s mode',
+  async (mode) => {
+    const pause = mode === 'pause';
+    const extraRepair = mode === 'repair' ? 1 : 0;
+    const provider = new BoundedCompositionProvider();
+    const originalPlan = provider.plan.bind(provider);
+    vi.spyOn(provider, 'plan').mockImplementation(async () => {
+      const plan = await originalPlan();
+      const target = plan.variants[0]?.artContract?.composition?.targets[8];
+      if (!target) throw new Error('Missing editable slot');
+      target.appearance = { backgroundColor: 'green', subjectScale: 'large' };
+      return Contracts.preparedProductionPlan.parse(plan);
+    });
+    const originalVerify = provider.verifyComposition.bind(provider);
+    vi.spyOn(provider, 'verifyComposition').mockImplementation(async (prompt) => {
+      const observation = await originalVerify(prompt);
+      if (prompt.includes('"subject":"Subject 8"'))
+        observation.observedComposition.backgroundColor = prompt.includes('USER-APPROVED SLOT TAG OVERRIDES')
+          ? 'blue'
+          : 'green';
+      if (
+        mode === 'repair' &&
+        prompt.includes('USER-APPROVED SLOT TAG OVERRIDES') &&
+        provider.observations.get(8) === 2
+      ) {
+        observation.subjectPresent = false;
+        observation.confirmedViolations = [
+          { kind: 'wrong-subject', evidence: 'A wrong subject needs one bounded repair' },
+        ];
+      }
+      return observation;
+    });
+    const library = CompositionFixture.create().catalog.cards.map((item) =>
+      StyleContracts.libraryItem.parse({
+        ...item,
+        title: item.observation.subject,
+        category: item.observation.category,
+        source: 'fixture',
+      }),
+    );
+    const h = await harness(provider, undefined, undefined, Contracts.profile.parse({ ...profile, library }));
+    const inputSettings = { ...settings, maxCardRegenerations: 1, maxSetRegenerationRounds: 1 };
+    const started = await h.service.start({ ...brief, variants: 1, maxImageCalls: 25 }, inputSettings);
+    const initial = await finished(h, started.id);
+    const variant = initial.variants[0],
+      card = variant?.cards[8];
+    if (!variant || !card) throw new Error('Missing generated card');
+    const oldAttempt = structuredClone(card.attempts[0]);
+    const contract = structuredClone(variant.artContract);
+    const target = SetComposition.target(variant, card);
+    if (!target) throw new Error('Missing planned target');
+    const facets = SlotTagContracts.facets.parse(
+      Object.fromEntries(
+        Object.entries({ ...target.required, ...target.appearance, backgroundColor: 'blue' }).filter(
+          ([key]) => key !== 'characterCount',
+        ),
+      ),
+    );
+    await h.service.setSlotTags(initial.id, card.id, { expectedRevision: 0, facets });
+    const edited = await h.repository.get(initial.id);
+    expect(edited.imageCalls).toBe(10);
+    expect(edited.variants[0]?.artContract).toEqual(contract);
+    expect(edited.variants[0]?.cards[8]?.attempts[0]).toEqual(oldAttempt);
+    const port: GenerationPort = provider;
+    vi.spyOn(port, 'verifySetComposition').mockResolvedValue({
+      findings: ['Obsolete green requirement'],
+      corrections: [
+        {
+          cardId: card.id,
+          kind: 'color-pattern-rhythm',
+          evidence: 'Original plan assigned green',
+          instruction: 'Restore the green background',
+        },
+      ],
+    });
+    let release = () => {};
+    if (pause)
+      provider.gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+    h.snapshots.length = 0;
+    await h.service.retry(initial.id, card.id, 'Перерисуй на лунной поверхности', undefined, inputSettings);
+    if (pause) {
+      await vi.waitFor(() => expect(provider.calls).toBe(11));
+      await h.service.pause(initial.id);
+      release();
+      const paused = await finished(h, initial.id);
+      expect(paused.status).toBe('paused');
+      h.snapshots.length = 0;
+      await h.service.resume(initial.id, undefined, inputSettings);
+    }
+    const result = await finished(h, initial.id);
+    const updated = result.variants[0],
+      latestCard = updated?.cards[8],
+      attempt = latestCard?.attempts.at(-1);
+    if (!updated || !latestCard || !attempt) throw new Error('Missing manual revision');
+    expect(result.status, result.stage).toBe('completed');
+    expect(result.imageCalls).toBe(11 + extraRepair);
+    expect(latestCard.attempts).toHaveLength(2 + extraRepair);
+    expect(latestCard.attempts[0]).toEqual(oldAttempt);
+    expect(updated.artContract).toEqual(contract);
+    expect(attempt.slotTagRevision).toBe(1);
+    expect(attempt.slotTargetSnapshot?.appearance?.backgroundColor).toBe('blue');
+    expect(attempt.prompt).toContain('USER-APPROVED SLOT TAG OVERRIDES');
+    expect(attempt.prompt).toContain('Перерисуй на лунной поверхности');
+    expect(attempt.reviewPrompt).toContain('Перерисуй на лунной поверхности');
+    expect(attempt.compositionCheck?.matches).toBe(true);
+    expect(updated.gridReviewHistory?.at(-1)?.slotTagRevisions?.[8]).toBe(1);
+    expect(updated.gridRepairRounds ?? []).toHaveLength(0);
+    for (const [index, other] of updated.cards.entries())
+      if (index !== 8) expect(other.attempts).toHaveLength(1);
+    const archive = path.join(h.root, 'manual-tags.zip');
+    await new ExportService(h.images).export(result, updated.id, h.repository.directory(result.id), archive);
+    expect(new AdmZip(archive).readAsText('run.json')).toContain('manual-slot-tags-v1');
+  },
+);
 
 it.each([0, 1, 2])(
   'caps explicit mandatory card corrections at %i, preserves versions and rechecks every output',

@@ -682,5 +682,21 @@
   "No separate objects": "No separate objects",
   "Describe environment background": "Describe environment background",
   "Remove background description": "Remove background description",
-  "Set {number}": "Set {number}"
+  "Set {number}": "Set {number}",
+  "Save tags": "Save tags",
+  "Add tag": "Add tag",
+  "Remove tag": "Remove tag",
+  "Remove tag: {tag}": "Remove tag: {tag}",
+  "Required by category": "Required by category",
+  "Edit slot tags": "Edit slot tags",
+  "No requirement": "No requirement",
+  "Manual tag revision {number}": "Manual tag revision {number}",
+  "Save tag changes before regenerating the image.": "Save tag changes before regenerating the image.",
+  "Tags are requirements. Removing a tag makes that property unrestricted; put prohibitions in the revision instructions.": "Tags are requirements. Removing a tag makes that property unrestricted; put prohibitions in the revision instructions.",
+  "Category and character restrictions remain fixed. Changes do not regenerate the image.": "Category and character restrictions remain fixed. Changes do not regenerate the image.",
+  "This tag is required by the card category.": "This tag is required by the card category.",
+  "Slot tags changed. Reopen the editor.": "Slot tags changed. Reopen the editor.",
+  "Choose a pattern geometry for a patterned backdrop.": "Choose a pattern geometry for a patterned backdrop.",
+  "Pattern geometry requires a patterned backdrop.": "Pattern geometry requires a patterned backdrop.",
+  "The selected tags need at least two matching original references.": "The selected tags need at least two matching original references."
 }
